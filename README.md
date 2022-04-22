@@ -1,7 +1,7 @@
 # HosterRed-HyperVisor
 ![HosterRed Screenshot 1](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/main/screenshots/HosterRed_screenshot_1.png)
 #### List of supported OSes
-- Debian 11
+- [ ] Debian 11
 - Ubuntu 20.04
 - Ubuntu 20.04 LVM Hardened
 - Fedora (latest)
