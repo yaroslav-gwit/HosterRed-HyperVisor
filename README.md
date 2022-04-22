@@ -1,13 +1,14 @@
 # HosterRed-HyperVisor
 ![HosterRed Screenshot 1](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/main/screenshots/HosterRed_screenshot_1.png)
 #### List of supported OSes
-- [ ] Debian 11
-- Ubuntu 20.04
-- Ubuntu 20.04 LVM Hardened
-- Fedora (latest)
-- CentOS 7
-- AlmaLinux 8 (RHEL 8)
-- Windows 10 (you'll have to provide your own image)
+- [x] Debian 11
+- [x] Ubuntu 20.04
+- [x] Ubuntu 20.04 LVM Hardened
+- [x] Fedora (latest)
+- [x] CentOS 7
+- [x] AlmaLinux 8 (RHEL 8)
+- [ ] Windows 10 (you'll have to provide your own image)
+- [ ] FreeBSD 13 (image is not ready yet)
 ## Backups
 ### Automatic sheduled snapshots
 ```
