@@ -9,13 +9,13 @@
 #### List of supported OSes
 - [x] Debian 11
 - [x] Ubuntu 20.04
-- [x] Ubuntu 20.04 LVM Hardened
-- [x] Fedora (latest)
-- [x] CentOS 7
-- [x] AlmaLinux 8 (RHEL 8)
+- [x] AlmaLinux 8
 - [x] Windows 10 (You'll have to provide your own image. Instructions how to build one will be released in the Wiki section soon.)
 
 #### OS support for future releases
+- [ ] Ubuntu 20.04 LVM Hardened
+- [ ] Fedora (latest)
+- [ ] CentOS 7
 - [ ] FreeBSD 13 UFS
 - [ ] FreeBSD 13 ZFS
 - [ ] OpenBSD
