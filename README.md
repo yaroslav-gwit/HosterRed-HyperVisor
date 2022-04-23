@@ -1,18 +1,21 @@
-# HosterRed-HyperVisor
+# General Information
+Hoster Red: HyperVisor is based on FreeBSD, Bhyve and ZFS. It's a new approach to VM deployment and management.
 ![HosterRed Screenshot 1](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/main/screenshots/HosterRed_screenshot_1.png)
 
-#### State icons
+### State icons
 🟢 - VM is running
 <br>🔴 - VM is stopped
 <br>🔒 - VM is located on the encrypted Datased
 <br>🔁 - Production VM icon: VM will be included in the autostart, automatic snapshots/replication, etc
-#### List of supported OSes
+
+## OS Support
+### List of supported OSes
 - [x] Debian 11
 - [x] Ubuntu 20.04
 - [x] AlmaLinux 8
 - [x] Windows 10 (You'll have to provide your own image. Instructions how to build one will be released in the Wiki section soon.)
 
-#### OSes on the roadmap
+### OSes on the roadmap
 - [ ] Ubuntu 20.04 LVM Hardened
 - [ ] Fedora (latest)
 - [ ] CentOS 7
@@ -23,8 +26,11 @@
 - [ ] OpenSUSE Tumbleweed
 - [ ] Windows 11
 - [ ] Windows Server 2019
-#### OSes that are not interesting to me
+
+### OSes that are not interesting to me
 - [x] ~~MacOS (any release)~~
+
+# Quick Start Section
 ## Backups
 ### Automatic sheduled snapshots
 ```
