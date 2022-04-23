@@ -12,7 +12,7 @@
 - [x] AlmaLinux 8
 - [x] Windows 10 (You'll have to provide your own image. Instructions how to build one will be released in the Wiki section soon.)
 
-#### OS support for future releases
+#### OSes on the roadmap
 - [ ] Ubuntu 20.04 LVM Hardened
 - [ ] Fedora (latest)
 - [ ] CentOS 7
@@ -23,6 +23,8 @@
 - [ ] OpenSUSE Tumbleweed
 - [ ] Windows 11
 - [ ] Windows Server 2019
+#### OSes that are not interesting to me
+- [x] ~~MacOS (any release)~~
 ## Backups
 ### Automatic sheduled snapshots
 ```
