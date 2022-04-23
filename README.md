@@ -30,7 +30,7 @@ Hoster Red: HyperVisor is based on FreeBSD, Bhyve and ZFS. It's a new approach t
 ### OSes not on the roadmap
 - [x] ~~MacOS (any release)~~
 
-# Quick Start Section
+# Quickstart Section
 ## Backups
 ### Automatic sheduled snapshots
 ```
