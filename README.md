@@ -13,12 +13,14 @@
 - [x] Fedora (latest)
 - [x] CentOS 7
 - [x] AlmaLinux 8 (RHEL 8)
-- [ ] Windows 10 (you'll have to provide your own image)
-- [ ] FreeBSD 13 (image is not ready yet)
-#### OS support, which is soon to be released
+- [x] Windows 10 (You'll have to provide your own image. Instructions how to build one will be released in the Wiki section soon.)
+
+#### OS support for future releases
+- [ ] FreeBSD 13 UFS
+- [ ] FreeBSD 13 ZFS
+- [ ] OpenBSD
 - [ ] OpenSUSE Leap
 - [ ] OpenSUSE Tumbleweed
-- [ ] OpenBSD
 - [ ] Windows 11
 - [ ] Windows Server 2019
 ## Backups
