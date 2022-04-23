@@ -1,5 +1,10 @@
 # HosterRed-HyperVisor
 ![HosterRed Screenshot 1](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/main/screenshots/HosterRed_screenshot_1.png)
+#### State icons
+🟢 - VM is running
+🔴 - VM is stopped
+🔒 - VM is located on the encrypted Datased
+🔁 - Production VM icon: VM will be included in the autostart, automatic snapshots, and replication
 #### List of supported OSes
 - [x] Debian 11
 - [x] Ubuntu 20.04
