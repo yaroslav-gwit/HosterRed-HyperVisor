@@ -13,7 +13,7 @@ Hoster Red: HyperVisor is based on FreeBSD, Bhyve and ZFS. It's a new approach t
 - [x] Debian 11
 - [x] Ubuntu 20.04
 - [x] AlmaLinux 8
-- [x] Windows 10 (You'll have to provide your own image. Instructions how to build one will be released in the Wiki section soon.)
+- [x] Windows 10 (You'll have to provide your own image, instructions how to build one will be released in the Wiki section soon)
 
 ### OSes on the roadmap
 - [ ] Ubuntu 20.04 LVM Hardened
@@ -27,7 +27,7 @@ Hoster Red: HyperVisor is based on FreeBSD, Bhyve and ZFS. It's a new approach t
 - [ ] Windows 11
 - [ ] Windows Server 2019
 
-### OSes that are not interesting to me
+### OSes not on the roadmap
 - [x] ~~MacOS (any release)~~
 
 # Quick Start Section
