@@ -14,6 +14,12 @@
 - [x] AlmaLinux 8 (RHEL 8)
 - [ ] Windows 10 (you'll have to provide your own image)
 - [ ] FreeBSD 13 (image is not ready yet)
+#### OS support, which is soon to be released
+- [ ] OpenSUSE Leap
+- [ ] OpenSUSE Tumbleweed
+- [ ] OpenBSD
+- [ ] Windows 11
+- [ ] Windows Server 2019
 ## Backups
 ### Automatic sheduled snapshots
 ```
