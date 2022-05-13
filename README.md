@@ -35,8 +35,8 @@ Hoster Red: HyperVisor is based on FreeBSD, Bhyve and ZFS. It's a new approach t
 ## Backups
 ### Automatic sheduled snapshots
 ```
-@hourly  hoster vm snapshot-all --stype hourly  --keep 3
-@daily   hoster vm snapshot-all --stype daily   --keep 5
-@weekly  hoster vm snapshot-all --stype weekly  --keep 3
-@monthly hoster vm snapshot-all --stype monthly --keep 6
+@hourly   root  hoster vm snapshot-all --stype hourly  --keep 3
+@daily    root  hoster vm snapshot-all --stype daily   --keep 5
+@weekly   root  hoster vm snapshot-all --stype weekly  --keep 3
+@monthly  root  hoster vm snapshot-all --stype monthly --keep 6
 ```
