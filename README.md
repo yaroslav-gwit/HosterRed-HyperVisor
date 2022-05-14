@@ -1,5 +1,5 @@
 # General Information
-Hoster Red: HyperVisor is based on FreeBSD, Bhyve and ZFS. It's a new approach to VM deployment and management.
+Hoster Red: HyperVisor is a highly opinionated VM management framework, which includes: network isolation, dataset encryption (at the ZFS level), instant VM deploments and more. It's based on FreeBSD, Bhyve and ZFS.
 ![HosterRed Screenshot 3](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/main/screenshots/HosterRed_screenshot_3.png)
 
 ### State icons
@@ -35,8 +35,9 @@ Hoster Red: HyperVisor is based on FreeBSD, Bhyve and ZFS. It's a new approach t
 ## Backups
 ### Automatic sheduled snapshots
 ```
-@hourly   root  hoster vm snapshot-all --stype hourly  --keep 3
-@daily    root  hoster vm snapshot-all --stype daily   --keep 5
-@weekly   root  hoster vm snapshot-all --stype weekly  --keep 3
-@monthly  root  hoster vm snapshot-all --stype monthly --keep 6
+@hourly     root  hoster vm snapshot-all  --stype hourly  --keep 3
+@daily      root  hoster vm snapshot-all  --stype daily   --keep 5
+@weekly     root  hoster vm snapshot-all  --stype weekly  --keep 3
+@monthly    root  hoster vm snapshot-all  --stype monthly --keep 6
+20 * * * *  root  hoster vm replicate-all --endpoint 192.168.120.11
 ```
