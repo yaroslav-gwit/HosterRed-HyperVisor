@@ -33,7 +33,7 @@ Hoster Red: HyperVisor is a highly opinionated VM management framework, which in
 
 # Quickstart Section
 ## Backups
-### Automatic sheduled snapshots
+### Sheduled automatic snapshots and replication for all production VMs
 ```
 @hourly     root  hoster vm snapshot-all  --stype hourly  --keep 3
 @daily      root  hoster vm snapshot-all  --stype daily   --keep 5
