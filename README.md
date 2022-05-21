@@ -5,7 +5,7 @@ Hoster Red: HyperVisor is a highly opinionated VM management framework, which in
 ### State icons
 🟢 - VM is running
 <br>🔴 - VM is stopped
-<br>🔶 - VM is a backup from another node
+<br>💾 - VM is a backup from another node
 <br>🔒 - VM is located on the encrypted Datased
 <br>🔁 - Production VM icon: VM will be included in the autostart, automatic snapshots/replication, etc
 
