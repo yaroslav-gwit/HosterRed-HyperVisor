@@ -39,5 +39,5 @@ HosterRed: HyperVisor is a highly opinionated VM management framework, which inc
 @daily      root  hoster vm snapshot-all  --stype daily   --keep 5
 @weekly     root  hoster vm snapshot-all  --stype weekly  --keep 3
 @monthly    root  hoster vm snapshot-all  --stype monthly --keep 6
-20 * * * *  root  hoster vm replicate-all --endpoint 192.168.120.11
+20 * * * *  root  hoster vm replicate-all --ep-address 192.168.1.11
 ```
