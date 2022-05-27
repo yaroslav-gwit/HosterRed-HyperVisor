@@ -14,14 +14,14 @@ HosterRed: HyperVisor is a highly opinionated VM management framework, which inc
 - [x] Debian 11
 - [x] Ubuntu 20.04
 - [x] AlmaLinux 8
+- [x] FreeBSD 13 UFS
+- [x] FreeBSD 13 ZFS
 - [x] Windows 10 (You'll have to provide your own image, instructions how to build one will be released in the Wiki section soon)
 
 ### OSes on the roadmap
 - [ ] Ubuntu 20.04 LVM Hardened
 - [ ] Fedora (latest)
 - [ ] CentOS 7
-- [ ] FreeBSD 13 UFS
-- [ ] FreeBSD 13 ZFS
 - [ ] OpenBSD
 - [ ] OpenSUSE Leap
 - [ ] OpenSUSE Tumbleweed
