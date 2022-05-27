@@ -12,8 +12,8 @@ HosterRed: HyperVisor is a highly opinionated VM management framework, which inc
 ## OS Support
 ### List of supported OSes
 - [x] Debian 11
-- [x] Ubuntu 20.04
 - [x] AlmaLinux 8
+- [x] Ubuntu 20.04
 - [x] FreeBSD 13 UFS
 - [x] FreeBSD 13 ZFS
 - [x] Windows 10 (You'll have to provide your own image, instructions how to build one will be released in the Wiki section soon)
