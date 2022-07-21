@@ -27,7 +27,7 @@ func main() {
 }
 
 func freeRam() string {
-	var vFreeCount = "sysctl -nq vm.stats.vm.v_free_count"
+	var vFreeCount = "\"sysctl -nq vm.stats.vm.v_free_count\""
 	var cmd = exec.Command("bash", "-c", vFreeCount)
 	var stdout, err = cmd.Output()
 	if err != nil {
@@ -37,7 +37,7 @@ func freeRam() string {
 		vFreeCount = string(stdout)
 	}
 
-	var hwPagesize = "sysctl -nq hw.pagesize"
+	var hwPagesize = "\"sysctl -nq hw.pagesize\""
 	cmd = exec.Command("bash", "-c", vFreeCount)
 	stdout, err = cmd.Output()
 	if err != nil {
