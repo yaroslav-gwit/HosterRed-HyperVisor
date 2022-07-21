@@ -28,6 +28,7 @@ func main() {
 }
 
 func freeRam() string {
+	// GET SYSCTL "vm.stats.vm.v_free_count" AND RETURN THE VALUE
 	var vFreeCount string
 	var vFreeCountArg1 = "sysctl"
 	var vFreeCountArg2 = "-nq"
@@ -50,6 +51,7 @@ func freeRam() string {
 	}
 	vFreeCount = vFreeCountList[0]
 
+	// GET SYSCTL "hw.pagesize" AND RETURN THE VALUE
 	var hwPagesize string
 	var hwPagesizeArg1 = "sysctl"
 	var hwPagesizeArg2 = "-nq"
@@ -70,14 +72,14 @@ func freeRam() string {
 	}
 	hwPagesize = hwPagesizeList[0]
 
-	fmt.Println(vFreeCount)
-	fmt.Println(hwPagesize)
 	var vFreeCountInt, _ = strconv.Atoi(vFreeCount)
 	var hwPagesizeInt, _ = strconv.Atoi(hwPagesize)
-	fmt.Println(vFreeCountInt)
-	fmt.Println(hwPagesize)
 
 	var finalResult = vFreeCountInt * hwPagesizeInt
 
 	return strconv.Itoa(finalResult)
+}
+
+func ByteConversion(bytes int) string {
+	return "Pass"
 }
