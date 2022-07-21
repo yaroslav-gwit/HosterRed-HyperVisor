@@ -54,12 +54,12 @@ func freeRam() string {
 		hwPagesize = string(stdout)
 	}
 
-	fmt.Println("vFreeCount")
-	fmt.Println("hwPagesize")
+	fmt.Println(vFreeCount)
+	fmt.Println(hwPagesize)
 	var vFreeCountInt, _ = strconv.Atoi(vFreeCount)
 	var hwPagesizeInt, _ = strconv.Atoi(hwPagesize)
-	fmt.Println("vFreeCountInt")
-	fmt.Println("hwPagesize")
+	fmt.Println(vFreeCountInt)
+	fmt.Println(hwPagesize)
 
 	var finalResult = vFreeCountInt * hwPagesizeInt
 
