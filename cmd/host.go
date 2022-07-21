@@ -43,7 +43,7 @@ func freeRam() string {
 	}
 
 	var vFreeCountList []string
-	for _, i := range strings.Split(vFreeCount, "") {
+	for _, i := range strings.Split(vFreeCount, "\n") {
 		if len(i) > 1 {
 			vFreeCountList = append(vFreeCountList, i)
 		}
