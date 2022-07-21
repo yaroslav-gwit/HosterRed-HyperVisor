@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -40,6 +41,14 @@ func freeRam() string {
 	} else {
 		vFreeCount = string(stdout)
 	}
+
+	var vFreeCountList []string
+	for _, item := range strings.Split(vFreeCount, "") {
+		if len(item) > 1 {
+			vFreeCountList = append(vFreeCountList, item)
+		}
+	}
+	vFreeCount = vFreeCountList[0]
 
 	var hwPagesize string
 	var hwPagesizeArg1 = "sysctl"
