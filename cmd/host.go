@@ -41,8 +41,11 @@ func freeRam() string {
 		vFreeCount = string(stdout)
 	}
 
-	var hwPagesize = "\"sysctl -nq hw.pagesize\""
-	cmd = exec.Command("bash", "-c", "\"", vFreeCount, "\"")
+	var hwPagesize string
+	var hwPagesizeArg1 = "sysctl"
+	var hwPagesizeArg2 = "-nq"
+	var hwPagesizeArg3 = "hw.pagesize"
+	cmd = exec.Command(hwPagesizeArg1, hwPagesizeArg2, hwPagesizeArg3)
 	stdout, err = cmd.Output()
 	if err != nil {
 		fmt.Println("Func freeRam/hwPagesize: There has been an error:", err)
