@@ -48,7 +48,7 @@ func freeRam() string {
 			vFreeCountList = append(vFreeCountList, i)
 		}
 	}
-	fmt.Println(vFreeCountList)
+	vFreeCount = vFreeCountList[0]
 
 	var hwPagesize string
 	var hwPagesizeArg1 = "sysctl"
@@ -62,6 +62,13 @@ func freeRam() string {
 	} else {
 		hwPagesize = string(stdout)
 	}
+	var hwPagesizeList []string
+	for _, i := range strings.Split(hwPagesize, "\n") {
+		if len(i) > 1 {
+			hwPagesizeList = append(hwPagesizeList, i)
+		}
+	}
+	hwPagesize = hwPagesizeList[0]
 
 	fmt.Println(vFreeCount)
 	fmt.Println(hwPagesize)
