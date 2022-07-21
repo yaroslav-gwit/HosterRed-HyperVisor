@@ -27,8 +27,12 @@ func main() {
 }
 
 func freeRam() string {
-	var vFreeCount = "\"sysctl -nq vm.stats.vm.v_free_count\""
-	var cmd = exec.Command("bash", "-c", vFreeCount)
+	var vFreeCount string
+	var vFreeCountArg1 = "sysctl"
+	var vFreeCountArg2 = "-nq"
+	var vFreeCountArg3 = "vm.stats.vm.v_free_count"
+
+	var cmd = exec.Command("bash", "-c", vFreeCountArg1, vFreeCountArg2, vFreeCountArg3)
 	var stdout, err = cmd.Output()
 	if err != nil {
 		fmt.Println("Func freeRam/vFreeCount: There has been an error:", err)
