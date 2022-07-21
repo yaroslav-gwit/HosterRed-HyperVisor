@@ -31,7 +31,7 @@ func freeRam() string {
 	var cmd = exec.Command("bash", "-c", vFreeCount)
 	var stdout, err = cmd.Output()
 	if err != nil {
-		fmt.Println("There has been an error:", err)
+		fmt.Println("Func freeRam/vFreeCount: There has been an error:", err)
 		os.Exit(1)
 	} else {
 		vFreeCount = string(stdout)
@@ -41,7 +41,7 @@ func freeRam() string {
 	cmd = exec.Command("bash", "-c", vFreeCount)
 	stdout, err = cmd.Output()
 	if err != nil {
-		fmt.Println("There has been an error:", err)
+		fmt.Println("Func freeRam/hwPagesize: There has been an error:", err)
 		os.Exit(1)
 	} else {
 		hwPagesize = string(stdout)
