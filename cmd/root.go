@@ -25,7 +25,10 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(hostCmd)
+	rootCmd.AddCommand(vmCmd)
 	hostCmd.Flags().BoolVarP(&jsonOutput, "json-output", "j", false, "Output as JSON (useful for automation)")
+	vmCmd.Flags().BoolVarP(&jsonOutputVm, "json-output", "j", false, "Output as JSON (useful for automation)")
+
 	rootCmd.AddCommand(versionCmd)
 }
 
