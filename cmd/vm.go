@@ -10,9 +10,9 @@ var (
 	jsonOutputVm bool
 
 	vmCmd = &cobra.Command{
-		Use:   "host",
-		Short: "Host related operations",
-		Long:  `Host related operations, ie set host name, get basic host info, etc`,
+		Use:   "vm",
+		Short: "VM related operations",
+		Long:  `VM related operations, ie VM deloyment, stopping/starting the VMs, etc`,
 		Run: func(cmd *cobra.Command, args []string) {
 			main()
 		},
