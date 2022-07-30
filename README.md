@@ -1,6 +1,6 @@
 # General Information
 HosterRed: HyperVisor is a highly opinionated VM management framework, which includes: network isolation (at the VM level), dataset encryption (at the ZFS level), instant VM deployments, storage replication between 2 or more hosts and more. It uses Golang, FreeBSD, bhyve, ZFS, and PF to achieve all of it's goals ✅🚀.
-![HosterRed Screenshot 3](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/main/screenshots/HosterRed_screenshot_3.png)
+![HosterRed Screenshot](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/main/screenshots/hoster-red-golang.png)
 
 ### State icons
 🟢 - VM is running
