@@ -1,6 +1,7 @@
 # General Information
-HosterRed: HyperVisor is a highly opinionated VM management framework, which includes: network isolation (at the VM level), dataset encryption (at the ZFS level), instant VM deployments, storage replication between 2 or more hosts and more. It uses FreeBSD, bhyve, ZFS, and PF to achieve all of it's goals ✅🚀.
-![HosterRed Screenshot 3](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/main/screenshots/HosterRed_screenshot_3.png)
+![HosterRed Logo](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/main/screenshots/HosterRed%20Logo%20Dark.png)
+HosterRed: HyperVisor is a highly opinionated VM management framework, which includes: network isolation (at the VM level), dataset encryption (at the ZFS level), instant VM deployments, storage replication between 2 or more hosts and more. It uses Golang, FreeBSD, bhyve, ZFS, and PF to achieve all of it's goals ✅🚀.</br></br>
+![HosterRed Screenshot](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/main/screenshots/HosterRedScreenshotMain.png)
 
 ### State icons
 🟢 - VM is running
@@ -16,7 +17,7 @@ HosterRed: HyperVisor is a highly opinionated VM management framework, which inc
 - [x] Ubuntu 20.04
 - [x] FreeBSD 13 UFS
 - [x] FreeBSD 13 ZFS
-- [x] Windows 10 (You'll have to provide your own image, instructions how to build one will be released in the Wiki section soon)
+- [x] Windows 10 (You'll have to provide your own image, instructions on how to build one will be released in the Wiki section soon)
 
 ### OSes on the roadmap
 - [ ] Ubuntu 20.04 LVM Hardened
