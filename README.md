@@ -3,6 +3,12 @@
 HosterRed: HyperVisor is a highly opinionated VM management framework, which includes: network isolation (at the VM level), dataset encryption (at the ZFS level), instant VM deployments, storage replication between 2 or more hosts and more. It uses Golang, FreeBSD, bhyve, ZFS, and PF to achieve all of it's goals ✅🚀.</br></br>
 ![HosterRed Screenshot](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/main/screenshots/HosterRedScreenshotMain.png)
 
+# The WHY?
+For a long time I've been a Proxmox user, swearing by it and promoting it any way I could. That stopped when I've started to rent Hetzner hardware servers, as many problems risen up: unjustifiably high RAM usage on smaller servers, no integrated NAT configuration, multiple public IP management is a nightmare, and some other minor issues like root ZFS dataset encryption on BIOS systems. That's when I discovered FreeBSD and bhyve: I realized that I could just use PF to control the traffic between the VMs, internal and external bridges, use native ZFS encryption, and do so much more but there was only 1 small problem -- vmbhyve and CBSD just weren't what I needed. Meet HosterRed -- my own automation framework (or even a small ecosystem, if you will) around FreeBSD's bhyve, PF, ZFS. As a result I can deploy the VMs in a matter of seconds on any hardware old/new/powerfull or otherwise with minimal RAM overhead. To network all of the nodes together as one happy family I use Nebula (https://www.defined.net/nebula/).</br>
+Initially Hoster Red was written in Python and that worked fine for some time, but as project started to grew in complexity and features it became appearent that one of the static languages should be used to improve speed and deployment experiense, that's when I made a decision to rewrite the whole thing in Go. This migration allowed me to make the execution faster in some cases by 20(!) times.</br>
+Now HosterRed is used by a couple of individuals (including myself) as their hosting platform of choise. Install it, play around with it, and you will be pleasantly surprised by the experience.</br>
+P.S. WebUI is coming too, stay tuned for that 😉
+
 ### State icons
 🟢 - VM is running
 <br>🔴 - VM is stopped
