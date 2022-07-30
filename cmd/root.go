@@ -12,7 +12,8 @@ var rootCmd = &cobra.Command{
 	Short: "HosterRed is a highly opinionated Bhyve automation library written in Go",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		// Empty function
+		HostMain()
+		VmMain()
 	},
 }
 

@@ -3,6 +3,7 @@ module hoster
 go 1.17
 
 require (
+	facette.io/natsort v0.0.0-20181210072756-2cd4dd1e2dcb // indirect
 	github.com/aquasecurity/table v1.7.2 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect

@@ -36,17 +36,19 @@ func HostMain() {
 	var tSystemUptime string
 	var tSystemRam = ramResponse{}
 	var tFreeSwap string
+	var tAllSwap string
 	var tArcSize string
 	var tFreeZfsSpace string
 	var tZrootStatus string
 
 	var wg = &sync.WaitGroup{}
-	wg.Add(8)
+	wg.Add(9)
 	go func() { defer wg.Done(); tHostname = GetHostName() }()
 	go func() { defer wg.Done(); tLiveVms = getNumberOfRunningVms() }()
 	go func() { defer wg.Done(); tSystemUptime = getSystemUptime() }()
 	go func() { defer wg.Done(); tSystemRam = getHostRam() }()
 	go func() { defer wg.Done(); tFreeSwap = getFreeSwapSpace() }()
+	go func() { defer wg.Done(); tAllSwap = getAllSwapSpace() }()
 	go func() { defer wg.Done(); tArcSize = getArcSize() }()
 	go func() { defer wg.Done(); tFreeZfsSpace = getFreeZfsSpace() }()
 	go func() { defer wg.Done(); tZrootStatus = getZrootStatus() }()
@@ -70,11 +72,37 @@ func HostMain() {
 		t := table.New(os.Stdout)
 		t.SetLineStyle(table.StyleBrightCyan)
 		t.SetDividers(table.UnicodeRoundedDividers)
-		t.SetHeaderAlignment(table.AlignLeft, table.AlignLeft, table.AlignLeft)
-		t.SetAlignment(table.AlignLeft, table.AlignLeft, table.AlignLeft)
 		t.SetHeaderStyle(table.StyleBold)
-		t.SetHeaders("Hostname", "Live VMs", "System Uptime", "RAM (Free/Overall)", "SWAP (Free/Overall)", "ARC Size", "Zroot Space (Free/Overall)", "Zroot Pool Status")
-		t.AddRow(tHostname, tLiveVms, tSystemUptime, tSystemRam.free+"/"+tSystemRam.all, tFreeSwap, tArcSize, tFreeZfsSpace, tZrootStatus)
+
+		t.SetAlignment(table.AlignLeft, // Hostname
+			table.AlignCenter, // Live VMs
+			table.AlignCenter, // System Uptime
+			table.AlignCenter, // RAM
+			table.AlignCenter, // SWAP
+			table.AlignCenter, // ARC Size
+			table.AlignCenter, // Zroot space
+			table.AlignCenter, // Zpool status
+		)
+		t.SetHeaders("Hostname",
+			"Live VMs",
+			"System Uptime",
+			"RAM (Free)",
+			"SWAP (Free)",
+			"ARC Size",
+			"Zroot Space Free",
+			"Zroot Pool Status",
+		)
+
+		t.AddRow(tHostname,
+			tLiveVms,
+			tSystemUptime,
+			tSystemRam.free+"/"+tSystemRam.all,
+			tFreeSwap+"/"+tAllSwap,
+			tArcSize,
+			tFreeZfsSpace,
+			tZrootStatus,
+		)
+
 		t.Render()
 	}
 }
@@ -96,15 +124,15 @@ type ramResponse struct {
 	all  string
 }
 
-type swapResponse struct {
-	free string
-	all  string
-}
+// type swapResponse struct {
+// 	free string
+// 	all  string
+// }
 
-type zrootUsageResponse struct {
-	free string
-	all  string
-}
+// type zrootUsageResponse struct {
+// 	free string
+// 	all  string
+// }
 
 func getHostRam() ramResponse {
 	// GET SYSCTL "vm.stats.vm.v_free_count" AND RETURN THE VALUE
@@ -252,8 +280,9 @@ func getZrootStatus() string {
 		}
 	}
 
+	var r, _ = regexp.Compile(".*state:.*")
 	for _, i := range zrootStatusList {
-		reMatch, _ := regexp.MatchString(".*state:.*", i)
+		var reMatch = r.MatchString(i)
 		if reMatch {
 			zrootStatus = i
 		}
@@ -339,6 +368,50 @@ func getFreeSwapSpace() string {
 		finalResult = fmt.Sprintf("%.2f", swapFreeGb) + byteType
 	} else {
 		finalResult = strconv.Itoa(swapFreeBytes) + byteType
+	}
+
+	return finalResult
+}
+
+func getAllSwapSpace() string {
+	var swapAll string
+	var swapAllArg1 = "swapinfo"
+
+	var cmd = exec.Command(swapAllArg1)
+	var stdout, err = cmd.Output()
+	if err != nil {
+		fmt.Println("Func getAllSwapSpace/swapAll: There has been an error:", err)
+		os.Exit(1)
+	} else {
+		swapAll = string(stdout)
+	}
+	var swapAllList []string
+	for _, i := range strings.Split(swapAll, " ") {
+		if len(i) > 1 {
+			swapAllList = append(swapAllList, i)
+		}
+	}
+
+	// CONVERT KB TO A DIFFERENT BYTE TYPE IF NECESSARY
+	swapAll = swapAllList[5]
+	var swapAllBytes, _ = strconv.Atoi(swapAll)
+	var byteType = "K"
+	if len(swapAll) > 3 {
+		swapAllBytes = swapAllBytes / 1024
+		byteType = "M"
+	}
+
+	var swapAllGb = 0.0
+	if swapAllBytes > 1024 {
+		swapAllGb = float64(swapAllBytes) / 1024.0
+		byteType = "G"
+	}
+
+	var finalResult string
+	if swapAllGb > 0.0 {
+		finalResult = fmt.Sprintf("%.2f", swapAllGb) + byteType
+	} else {
+		finalResult = strconv.Itoa(swapAllBytes) + byteType
 	}
 
 	return finalResult
