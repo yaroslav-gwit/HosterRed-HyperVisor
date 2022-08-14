@@ -250,12 +250,16 @@ func getArcSize() string {
 
 func getNumberOfRunningVms() string {
 	files, err := ioutil.ReadDir("/dev/vmm/")
+	var finalResult string
 	if err != nil {
-		fmt.Println("funcError getNumberOfRunningVms: " + err.Error())
-		os.Exit(1)
+		// fmt.Println("funcError getNumberOfRunningVms: " + err.Error())
+		// os.Exit(1)
+		finalResult = "0"
+	} else {
+		finalResult = strconv.Itoa(len(files))
+
 	}
 
-	var finalResult = strconv.Itoa(len(files))
 	return finalResult
 }
 

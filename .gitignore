@@ -132,3 +132,5 @@ dmypy.json
 screenshots/
 ./hoster
 ./hoster_slow
+hoster
+hoster_slow
