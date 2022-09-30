@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -227,7 +228,25 @@ func getVmFolder(vmName string) string {
 	return finalResponse
 }
 
+func getVmUptimeNew(vmName string) {
+	r, _ := regexp.Compile(vmName)
+	fmt.Println(r.MatchString("peach"))
+	var psEtime1 = "ps"
+	var psEtime2 = "axwww"
+	var psEtime3 = "-o"
+	var psEtime4 = "etimes,command"
+
+	var cmd = exec.Command(psEtime1, psEtime2, psEtime3, psEtime4)
+	stdout, err := cmd.Output()
+	if err != nil {
+		fmt.Println("Func getVmUptime: There has been an error:", err)
+		// os.Exit(1)
+	}
+	fmt.Println(stdout)
+}
+
 func getVmUptime(vmName string) string {
+	getVmUptimeNew(vmName)
 	var pidFile = "/var/run/" + vmName + ".pid"
 	var pidResult string
 	var finalResult string
