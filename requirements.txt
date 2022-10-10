@@ -1,0 +1,9 @@
+wheel
+jinja2
+wget
+python-generate-mac
+natsort
+typer[all]
+pyyaml
+rich
+invoke

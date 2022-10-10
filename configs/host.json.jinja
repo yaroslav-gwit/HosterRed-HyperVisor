@@ -1,0 +1,20 @@
+{ 
+    "backup_servers": [
+    {% for backup_server in backup_servers %}
+    {{ backup_server }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+    ],
+    "host_dns_acls": [
+    {% for subnet in subnets %}
+      "{{ subnet }}"{% if not loop.last %},{% endif %}
+    ],
+    {% endfor %}
+    "host_ssh_keys": [
+        {% for ssh_key in ssh_keys %}
+        {
+            "key_value": "{{ ssh_key.key_value }}",
+            "comment": "{{ ssh_key.comment }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ]
+}

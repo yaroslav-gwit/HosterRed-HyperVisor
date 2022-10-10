@@ -1,0 +1,20 @@
+version: 2
+ethernets:
+  interface0:
+     match:
+       macaddress: "{{ output_dict['mac_address'] }}"
+     
+     {% if output_dict["os_type"] != "freebsd13zfs" -%}
+     {% if output_dict["os_type"] != "freebsd13ufs" -%}
+     set-name: eth0
+     {% endif -%}
+     {% endif -%}
+     
+     addresses:
+     - {{ output_dict['ip_address'] }}/24
+     
+     gateway4: {{ output_dict["network_bridge_address"] }}
+     
+     nameservers:
+       search: [gateway-it.internal, ]
+       addresses: [{{ output_dict["network_bridge_address"] }}, ]

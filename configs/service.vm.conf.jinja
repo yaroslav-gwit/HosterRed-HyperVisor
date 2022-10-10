@@ -1,0 +1,27 @@
+[program:{{ vm_name }}]
+command={{ command }}
+process_name={{ vm_name }}
+autostart=false
+startsecs=5
+startretries=9999
+autorestart=unexpected
+exitcodes=1,2
+stopsignal=SIGTERM
+stopwaitsecs=100
+stopasgroup=false
+killasgroup=false
+redirect_stderr=true
+stdout_logfile={{ vm_folder }}/{{ vm_name }}.log
+stdout_logfile_maxbytes=1MB
+stdout_logfile_backups=10
+stdout_capture_maxbytes=1MB
+stdout_events_enabled=false
+stderr_logfile={{ vm_folder }}/{{ vm_name }}.log
+stderr_logfile_maxbytes=1MB
+stderr_logfile_backups=10
+stderr_capture_maxbytes=1MB
+stderr_events_enabled=false
+
+
+[group:{{ vm_name }}]
+programs={{ vm_name }}

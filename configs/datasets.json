@@ -1,0 +1,20 @@
+{
+    "datasets": [
+        {"name": "zfs-encrypted",
+            "id": "0",
+            "type": "zfs",
+            "mount_path": "/zroot/vm-encrypted/",
+            "zfs_path": "zroot/vm-encrypted",
+            "encrypted": true,
+            "comment": "ZFS Encrypted"
+        },
+        {"name": "zfs-unencrypted",
+            "id": "1",
+            "type": "zfs",
+            "mount_path": "/zroot/vm-unencrypted/",
+            "zfs_path": "zroot/vm-unencrypted",
+            "encrypted": false,
+            "comment": "ZFS Unecrypted"
+        }
+    ]
+}

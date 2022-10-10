@@ -1,0 +1,50 @@
+{
+    "cpu_sockets": "1",
+    "cpu_cores": "1",
+    "memory": "1G",
+    "loader": "uefi",
+    "live_status": "{{ output_dict['live_status'] }}",
+    "os_type": "{{ output_dict['os_type'] }}",
+    "os_comment": "{{ output_dict['os_comment'] }}",
+    "owner": "System",
+    "parent_host": "hoster-test-0101",
+
+    "networks": [
+        {
+            "network_adaptor_type": "virtio-net",
+            "network_bridge": "{{ output_dict['network_bridge_name'] }}",
+            "network_mac": "{{ output_dict['mac_address'] }}",
+            "ip_address": "{{ output_dict['ip_address'] }}",
+            "comment": "Internal Network"
+        }
+    ],
+
+    "disks": [
+        {
+            "disk_type": "virtio-blk",
+            "disk_location": "internal",
+            "disk_image": "disk0.img",
+            "comment": "OS Drive"
+        },
+        {
+            "disk_type": "ahci-cd",
+            "disk_location": "internal",
+            "disk_image": "seed.iso",
+            "comment": "Cloud Init ISO"
+        }
+    ],
+
+    "include_hostwide_ssh_keys": true,
+    "vm_ssh_keys": [
+        {
+            "key_owner": "Yaroslav",
+            "key_value": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDvZbo8t8qSdcHZjCiRi0fVoGBHDXJVPYR+OynuxFc+Sle45xMfRiKjRwHnzBnUqTTppsE2wnLTxVMLfrV4Fqnx8irnr+Rll+YvfMPtCpwcR/Zxlu/zHXK+YUbKIOx0/qKJqfsJ8PaZffob7rGoIBgko8fO7iPd0Y5MK1T+uoVQnFRJMAr6RLlz1oMEppdWsEA2pTUhM6mUj57yqwmIznHIYjy44qIWauqOyR7NB9NV7ahxYh/K6lQtcHqxb9l3AE/dfV/RPAv5CDIEGhs1oCHN/1o1iKoKZKOGZJbn02tGNqA+8XUcKiT1Wh82fGhU6GKj/CWqhs0RNpjp12ETGabPzWEZ12OP6GkoIFmkQEFgdpq3fUlCcb1uRAywOncoCLN8njcMGyUMBR9lB+yWDrSY7psTjHGPGb7+nEl+4NvZB1Dhqci6lGYgO0/DS71UVPs8LTEcrqa18ir0yjcIvhEgc/IbPbnySMSm33PpIKHvartqmuIdo8d3kwFbuMDRWBk= yaroslav@ryzen-pc",
+            "comment": "Fedora Ryzen PC Key"
+        }
+    ],
+
+    "vnc_port": "{{ output_dict['vnc_port'] }}",
+    "vnc_password": "{{ output_dict['vnc_password'] }}",
+
+    "description": "-"
+}

@@ -1,0 +1,16 @@
+#!/opt/hoster-red/venv/bin/python3
+import sys
+from os.path import exists
+
+if exists("/opt/hoster-red/") and exists("/opt/hoster-red/hoster"):
+    sys.path.insert(1, "/opt/hoster-red/")
+else:
+    print("SysChecks is not installed properly!", file=sys.stderr)
+    sys.exit(1)
+
+from main import app
+
+import os
+os.chdir("/opt/hoster-red/")
+
+app()

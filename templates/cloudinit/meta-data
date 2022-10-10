@@ -1,0 +1,2 @@
+instance-id: iid-{{ output_dict['random_instanse_id'] }}
+local-hostname: {{ output_dict['vm_name'] }}
