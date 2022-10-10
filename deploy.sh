@@ -21,6 +21,9 @@ pkg install -y bhyve-firmware bhyve-rc grub2-bhyve uefi-edk2-bhyve uefi-edk2-bhy
 if [[ -f /bin/bash ]]; then rm /bin/bash; fi
 ln $(which bash) /bin/bash
 
+if [[ -f /bin/python3 ]]; then rm /bin/python3; fi
+ln $(which python3.9) /bin/python3
+
 
 #_ SET ENCRYPTED ZFS PASSWORD _#
 if [ -z "${DEF_ZFS_ENCRYPTION_PASSWORD}" ]; then 

@@ -184,12 +184,14 @@ def get_hostname() -> str:
 def human_readable_uptime(seconds_since_boot:int) -> str:
     seconds_mod = seconds_since_boot % 60
     result = str(int(seconds_mod)) + "s"
-    
+
+    minutes = 0
     if seconds_since_boot >= 60:
         minutes = (seconds_since_boot - seconds_mod) / 60
         minutes_mod = minutes % 60
         result = str(int(minutes_mod)) + "m " + result
 
+    hours = 0
     if minutes >= 60:
         hours = (minutes - minutes_mod) / 60
         hours_mod = hours % 24
