@@ -1,5 +1,5 @@
 # Native Python functions
-import psutil
+# import psutil
 import typer
 import sys
 import os
@@ -14,7 +14,7 @@ import re
 # Installed packages/modules
 # from ipaddress import ip_address
 # import yaml
-from tabulate import tabulate
+# from tabulate import tabulate
 from natsort import natsorted
 from generate_mac import generate_mac
 from jinja2 import Template

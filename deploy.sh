@@ -37,12 +37,11 @@ HOSTER_WD="/opt/hoster-red/"
 #_ PULL THE GITHUB REPO _#
 if [[ ! -d ${HOSTER_WD} ]]; then
     mkdir -p ${HOSTER_WD}
-    git clone https://github.com/yaroslav-gwit/PyVM-Bhyve.git ${HOSTER_WD}
+    git clone https://github.com/yaroslav-gwit/HosterRed-HyperVisor.git ${HOSTER_WD}
 else
     cd ${HOSTER_WD}
     git pull
 fi
-if [[ ! -f ${HOSTER_WD}.gitignore ]]; then echo "vm_images" > .gitignore; fi
 
 
 #_ GENERATE SSH KEYS _#
