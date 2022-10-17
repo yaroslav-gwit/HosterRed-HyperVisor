@@ -376,15 +376,16 @@ class VmList:
         for vm_name in vmColumnNames:
             if CoreChecks(vm_name).vm_is_live():
                 if not exists("/tmp/bhyve_vms_uptime.txt"):
-                    command = "ps axwww -o etime,command > /tmp/bhyve_vms_uptime.txt"
+                    command = "ps axwww -o etimes,command > /tmp/bhyve_vms_uptime.txt"
                     subprocess.run(command, shell=True)
                 elif (time.time() - os.path.getmtime("/tmp/bhyve_vms_uptime.txt")) > 10:
-                    command = "ps axwww -o etime,command > /tmp/bhyve_vms_uptime.txt"
+                    command = "ps axwww -o etimes,command > /tmp/bhyve_vms_uptime.txt"
                     subprocess.run(command, shell=True)
                 command = "grep 'bhyve: " + vm_name + "' /tmp/bhyve_vms_uptime.txt | grep -v grep | awk '{print $1}'"
                 shell_command = subprocess.check_output(command, shell=True)
                 try:
                     vm_uptime = shell_command.decode("utf-8").split()[0]
+                    vm_uptime = host.human_readable_uptime(int(vm_uptime))
                     vmColumnUptime.append(vm_uptime)
                 except:
                     vmColumnUptime.append("-")
@@ -480,6 +481,7 @@ class VmDeploy:
             self.live_status = "production"
 
         self.dataset_id = dataset_id
+
 
     @staticmethod
     def vm_vnc_port_generator(vnc_port:int = 5900):

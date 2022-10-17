@@ -32,6 +32,8 @@ def main(ctx:typer.Context):
         print()
         host.table_output(table_title = True)
         print()
+        network.info(table = True, table_title = True, json_pretty = False, json_plain = False)
+        print()
         vm.VmList().table_output(table_title = True)
         print()
 
