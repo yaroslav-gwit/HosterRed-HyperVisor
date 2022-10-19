@@ -94,11 +94,10 @@ def info(json_pretty:bool = typer.Option(False, help="Pretty JSON output"),
         table.add_column("#", justify="center", style="bright_cyan", no_wrap=True)
         table.add_column("Name", justify="center", style="bright_cyan", no_wrap=True)
         table.add_column("Address", justify="center", style="bright_cyan", no_wrap=True)
+        table.add_column("Subnet", justify="center", style="bright_cyan", no_wrap=True)
+        table.add_column("IP Range", justify="center", style="bright_cyan", no_wrap=True)
         table.add_column("Interface", justify="center", style="bright_cyan", no_wrap=True)
         table.add_column("Address apply", justify="center", style="bright_cyan", no_wrap=True)
-        table.add_column("Range Start", justify="center", style="bright_cyan", no_wrap=True)
-        table.add_column("Range End", justify="center", style="bright_cyan", no_wrap=True)
-        table.add_column("Subnet", justify="center", style="bright_cyan", no_wrap=True)
         table.add_column("Comment", justify="center", style="bright_cyan", no_wrap=True)
 
         iteration = 0
@@ -108,10 +107,10 @@ def info(json_pretty:bool = typer.Option(False, help="Pretty JSON output"),
                 str(iteration),
                 item["bridge_name"],
                 item["bridge_address"],
+                str(item["bridge_subnet"]),
+                str(item["range_start"]) + "-" + str(item["range_end"]),
                 item["bridge_interface"],
                 str(item["apply_bridge_address"]),
-                str(item["range_start"]), str(item["range_end"]),
-                str(item["bridge_subnet"]),
                 item["comment"],
             )
 

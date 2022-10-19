@@ -7,7 +7,7 @@
     "os_type": "{{ output_dict['os_type'] }}",
     "os_comment": "{{ output_dict['os_comment'] }}",
     "owner": "System",
-    "parent_host": "hoster-test-0101",
+    "parent_host": "{{ output_dict['host'] }}",
 
     "networks": [
         {

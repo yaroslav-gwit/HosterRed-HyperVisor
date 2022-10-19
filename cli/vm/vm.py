@@ -430,7 +430,21 @@ class VmList:
         table.add_column("Description", justify="center", style="bright_cyan", no_wrap=True)
 
         for n, a in enumerate(vmColumnNames):
-            table.add_row(str(n+1), vmColumnNames[n], vmColumnState[n], vmColumnCPU[n], vmColumnRAM[n], vmColumnIpAddress[n], vmColumnVncPort[n], vmColumnVncPassword[n], vmColumnOsDisk[n], vmColumnOsType[n], vmColumnUptime[n], vmColumnDescription[n])
+            table.add_row(
+                    str(n+1),
+                    vmColumnNames[n],
+                    vmColumnState[n],
+                    vmColumnCPU[n],
+                    vmColumnRAM[n],
+                    vmColumnIpAddress[n],
+                    vmColumnVncPort[n],
+                    vmColumnVncPassword[n],
+                    vmColumnOsDisk[n],
+                    vmColumnOsType[n],
+                    vmColumnUptime[n],
+                    vmColumnDescription[n],
+                )
+
         Console().print(table)
 
 
@@ -636,6 +650,7 @@ class VmDeploy:
         output_dict["network_bridge_name"] = network_bridge_name
         output_dict["network_bridge_address"] = network_bridge_address
         output_dict["live_status"] = self.live_status
+        output_dict["host"] = host.get_hostname()
 
         if self.os_type == "ubuntu2004":
             output_dict["os_comment"] = "Ubuntu 20.04"
