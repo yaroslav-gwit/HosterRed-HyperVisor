@@ -32,11 +32,13 @@ def main(ctx: typer.Context):
     """ Bhyve automation framework """
     if ctx.invoked_subcommand is None:
         print()
-        host.table_output(table_title = True)
+        host.table_output(table_title=True)
         print()
-        network.info(table = True, table_title = True, json_pretty = False, json_plain = False)
+        network.info(table=True, table_title=True, json_pretty=False, json_plain=False)
         print()
-        vm.VmList().table_output(table_title = True)
+        dataset.info(table_title=True, json_pretty=False, json_plain=False)
+        print()
+        vm.VmList().table_output(table_title=True)
         print()
 
 
