@@ -9,3 +9,4 @@ rich
 invoke
 tqdm
 requests
+psutil

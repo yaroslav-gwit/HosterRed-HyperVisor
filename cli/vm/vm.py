@@ -1,37 +1,34 @@
 # Native Python functions
-# import psutil
-import typer
-import sys
-import os
-import subprocess
 from os.path import exists
 from os import listdir
+import subprocess
+import random
 import json
 import time
-import random
+import sys
+import os
 import re
 
 # Installed packages/modules
-# from ipaddress import ip_address
-# import yaml
-# from tabulate import tabulate
-from natsort import natsorted
 from generate_mac import generate_mac
+# from ipaddress import ip_address
+from natsort import natsorted
 from jinja2 import Template
+import psutil
+import typer
 
 # Own functions
 from cli.host import dataset
 from cli.host import host
-from cli.vm import internal_classes as IC
 
 
 # STANDALONE FUNCTIONS
-def random_password_generator(capitals:bool = False, numbers:bool = False, lenght:int = 8, specials:bool = False):
+def random_password_generator(capitals: bool = False, numbers: bool = False, length: int = 8, specials: bool = False):
     letters_var = "asdfghjklqwertyuiopzxcvbnm"
     capitals_var = "ASDFGHJKLZXCVBNMQWERTYUIOP"
     numbers_var = "0987654321"
     specials_var = ".,-_!^*?><)(%[]=+$#"
-    
+
     valid_chars_list = []
     for item in letters_var:
         valid_chars_list.append(item)
@@ -44,20 +41,24 @@ def random_password_generator(capitals:bool = False, numbers:bool = False, lengh
     if specials:
         for s_item in specials_var:
             valid_chars_list.append(s_item)
-    
+
     password = ""
-    for _i in range(0, lenght):
+    for _i in range(0, length):
         password = password + random.choice(valid_chars_list)
-    
+
     return password
 
-def mac_address_generator(prefix:str = "58:9C:FC"):
-    mac_addess = generate_mac.vid_provided(prefix)
-    mac_addess = mac_addess.lower()
-    return mac_addess
 
-def ip_address_generator(ip_address:str = "10.0.0.0", existing_ip_addresses:list = []):
-    if not existing_ip_addresses:
+def mac_address_generator(prefix: str = "58:9C:FC"):
+    mac_address = generate_mac.vid_provided(prefix)
+    mac_address = mac_address.lower()
+    return mac_address
+
+
+def ip_address_generator(ip_address: str = "10.0.0.0", existing_ip_addresses=None):
+    if existing_ip_addresses is None:
+        existing_ip_addresses = []
+    if len(existing_ip_addresses) < 1:
         existing_ip_addresses = CoreChecks.existing_ip_addresses()
 
     with open("./configs/networks.json", "r") as file:
@@ -79,9 +80,9 @@ def ip_address_generator(ip_address:str = "10.0.0.0", existing_ip_addresses:list
         bridge_join = ".".join(bridge_split) + "."
 
         ip_address_list = []
-        for number in range(range_start, range_end+1):
-            _ip_address = bridge_join + str(number)
-            ip_address_list.append(_ip_address)
+        for number in range(range_start, range_end + 1):
+            ip_address = bridge_join + str(number)
+            ip_address_list.append(ip_address)
 
         ip_address = ip_address_list[0]
         number = range_start
@@ -105,19 +106,16 @@ class CoreChecks:
         self.disk_image_name = disk_image_name
         self.vm_config = VmConfigs(vm_name).vm_config_read()
 
-
     def vm_is_live(self):
         if exists("/dev/vmm/" + self.vm_name):
             return True
         else:
             return False
 
-
     def vm_is_encrypted(self):
         for ds in self.zfs_datasets["datasets"]:
-            if exists(ds["mount_path"]+self.vm_name):
+            if exists(ds["mount_path"] + self.vm_name):
                 return ds["encrypted"]
-
 
     def vm_in_production(self):
         vm_info_dict = self.vm_config
@@ -126,32 +124,31 @@ class CoreChecks:
         else:
             return False
 
-
     def disk_exists(self):
         for ds in self.zfs_datasets["datasets"]:
-            if exists(ds["mount_path"]+self.vm_name+"/"+self.disk_image_name):
+            if exists(ds["mount_path"] + self.vm_name + "/" + self.disk_image_name):
                 return True
 
     def disk_location(self):
         for ds in self.zfs_datasets["datasets"]:
-            image_path = ds["mount_path"]+self.vm_name+"/"+self.disk_image_name
+            image_path = ds["mount_path"] + self.vm_name + "/" + self.disk_image_name
             if exists(image_path):
                 return image_path
 
     def vm_location(self):
         for ds in self.zfs_datasets["datasets"]:
-            if exists(ds["mount_path"]+self.vm_name):
+            if exists(ds["mount_path"] + self.vm_name):
                 vm_location = ds["zfs_path"] + "/" + self.vm_name
                 return vm_location
-            elif ds == len(self.zfs_datasets["datasets"]) and not exists(ds["mount_path"]+self.vm_name):
+            elif ds == len(self.zfs_datasets["datasets"]) and not exists(ds["mount_path"] + self.vm_name):
                 sys.exit("VM doesn't exist!")
 
     def vm_folder(self):
         for ds in self.zfs_datasets["datasets"]:
-            if exists(ds["mount_path"]+self.vm_name):
+            if exists(ds["mount_path"] + self.vm_name):
                 vm_folder = ds["mount_path"] + self.vm_name
                 return vm_folder
-            elif ds == len(self.zfs_datasets["datasets"]) and not exists(ds["mount_path"]+self.vm_name):
+            elif ds == len(self.zfs_datasets["datasets"]) and not exists(ds["mount_path"] + self.vm_name):
                 sys.exit("VM doesn't exist!")
 
     def vm_dataset(self):
@@ -159,7 +156,7 @@ class CoreChecks:
             if exists("/" + ds["zfs_path"] + "/" + self.vm_name):
                 vm_dataset = ds["zfs_path"]
                 return vm_dataset
-            elif ds == len(self.zfs_datasets["datasets"]) and not exists(ds["mount_path"]+self.vm_name):
+            elif ds == len(self.zfs_datasets["datasets"]) and not exists(ds["mount_path"] + self.vm_name):
                 sys.exit("VM doesn't exist!")
 
     def vm_ip_address(self):
@@ -178,7 +175,7 @@ class CoreChecks:
         vm_ip_address = vm_info_dict["vnc_port"]
         return vm_ip_address
 
-    #_ VM START PORTION _#
+    # _ VM START PORTION _#
     def vm_network_interfaces(self):
         vm_config = self.vm_config
         vm_network_interfaces = vm_config["networks"]
@@ -191,14 +188,10 @@ class CoreChecks:
 
     def vm_cpus(self):
         vm_config = self.vm_config
-        vm_cpu = {}
-        vm_cpu["cpu_sockets"] = vm_config.get("cpu_sockets", 1)
-        vm_cpu["cpu_cores"] = vm_config.get("cpu_cores", 2)
-        vm_cpu["memory"] = vm_config.get("memory", "1G")
-        vm_cpu["vnc_port"] = vm_config.get("vnc_port", 5100)
-        vm_cpu["vnc_password"] = vm_config.get("vnc_password", "NakHkX09a7pgZUQoEJzI")
-        vm_cpu["loader"] = vm_config.get("loader", "uefi")
-        vm_cpu["live_status"] = vm_config.get("live_status", "testing")
+        vm_cpu = {"cpu_sockets": vm_config.get("cpu_sockets", 1), "cpu_cores": vm_config.get("cpu_cores", 2),
+                  "memory": vm_config.get("memory", "1G"), "vnc_port": vm_config.get("vnc_port", 5100),
+                  "vnc_password": vm_config.get("vnc_password", "NakHkX09a7pgZUQoEJzI"),
+                  "loader": vm_config.get("loader", "uefi"), "live_status": vm_config.get("live_status", "testing")}
         return vm_cpu
 
     def vm_os_type(self):
@@ -221,10 +214,9 @@ class VmConfigs:
         self.zfs_datasets = dataset.DatasetList().datasets
         self.vm_config = "/vm_config.json"
 
-
     def vm_config_read(self):
         for ds in self.zfs_datasets["datasets"]:
-            vm_config = ds["mount_path"]+self.vm_name+self.vm_config
+            vm_config = ds["mount_path"] + self.vm_name + self.vm_config
             if exists(vm_config):
                 with open(vm_config, 'r') as file:
                     vm_info_raw = file.read()
@@ -234,10 +226,9 @@ class VmConfigs:
                 print("Sorry, config file was not found for " + self.vm_name + " path: " + vm_config)
                 sys.exit(1)
 
-
     def vm_config_manual_edit(self):
         for ds in self.zfs_datasets["datasets"]:
-            vm_config = ds["mount_path"]+self.vm_name+self.vm_config
+            vm_config = ds["mount_path"] + self.vm_name + self.vm_config
             if exists(vm_config):
                 command = "nano " + vm_config
                 shell_command = subprocess.run(command, shell=True)
@@ -246,10 +237,9 @@ class VmConfigs:
                 print("Sorry, config file was not found for " + self.vm_name + " path: " + vm_config)
                 sys.exit(1)
 
-
-    def vm_config_wrire(self):
+    @staticmethod
+    def vm_config_write():
         print("This function will write config files to the required directories")
-
 
 
 class VmList:
@@ -278,13 +268,12 @@ class VmList:
         self.plainList = vmColumnNames.copy()
         self.vmColumnNames = natsorted(vmColumnNames)
 
-    def table_output(self, table_title:bool = False):
+    def table_output(self, table_title: bool = False):
         vmColumnNames = self.vmColumnNames
 
         if len(vmColumnNames) < 1:
             print("\n 🚦 ERROR: There are no VMs on this system. To deploy one, use:\n hoster vm deploy\n")
             sys.exit(0)
-
 
         vmColumnState = []
         for vm_name in vmColumnNames:
@@ -301,20 +290,17 @@ class VmList:
                 state = state + "🔁"
             vmColumnState.append(state)
 
-
         vmColumnCPU = []
         for vm_name in vmColumnNames:
             vm_config = VmConfigs(vm_name).vm_config_read()
             vm_config = vm_config.get("cpu_cores", "-")
             vmColumnCPU.append(vm_config)
 
-
         vmColumnRAM = []
         for vm_name in vmColumnNames:
             vm_config = VmConfigs(vm_name).vm_config_read()
             vm_config = vm_config.get("memory", "-")
             vmColumnRAM.append(vm_config)
-
 
         vmColumnVncPort = []
         for vm_name in vmColumnNames:
@@ -327,7 +313,6 @@ class VmList:
             vm_config = VmConfigs(vm_name).vm_config_read()
             vm_config = vm_config.get("vnc_password", "-")
             vmColumnVncPassword.append(vm_config)
-
 
         vmColumnOsDisk = []
         for vm_name in vmColumnNames:
@@ -347,14 +332,12 @@ class VmList:
             else:
                 vmColumnOsDisk.append("-")
 
-
         vmColumnIpAddress = []
         for vm_name in vmColumnNames:
             vm_config = VmConfigs(vm_name).vm_config_read()
             vm_config = vm_config.get("networks", "-")
             vm_config = vm_config[0].get("ip_address", "-")
             vmColumnIpAddress.append(vm_config)
-
 
         vmColumnOsType = []
         for vm_name in vmColumnNames:
@@ -370,7 +353,6 @@ class VmList:
         # vmColumnOsType = ["RockyLinux 8" if var == "rockylinux8" else var for var in vmColumnOsType]
         # vmColumnOsType = ["Fedora 34" if var == "fedora34" else var for var in vmColumnOsType]
         # vmColumnOsType = ["Windows 10" if var == "windows10" else var for var in vmColumnOsType]
-
 
         vmColumnUptime = []
         for vm_name in vmColumnNames:
@@ -405,16 +387,20 @@ class VmList:
 
         vmTableHeader = []
         for vm_index in range(len(vmColumnNames)):
-            vmTableHeader.append([ vmColumnNames[vm_index], vmColumnState[vm_index], vmColumnCPU[vm_index], vmColumnRAM[vm_index], vmColumnIpAddress[vm_index], vmColumnVncPort[vm_index], vmColumnVncPassword[vm_index], vmColumnOsDisk[vm_index], vmColumnOsType[vm_index], vmColumnUptime[vm_index], vmColumnDescription[vm_index], ])
+            vmTableHeader.append(
+                [vmColumnNames[vm_index], vmColumnState[vm_index], vmColumnCPU[vm_index], vmColumnRAM[vm_index],
+                 vmColumnIpAddress[vm_index], vmColumnVncPort[vm_index], vmColumnVncPassword[vm_index],
+                 vmColumnOsDisk[vm_index], vmColumnOsType[vm_index], vmColumnUptime[vm_index],
+                 vmColumnDescription[vm_index], ])
 
         from rich.console import Console
         from rich.table import Table
         from rich import box
 
         if not table_title:
-            table = Table(box = box.ROUNDED, show_lines = True,)
+            table = Table(box=box.ROUNDED, show_lines=True, )
         else:
-            table = Table(title = " VM List", box = box.ROUNDED, show_lines = True, title_justify = "left")
+            table = Table(title=" VM List", box=box.ROUNDED, show_lines=True, title_justify="left")
 
         table.add_column("#", justify="center", style="bright_cyan", no_wrap=True)
         table.add_column("Name", justify="left", style="bright_cyan", no_wrap=True)
@@ -431,22 +417,21 @@ class VmList:
 
         for n, a in enumerate(vmColumnNames):
             table.add_row(
-                    str(n+1),
-                    vmColumnNames[n],
-                    vmColumnState[n],
-                    vmColumnCPU[n],
-                    vmColumnRAM[n],
-                    vmColumnIpAddress[n],
-                    vmColumnVncPort[n],
-                    vmColumnVncPassword[n],
-                    vmColumnOsDisk[n],
-                    vmColumnOsType[n],
-                    vmColumnUptime[n],
-                    vmColumnDescription[n],
-                )
+                str(n + 1),
+                vmColumnNames[n],
+                vmColumnState[n],
+                vmColumnCPU[n],
+                vmColumnRAM[n],
+                vmColumnIpAddress[n],
+                vmColumnVncPort[n],
+                vmColumnVncPassword[n],
+                vmColumnOsDisk[n],
+                vmColumnOsType[n],
+                vmColumnUptime[n],
+                vmColumnDescription[n],
+            )
 
         Console().print(table)
-
 
     def json_output(self):
         vm_list_dict = self.vmColumnNames
@@ -456,14 +441,15 @@ class VmList:
 
 
 class VmDeploy:
-    def __init__(self, vm_name:str = "test-vm", ip_address:str = "10.0.0.0", os_type:str = "ubuntu2004", vnc_port:int = 5900, dataset_id:int = 0):
-        #_ Load networks config _#
+    def __init__(self, vm_name: str = "test-vm", ip_address: str = "10.0.0.0", os_type: str = "ubuntu2004",
+                 vnc_port: int = 5900, dataset_id: int = 0):
+        # _ Load networks config _#
         with open("./configs/networks.json", "r") as file:
             networks_file = file.read()
         networks_dict = json.loads(networks_file)
         self.networks = networks_dict["networks"][0]
 
-        #_ Load host config _#
+        # _ Load host config _#
         with open("./configs/host.json", "r") as file:
             host_file = file.read()
         host_dict = json.loads(host_file)
@@ -496,9 +482,8 @@ class VmDeploy:
 
         self.dataset_id = dataset_id
 
-
     @staticmethod
-    def vm_vnc_port_generator(vnc_port:int = 5900):
+    def vm_vnc_port_generator(vnc_port: int = 5900):
         existing_vnc_ports = []
         allowed_vnc_ports = []
         for _port in range(5900, 6100):
@@ -520,9 +505,8 @@ class VmDeploy:
 
         return vnc_port
 
-
     @staticmethod
-    def vm_name_generator(vm_name:str, existing_vms):
+    def vm_name_generator(vm_name: str, existing_vms):
         # Generate test VM name and number
         number = 1
         if vm_name in existing_vms:
@@ -537,9 +521,8 @@ class VmDeploy:
             vm_name = vm_name
         return vm_name
 
-
     @staticmethod
-    def ip_address_generator(ip_address:str, networks, existing_ip_addresses, vm_name:str):
+    def ip_address_generator(ip_address: str, networks, existing_ip_addresses, vm_name: str):
         if ip_address in existing_ip_addresses and vm_name != "test-vm":
             print("VM with such IP exists: " + vm_name + "/" + ip_address)
 
@@ -554,7 +537,7 @@ class VmDeploy:
             bridge_join = ".".join(bridge_split) + "."
 
             ip_address_list = []
-            for number in range(range_start, range_end+1):
+            for number in range(range_start, range_end + 1):
                 _ip_address = bridge_join + str(number)
                 ip_address_list.append(_ip_address)
 
@@ -569,9 +552,9 @@ class VmDeploy:
 
         return ip_address
 
-
     @staticmethod
-    def random_password_generator(capitals:bool = False, numbers:bool = False, lenght:int = 8, specials:bool = False):
+    def random_password_generator(capitals: bool = False, numbers: bool = False, length: int = 8,
+                                  specials: bool = False):
         letters_var = "asdfghjklqwertyuiopzxcvbnm"
         capitals_var = "ASDFGHJKLZXCVBNMQWERTYUIOP"
         numbers_var = "0987654321"
@@ -591,18 +574,16 @@ class VmDeploy:
                 valid_chars_list.append(s_item)
 
         password = ""
-        for _i in range(0, lenght):
+        for _i in range(0, length):
             password = password + random.choice(valid_chars_list)
 
         return password
 
-
     @staticmethod
-    def mac_address_generator(prefix:str = "58:9C:FC"):
+    def mac_address_generator(prefix: str = "58:9C:FC"):
         mac_addess = generate_mac.vid_provided(prefix)
         mac_addess = mac_addess.lower()
         return mac_addess
-
 
     def dns_registry(self):
         dns_registry = {}
@@ -633,16 +614,17 @@ class VmDeploy:
 
         return
 
-
     def deploy(self):
         output_dict = {}
         output_dict["vm_name"] = VmDeploy.vm_name_generator(vm_name=self.vm_name, existing_vms=self.existing_vms)
-        output_dict["ip_address"] = VmDeploy.ip_address_generator(ip_address=self.ip_address, networks=self.networks, existing_ip_addresses=self.existing_ip_addresses, vm_name=self.vm_name)
+        output_dict["ip_address"] = VmDeploy.ip_address_generator(ip_address=self.ip_address, networks=self.networks,
+                                                                  existing_ip_addresses=self.existing_ip_addresses,
+                                                                  vm_name=self.vm_name)
         output_dict["os_type"] = self.os_type
-        output_dict["root_password"] = VmDeploy.random_password_generator(lenght=41, capitals=True, numbers=True)
-        output_dict["user_password"] = VmDeploy.random_password_generator(lenght=41, capitals=True, numbers=True)
+        output_dict["root_password"] = VmDeploy.random_password_generator(length=41, capitals=True, numbers=True)
+        output_dict["user_password"] = VmDeploy.random_password_generator(length=41, capitals=True, numbers=True)
         output_dict["vnc_port"] = VmDeploy.vm_vnc_port_generator(vnc_port=self.vnc_port)
-        output_dict["vnc_password"] = VmDeploy.random_password_generator(lenght=8, capitals=True, numbers=True)
+        output_dict["vnc_password"] = VmDeploy.random_password_generator(length=8, capitals=True, numbers=True)
         output_dict["mac_address"] = VmDeploy.mac_address_generator()
         network0 = self.networks
         network_bridge_name = network0["bridge_name"]
@@ -669,7 +651,7 @@ class VmDeploy:
         for _key in host_dict["host_ssh_keys"]:
             _ssh_key = _key["key_value"]
             vm_ssh_keys.append(_ssh_key)
-        output_dict["random_instanse_id"] = VmDeploy.random_password_generator(lenght=5)
+        output_dict["random_instanse_id"] = VmDeploy.random_password_generator(length=5)
         output_dict["vm_ssh_keys"] = vm_ssh_keys
 
         dataset_id = self.dataset_id
@@ -680,7 +662,7 @@ class VmDeploy:
         template_ds = working_dataset + "/template-" + output_dict["os_type"]
         template_folder = working_dataset_path + "template-" + output_dict["os_type"]
         if exists(template_folder):
-            snapshot_name = "@deployment_" + output_dict["vm_name"] + "_" + VmDeploy.random_password_generator(lenght=7, numbers=True)
+            snapshot_name = "@deployment_" + output_dict["vm_name"] + "_" + VmDeploy.random_password_generator(length=7, numbers=True)
             command = "zfs snapshot " + template_ds + snapshot_name
             # print(command)
             subprocess.run(command, shell=True)
@@ -704,9 +686,10 @@ class VmDeploy:
                 file.write(template)
 
             CloudInit(vm_name=output_dict["vm_name"], vm_folder=new_vm_folder, vm_ssh_keys=vm_ssh_keys,
-                        os_type=output_dict["os_type"], ip_address=output_dict["ip_address"],
-                        network_bridge_address=output_dict["network_bridge_address"], root_password=output_dict["root_password"],
-                        user_password=output_dict["user_password"], mac_address=output_dict["mac_address"]).deploy()
+                      os_type=output_dict["os_type"], ip_address=output_dict["ip_address"],
+                      network_bridge_address=output_dict["network_bridge_address"],
+                      root_password=output_dict["root_password"],
+                      user_password=output_dict["user_password"], mac_address=output_dict["mac_address"]).deploy()
 
         else:
             sys.exit(" ⛔ FATAL! Template specified doesn't exist: " + template_folder)
@@ -716,12 +699,12 @@ class VmDeploy:
 
 class Operation:
     @staticmethod
-    def snapshot(vm_name:str, stype:str="custom", keep:int=3) -> None:
+    def snapshot(vm_name: str, stype: str = "custom", keep: int = 3) -> None:
         """ Function responsible for taking VM Snapshots """
 
         snapshot_type = stype
         snapshots_to_keep = keep
-        snapshot_type_list = [ "replication", "custom", "hourly", "daily", "weekly", "monthly", "yearly" ]
+        snapshot_type_list = ["replication", "custom", "hourly", "daily", "weekly", "monthly", "yearly"]
         if vm_name in VmList().plainList:
             date_now = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
             snapshot_name = snapshot_type + "_" + date_now
@@ -735,7 +718,8 @@ class Operation:
         # Remove old snapshots
         if snapshot_type != "custom":
             # Get the snapshot list
-            command = "zfs list -r -t snapshot " + CoreChecks(vm_name).vm_location() + " | tail +2 | awk '{ print $1 }' | grep " + snapshot_type
+            command = "zfs list -r -t snapshot " + CoreChecks(
+                vm_name).vm_location() + " | tail +2 | awk '{ print $1 }' | grep " + snapshot_type
             shell_command = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
             vm_zfs_snapshot_list = shell_command.decode("utf-8").split()
 
@@ -753,7 +737,7 @@ class Operation:
                 print(" 🔷 DEBUG: VM " + vm_name + " doesn't have any '" + snapshot_type + "' snapshots to delete")
 
     @staticmethod
-    def destroy(vm_name:str, force:bool=False):
+    def destroy(vm_name: str, force: bool = False):
         """
         Function responsible for completely removing VMs from the system
         """
@@ -772,7 +756,7 @@ class Operation:
             print(" 🔶 INFO: The VM was destroyed: " + command)
 
     @staticmethod
-    def kill(vm_name:str, quiet:bool = False):
+    def kill(vm_name: str, quiet: bool = False):
         """
         Function that forcefully kills the VM
         """
@@ -821,7 +805,7 @@ class Operation:
                     subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     if not quiet:
                         print(" 🔶 INFO: Forcefully killed the VM process: " + console_list[0] + " " + vm_name)
-            
+
             except Exception as e:
                 print(" 🔶 INFO: Could not find the PID file for: " + vm_name)
                 if not quiet:
@@ -835,7 +819,6 @@ class Operation:
                     print(" 🔶 INFO: Forcefully killed the VM process: " + console_list[0] + " " + vm_name)
                 # print(e)
 
-
             # command = "ps axf | grep -v grep | grep " + vm_name + " | grep bhyve: | awk '{ print $1 }'"
             # shell_command = subprocess.check_output(command, shell=True)
             # try:
@@ -844,7 +827,6 @@ class Operation:
             #     subprocess.run(command, shell=True)
             # except:
             #     print(" 🔶 INFO: Could not find the process for the VM: " + vm_name)
-
 
             # This block is a duplicate. Creating a function would be a good idea for the future!
             command = "ifconfig | grep " + vm_name + " | awk '{ print $2 }'"
@@ -875,27 +857,27 @@ class Operation:
                         subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             if not quiet:
                 print(" 🔶 INFO: VM is already dead: " + vm_name + "!")
-        
+
         # Remove PID file if it still exists
         try:
-            command= "rm /var/run/" + vm_name + ".pid"
+            command = "rm /var/run/" + vm_name + ".pid"
             subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except:
             pass
 
-
     @staticmethod
-    def start(vm_name:str) -> None:
+    def start(vm_name: str) -> None:
         vm_config = VmConfigs(vm_name).vm_config_read()
         if vm_config["parent_host"] != host.get_hostname():
-            print(" 🚦 ERROR: VM is a backup from another host: " + vm_config["parent_host"] + ". Run 'hoster vm cireset " + vm_name + "' if you want to use it on this host!")
+            print(" 🚦 ERROR: VM is a backup from another host: " + vm_config[
+                "parent_host"] + ". Run 'hoster vm cireset " + vm_name + "' if you want to use it on this host!")
             return
         elif CoreChecks(vm_name).vm_is_live():
             print(" 🔶 INFO: VM is already live: " + vm_name)
         elif vm_name in VmList().plainList:
             print(" 🔶 INFO: Starting the VM: " + vm_name)
 
-            #_ NETWORKING - Create required TAP interfaces _#
+            # _ NETWORKING - Create required TAP interfaces _#
             vm_network_interfaces = CoreChecks(vm_name).vm_network_interfaces()
             tap_interface_number = 0
             tap_interface_list = []
@@ -918,17 +900,18 @@ class Operation:
                 # print(command)
                 subprocess.run(command, shell=True)
 
-                command = "ifconfig vm-"+ vm_network_interfaces[interface]["network_bridge"] + " up"
+                command = "ifconfig vm-" + vm_network_interfaces[interface]["network_bridge"] + " up"
                 # print(command)
                 subprocess.run(command, shell=True)
 
-                command = 'ifconfig ' + tap_interface + ' description ' + '"' + tap_interface + ' ' + vm_name + ' ' + 'interface' + str(interface) + '"'
+                command = 'ifconfig ' + tap_interface + ' description ' + '"' + tap_interface + ' ' + vm_name + ' ' + 'interface' + str(
+                    interface) + '"'
                 # print(command)
                 subprocess.run(command, shell=True)
 
                 tap_interface_list.append(tap_interface)
 
-            #_ NEXT SECTION _#
+            # _ NEXT SECTION _#
             command1 = "bhyve -HAw -s 0:0,hostbridge -s 31,lpc "
 
             bhyve_pci_1 = 2
@@ -939,14 +922,19 @@ class Operation:
                     network_adaptor_type = vm_network_interfaces[interface]["network_adaptor_type"]
                     generic_network_text = "," + network_adaptor_type + ","
                     if interface == 0:
-                        network_final = "-s " + str(bhyve_pci_1) + ":" + str(bhyve_pci_2) + generic_network_text + tap_interface_list[interface] + ",mac=" + vm_network_interfaces[interface]["network_mac"]
+                        network_final = "-s " + str(bhyve_pci_1) + ":" + str(bhyve_pci_2) + generic_network_text + \
+                                        tap_interface_list[interface] + ",mac=" + vm_network_interfaces[interface][
+                                            "network_mac"]
                     else:
                         bhyve_pci_2 = bhyve_pci_2 + 1
-                        network_final = network_final + space + "-s " + str(bhyve_pci_1) + ":" + str(bhyve_pci_2) + generic_network_text + tap_interface_list[interface] + ",mac=" + vm_network_interfaces[interface]["network_mac"]
+                        network_final = network_final + space + "-s " + str(bhyve_pci_1) + ":" + str(
+                            bhyve_pci_2) + generic_network_text + tap_interface_list[interface] + ",mac=" + \
+                                        vm_network_interfaces[interface]["network_mac"]
             else:
                 network_adaptor_type = vm_network_interfaces[0]["network_adaptor_type"]
                 generic_network_text = "," + network_adaptor_type + ","
-                network_final = "-s " + str(bhyve_pci_1) + ":" + str(bhyve_pci_2) + generic_network_text + tap_interface_list[0] + ",mac=" + vm_network_interfaces[0]["network_mac"]
+                network_final = "-s " + str(bhyve_pci_1) + ":" + str(bhyve_pci_2) + generic_network_text + \
+                                tap_interface_list[0] + ",mac=" + vm_network_interfaces[0]["network_mac"]
 
             command2 = network_final
 
@@ -957,48 +945,55 @@ class Operation:
                     generic_disk_text = ":0," + vm_disks[disk]["disk_type"] + ","
                     disk_image = vm_disks[disk]["disk_image"]
                     if disk == 0:
-                        disk_final = " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(vm_name=vm_name, disk_image_name=disk_image).disk_location()
+                        disk_final = " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(vm_name=vm_name,
+                                                                                              disk_image_name=disk_image).disk_location()
                     else:
                         bhyve_pci = bhyve_pci + 1
-                        disk_final = disk_final + " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(vm_name=vm_name, disk_image_name=disk_image).disk_location()
+                        disk_final = disk_final + " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(
+                            vm_name=vm_name, disk_image_name=disk_image).disk_location()
             else:
                 generic_disk_text = ":0," + vm_disks[0]["disk_type"] + ","
                 disk_image = vm_disks[0]["disk_image"]
-                disk_final = " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(vm_name=vm_name, disk_image_name=disk_image).disk_location()
+                disk_final = " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(vm_name=vm_name,
+                                                                                      disk_image_name=disk_image).disk_location()
 
             command3 = disk_final
 
             os_type = CoreChecks(vm_name).vm_os_type()
             vm_cpus = CoreChecks(vm_name).vm_cpus()
-            command5 = " -c sockets=" + vm_cpus["cpu_sockets"] + ",cores=" + vm_cpus["cpu_cores"] + " -m " + vm_cpus["memory"]
+            command5 = " -c sockets=" + vm_cpus["cpu_sockets"] + ",cores=" + vm_cpus["cpu_cores"] + " -m " + vm_cpus[
+                "memory"]
 
             bhyve_pci = bhyve_pci + 1
             vnc_port = str(vm_cpus["vnc_port"])
             vnc_password = vm_cpus["vnc_password"]
-            command6 = " -s " + str(bhyve_pci) + ":" + str(bhyve_pci_2) + ",fbuf,tcp=0.0.0.0:" + vnc_port + ",w=1280,h=1024,password=" + vnc_password
+            command6 = " -s " + str(bhyve_pci) + ":" + str(
+                bhyve_pci_2) + ",fbuf,tcp=0.0.0.0:" + vnc_port + ",w=1280,h=1024,password=" + vnc_password
 
             bhyve_pci = bhyve_pci + 1
             if vm_cpus["loader"] == "bios":
-                command7 = " -s " + str(bhyve_pci) + ":" + str(bhyve_pci_2) + ",xhci,tablet -l com1,/dev/nmdm-" + vm_name + "-1A -l bootrom,/usr/local/share/uefi-firmware/BHYVE_UEFI_CSM.fd -u " + vm_name
+                command7 = " -s " + str(bhyve_pci) + ":" + str(
+                    bhyve_pci_2) + ",xhci,tablet -l com1,/dev/nmdm-" + vm_name + "-1A -l bootrom,/usr/local/share/uefi-firmware/BHYVE_UEFI_CSM.fd -u " + vm_name
                 # command = command1 + command2 + command3 + command4 + command5 + command6 + command7
                 command = command1 + command2 + command3 + command5 + command6 + command7
             elif vm_cpus["loader"] == "uefi":
-                command7 = " -s " + str(bhyve_pci) + ",xhci,tablet -l com1,/dev/nmdm-" + vm_name + "-1A -l bootrom,/usr/local/share/uefi-firmware/BHYVE_UEFI.fd -u " + vm_name
+                command7 = " -s " + str(
+                    bhyve_pci) + ",xhci,tablet -l com1,/dev/nmdm-" + vm_name + "-1A -l bootrom,/usr/local/share/uefi-firmware/BHYVE_UEFI.fd -u " + vm_name
                 # command = command1 + command2 + command3 + command4 + command5 + command6 + command7
                 command = command1 + command2 + command3 + command5 + command6 + command7
             else:
                 print(" 🚦 ERROR: Loader is not supported!")
 
             vm_folder = CoreChecks(vm_name).vm_folder()
-            
+
             command = "nohup ./cli/shell_helpers/vm_start.sh " + '"' + command + '"' + " " + vm_name + " >> " + vm_folder + "/vm.log 2>&1 &"
             subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
-            
+
             # GENERATE VM SERVICE FILE FOR SUPERVISORD
             # if CoreChecks(vm_name).vm_in_production:
-                # vm_autostart = "true"
+            # vm_autostart = "true"
             # else:
-                # vm_autostart = "false"
+            # vm_autostart = "false"
 
             # with open("./configs/service.vm.conf.jinja", "r") as file:
             #     vm_service_template = file.read()
@@ -1013,21 +1008,20 @@ class Operation:
             #     file.write(vm_service_template)
 
             # print(vm_service_template)
-            
+
             # command = "supervisorctl -u user -p 123 update " + vm_name
             # print(command)
             # command = "supervisorctl -u user -p 123 start " + vm_name
             # print(command)
             # subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
-            
+
             # _EOF_ GENERATE VM SERVICE FILE FOR SUPERVISORD
 
         else:
             print(" 🚦 ERROR: Such VM '" + vm_name + "' doesn't exist!")
 
-
     @staticmethod
-    def stop(vm_name:str) -> None:
+    def stop(vm_name: str) -> None:
         """
         Gracefully stop the VM
         """
@@ -1070,7 +1064,8 @@ class Operation:
                 command = "ifconfig " + running_tap_adaptor + " | grep status | sed s/.status:.//"
                 shell_command = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
                 running_tap_adaptor_status = shell_command.decode("utf-8").split("\n")[0]
-                print(" 🔶 INFO: Network adaptor is still active (sleeping for 10 seconds) : " + vm_name + "/" + running_tap_adaptor)
+                print(
+                    " 🔶 INFO: Network adaptor is still active (sleeping for 10 seconds) : " + vm_name + "/" + running_tap_adaptor)
                 iteration = iteration + 1
                 if iteration >= 10:
                     print(" 🔶 INFO: Wait time is over, killing the VM: " + vm_name)
@@ -1104,7 +1099,7 @@ class ZFSReplication:
         sys.exit(0)
 
     @staticmethod
-    def push(vm_name:str, ep_address:str, ep_port:str = "22") -> None:
+    def push(vm_name: str, ep_address: str, ep_port: str = "22") -> None:
         if vm_name not in VmList().plainList:
             sys.exit(" 🚦 ERROR: This VM doesn't exist: " + vm_name)
 
@@ -1142,12 +1137,12 @@ class ZFSReplication:
                 vm_zfs_snapshot_list.remove(item)
             elif item == "no datasets available":
                 vm_zfs_snapshot_list.remove(item)
-        
-        """ In case of future debugging """   
+
+        """ In case of future debugging """
         # print("List of local snapshots:")
         # for item in vm_zfs_snapshot_list:
         #     print(item)
-        
+
         # Remote snapshot list
         command = 'echo "if [[ -d /' + vm_dataset + ' ]]; then zfs list -r -t snapshot ' + vm_dataset + '; fi" | ssh ' + ep_address + ' /usr/local/bin/bash | tail +2 | ' + "awk '{ print $1 }'"
         shell_command = subprocess.check_output(command, shell=True)
@@ -1158,11 +1153,11 @@ class ZFSReplication:
                 remote_zfs_snapshot_list.remove(item)
             elif item == "no datasets available":
                 remote_zfs_snapshot_list.remove(item)
-        
-        """ In case of future debugging """    
+
+        """ In case of future debugging """
         # print("List of remote snapshots:")
         # for item in remote_zfs_snapshot_list:
-            # print(item)
+        # print(item)
 
         if vm_zfs_snapshot_list == remote_zfs_snapshot_list:
             print(" 🔷 DEBUG: The backup system is already up to date.")
@@ -1180,7 +1175,7 @@ class ZFSReplication:
             print(" 🔷 DEBUG: Reverting back to the latest replication snapshot: " + command)
             subprocess.run(command, shell=True)
             # for line in subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT):
-                # print(line.split("Line from Python: \n"))
+            # print(line.split("Line from Python: \n"))
 
         # Difference list
         to_delete_snapshot_list = []
@@ -1191,8 +1186,8 @@ class ZFSReplication:
         """ In case of future debugging """
         # print("To delete list: ")
         # for item in to_delete_snapshot_list:
-            # print(item)
-        
+        # print(item)
+
         if len(to_delete_snapshot_list) != 0:
             # print("Removing old snapshots from the remote system:")
             for item in to_delete_snapshot_list:
@@ -1201,24 +1196,24 @@ class ZFSReplication:
 
         # Generate a lists of snapshots to transfer
         for rsnapshot_index, rsnapshot_value in enumerate(remote_zfs_snapshot_list):
-            if rsnapshot_index != len(remote_zfs_snapshot_list)-1:
+            if rsnapshot_index != len(remote_zfs_snapshot_list) - 1:
                 if rsnapshot_value in vm_zfs_snapshot_list:
                     vm_zfs_snapshot_list.remove(rsnapshot_value)
         """ In case of future debugging """
         # print("Snapshots to transfer:")
         # for item in vm_zfs_snapshot_list:
-            # print(item)
+        # print(item)
 
         # Start the replication
         if len(remote_zfs_snapshot_list) > 0:
             print(" 🔷 DEBUG: Starting the replication operation for: '" + vm_dataset + "'")
             for snapshot_index, snapshot_value in enumerate(vm_zfs_snapshot_list):
-                if snapshot_index != len(vm_zfs_snapshot_list)-1:
+                if snapshot_index != len(vm_zfs_snapshot_list) - 1:
                     # FIND OUT THE SIZE OF A SNAPSHOT TO TRANSFER
                     command = "zfs send -nvi " + snapshot_value + " " + vm_zfs_snapshot_list[snapshot_index + 1]
                     shell_output = subprocess.check_output(command, shell=True)
                     shell_output = shell_output.decode("UTF-8").strip("\n").split()[-1]
-                    
+
                     # SIZE CONVERSION TO PRINT
                     if re.match(".*G", shell_output):
                         str_shell_output = shell_output
@@ -1228,9 +1223,11 @@ class ZFSReplication:
                         str_shell_output = shell_output
                     else:
                         str_shell_output = shell_output + "B"
-                    
-                    print(" 🔷 DEBUG: Sending INCREMENTAL snapshot " + str(snapshot_index + 1) + " out of " + str(len(vm_zfs_snapshot_list)-1) + " || (" + vm_zfs_snapshot_list[snapshot_index + 1] + ", size: " + str_shell_output + ")")
-                    
+
+                    print(" 🔷 DEBUG: Sending INCREMENTAL snapshot " + str(snapshot_index + 1) + " out of " + str(
+                        len(vm_zfs_snapshot_list) - 1) + " || (" + vm_zfs_snapshot_list[
+                              snapshot_index + 1] + ", size: " + str_shell_output + ")")
+
                     # SIZE CONVERSION TO BYTES
                     if re.match(".*G", shell_output):
                         shell_output = float(shell_output.strip("G")) * 1024 * 1024 * 1024
@@ -1240,15 +1237,17 @@ class ZFSReplication:
                         shell_output = float(shell_output.strip("K")) * 1024
                     else:
                         shell_output = float(shell_output)
-                    
+
                     # FORCE RECEIVE IF IT'S THE FIRST SNAPSHOT IN THIS ITERATION
                     if snapshot_index == 0:
                         # print("DEBUG FISRT SNAP TO SEND!")
                         zfs_receive_command = " zfs receive -F "
                     else:
                         zfs_receive_command = " zfs receive "
-                    
-                    command = "zfs send -i " + snapshot_value + " " + vm_zfs_snapshot_list[snapshot_index + 1] + " | pv -p -e -r -W -t -s " + str(round(shell_output)) + " | ssh " + ep_address + zfs_receive_command + vm_dataset
+
+                    command = "zfs send -i " + snapshot_value + " " + vm_zfs_snapshot_list[
+                        snapshot_index + 1] + " | pv -p -e -r -W -t -s " + str(
+                        round(shell_output)) + " | ssh " + ep_address + zfs_receive_command + vm_dataset
                     # print(command)
                     subprocess.run(command, shell=True)
                     # with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=2) as sp:
@@ -1261,7 +1260,7 @@ class ZFSReplication:
             command = "zfs send -nv " + vm_zfs_snapshot_list[0]
             shell_output = subprocess.check_output(command, shell=True)
             shell_output = shell_output.decode("UTF-8").strip("\n").split()[-1]
-            
+
             # SIZE CONVERSION TO PRINT
             if re.match(".*G", shell_output):
                 str_shell_output = shell_output
@@ -1271,9 +1270,10 @@ class ZFSReplication:
                 str_shell_output = shell_output
             else:
                 str_shell_output = shell_output + "B"
-            
-            print(" 🔷 DEBUG: Starting the INITIAL replication operation for: '" + vm_dataset + "'" + " (size: " + str_shell_output + ")")
-            
+
+            print(
+                " 🔷 DEBUG: Starting the INITIAL replication operation for: '" + vm_dataset + "'" + " (size: " + str_shell_output + ")")
+
             # SIZE CONVERSION TO BYTES
             if re.match(".*G", shell_output):
                 shell_output = float(shell_output.strip("G")) * 1024 * 1024 * 1024
@@ -1283,16 +1283,18 @@ class ZFSReplication:
                 shell_output = float(shell_output.strip("K")) * 1024
             else:
                 shell_output = float(shell_output)
-            
-            command = "zfs send " + vm_zfs_snapshot_list[0] + " | pv -p -e -r -W -t -s " + str(round(shell_output)) + " | ssh " + ep_address + " zfs receive " + vm_dataset
+
+            command = "zfs send " + vm_zfs_snapshot_list[0] + " | pv -p -e -r -W -t -s " + str(
+                round(shell_output)) + " | ssh " + ep_address + " zfs receive " + vm_dataset
             subprocess.run(command, shell=True)
             print(" 🟢 INFO: Initial snapshot replication operation: done sending '" + vm_dataset + "'")
 
 
 class CloudInit:
     def __init__(self, vm_name, vm_folder, vm_ssh_keys, os_type, ip_address, network_bridge_address,
-                    root_password, user_password, mac_address, new_vm_name=False, old_zfs_ds=False, new_zfs_ds=False, os_comment=False):
-        
+                 root_password, user_password, mac_address, new_vm_name=False, old_zfs_ds=False, new_zfs_ds=False,
+                 os_comment=False):
+
         self.vm_name = vm_name
         self.vm_folder = vm_folder
         self.new_vm_name = new_vm_name
@@ -1301,7 +1303,7 @@ class CloudInit:
         self.new_zfs_ds = new_zfs_ds
 
         self.output_dict = {}
-        self.output_dict["random_instanse_id"] = random_password_generator(lenght=5)
+        self.output_dict["random_instanse_id"] = random_password_generator(length=5)
         self.output_dict["vm_name"] = vm_name
         self.output_dict["mac_address"] = mac_address
         self.output_dict["os_type"] = os_type
@@ -1311,7 +1313,6 @@ class CloudInit:
         self.output_dict["root_password"] = root_password
         self.output_dict["user_password"] = user_password
         self.output_dict["os_comment"] = os_comment
-
 
     def rename(self):
         # Check if VM exists
@@ -1342,19 +1343,19 @@ class CloudInit:
         # Create ISO file
         command = "genisoimage -output " + new_vm_folder + "/seed.iso -volid cidata -joliet -rock " + cloud_init_files_folder + "/user-data " + cloud_init_files_folder + "/meta-data " + cloud_init_files_folder + "/network-config"
         # print(command)
-        subprocess.run(command, shell=True, stderr = subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        subprocess.run(command, shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
 
         # Rename ZFS dataset
         # Check if VM is Live
         command = "zfs rename " + old_zfs_ds + " " + new_zfs_ds
         # print(command)
-        subprocess.run(command, shell=True, stderr = subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        subprocess.run(command, shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
 
     @staticmethod
     def reset(vm_name, ip_address, vm_folder, network_bridge_address, vm_ssh_keys, root_password, user_password):
         output_dict = {}
         output_dict["vm_name"] = vm_name
-        output_dict["random_instanse_id"] = random_password_generator(lenght=5)
+        output_dict["random_instanse_id"] = random_password_generator(length=5)
         output_dict["ip_address"] = ip_address
         output_dict["network_bridge_address"] = network_bridge_address
         output_dict["vm_ssh_keys"] = vm_ssh_keys
@@ -1407,8 +1408,7 @@ class CloudInit:
 
         # Create ISO file
         command = "genisoimage -output " + vm_folder + "/seed.iso -volid cidata -joliet -rock " + cloud_init_files_folder + "/user-data " + cloud_init_files_folder + "/meta-data " + cloud_init_files_folder + "/network-config"
-        subprocess.run(command, shell=True, stderr = subprocess.DEVNULL, stdout=subprocess.DEVNULL)
-
+        subprocess.run(command, shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
 
     def deploy(self):
         new_vm_folder = self.vm_folder
@@ -1450,17 +1450,19 @@ class CloudInit:
 
         # Create ISO file
         command = "genisoimage -output " + new_vm_folder + "/seed.iso -volid cidata -joliet -rock " + cloud_init_files_folder + "/user-data " + cloud_init_files_folder + "/meta-data " + cloud_init_files_folder + "/network-config"
-        subprocess.run(command, shell=True, stderr = subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        subprocess.run(command, shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
 
 
 """ Section below is responsible for the CLI input/output """
 app = typer.Typer(context_settings=dict(max_content_width=800))
+
+
 # app.add_typer(vmdeploy.app, name="deploy", help="Manage users in the app.")
 # app.add_typer(vmlist.app, name="list")
 
 
 @app.command()
-def list(json:bool = typer.Option(False, help="Output json instead of a table")):
+def list(json: bool = typer.Option(False, help="Output json instead of a table")):
     """ List the VMs using table or JSON output """
     if json:
         print(VmList().json_output())
@@ -1469,7 +1471,7 @@ def list(json:bool = typer.Option(False, help="Output json instead of a table"))
 
 
 @app.command()
-def info(vm_name:str = typer.Argument(..., help="Print VM config file to the screen")):
+def info(vm_name: str = typer.Argument(..., help="Print VM config file to the screen")):
     """ Show VM info in the form of JSON output """
     vm_info_dict = VmConfigs(vm_name).vm_config_read()
     vm_info_json = json.dumps(vm_info_dict, indent=2)
@@ -1477,16 +1479,16 @@ def info(vm_name:str = typer.Argument(..., help="Print VM config file to the scr
 
 
 @app.command()
-def edit(vm_name:str = typer.Argument(..., help="Edit VM config file with nano")):
+def edit(vm_name: str = typer.Argument(..., help="Edit VM config file with nano")):
     """ Manually edit the VM config file (with 'nano') """
     VmConfigs(vm_name).vm_config_manual_edit()
 
 
 @app.command()
-def diskexpand(vm_name:str = typer.Argument(..., help="VM name"),
-        size:int = typer.Option(10, help="Number or Gigabytes to add"),
-        disk:str = typer.Option("disk0.img", help="Disk image file name"),
-    ):
+def diskexpand(vm_name: str = typer.Argument(..., help="VM name"),
+               size: int = typer.Option(10, help="Number or Gigabytes to add"),
+               disk: str = typer.Option("disk0.img", help="Disk image file name"),
+               ):
     """ Expand VM drive. Example: hoster vm diskexpand test-vm-1 --disk disk1.img --size 100 """
 
     if vm_name in VmList().plainList:
@@ -1498,7 +1500,8 @@ def diskexpand(vm_name:str = typer.Argument(..., help="VM name"),
             disk_location = CoreChecks(vm_name=vm_name, disk_image_name=disk).disk_location()
             shell_command = "truncate -s +" + str(size) + "G " + disk_location
             subprocess.run(shell_command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            print(" 🟢 INFO: Disk " + disk + "was enlarged by " + str(size) + "G. Reboot or start the VM to apply new settings: " + vm_name)
+            print(" 🟢 INFO: Disk " + disk + "was enlarged by " + str(
+                size) + "G. Reboot or start the VM to apply new settings: " + vm_name)
         else:
             sys.exit(" 🚦 ERROR: Sorry, could not find the disk: " + disk)
     else:
@@ -1506,9 +1509,9 @@ def diskexpand(vm_name:str = typer.Argument(..., help="VM name"),
 
 
 @app.command()
-def rename(vm_name:str = typer.Argument(..., help="VM Name"),
-        new_name:str = typer.Option(..., help="New VM Name"),
-    ):
+def rename(vm_name: str = typer.Argument(..., help="VM Name"),
+           new_name: str = typer.Option(..., help="New VM Name"),
+           ):
     """ Rename the VM """
 
     if vm_name not in VmList().plainList:
@@ -1529,9 +1532,11 @@ def rename(vm_name:str = typer.Argument(..., help="VM Name"),
     user_password = ""
     mac_address = ""
 
-    cloud_init = CloudInit(vm_name=vm_name, vm_folder=vm_folder, vm_ssh_keys=vm_ssh_keys, os_type=os_type, ip_address=ip_address,
-    network_bridge_address=network_bridge_address, root_password=root_password, user_password=user_password, mac_address=mac_address,
-    new_vm_name=new_name, old_zfs_ds=old_zfs_ds, new_zfs_ds=new_zfs_ds)
+    cloud_init = CloudInit(vm_name=vm_name, vm_folder=vm_folder, vm_ssh_keys=vm_ssh_keys, os_type=os_type,
+                           ip_address=ip_address,
+                           network_bridge_address=network_bridge_address, root_password=root_password,
+                           user_password=user_password, mac_address=mac_address,
+                           new_vm_name=new_name, old_zfs_ds=old_zfs_ds, new_zfs_ds=new_zfs_ds)
 
     cloud_init.rename()
 
@@ -1539,11 +1544,11 @@ def rename(vm_name:str = typer.Argument(..., help="VM Name"),
     VmDeploy().dns_registry()
 
     # Let user know, that everything went well
-    print (" 🟢 INFO: VM was renamed successfully, from " + vm_name + " to " + new_name)
+    print(" 🟢 INFO: VM was renamed successfully, from " + vm_name + " to " + new_name)
 
 
 @app.command()
-def console(vm_name:str = typer.Argument(..., help="VM Name")):
+def console(vm_name: str = typer.Argument(..., help="VM Name")):
     """ Connect to VM's console """
 
     if vm_name not in VmList().plainList:
@@ -1564,9 +1569,9 @@ def console(vm_name:str = typer.Argument(..., help="VM Name")):
 
 
 @app.command()
-def destroy(vm_name:str = typer.Argument(..., help="VM Name"),
-        force:bool = typer.Option(False, help="Kill and destroy the VM, even if it's running"),
-    ):
+def destroy(vm_name: str = typer.Argument(..., help="VM Name"),
+            force: bool = typer.Option(False, help="Kill and destroy the VM, even if it's running"),
+            ):
     """ Completely remove the VM from this system! """
     Operation.destroy(vm_name=vm_name)
 
@@ -1575,7 +1580,7 @@ def destroy(vm_name:str = typer.Argument(..., help="VM Name"),
 
 
 @app.command()
-def destroy_all(force:bool = typer.Option(False, help="Kill and destroy all VMs, even if they are running")):
+def destroy_all(force: bool = typer.Option(False, help="Kill and destroy all VMs, even if they are running")):
     """ Completely remove all VMs from this system! """
     vm_list = VmList().plainList
     for _vm in vm_list:
@@ -1586,7 +1591,8 @@ def destroy_all(force:bool = typer.Option(False, help="Kill and destroy all VMs,
     print(" 🔶 INFO: Execute this command to find and manually remove old deployment snapshots:")
     print("          zfs list -t all | grep \"@deployment_\" | awk '{ print $1 }'")
     print(" 🔶 INFO: Or execute this command to find and automatically remove old test deployment snapshots:")
-    print("          for ITEM in $(zfs list -t all | grep \"@deployment_\" | awk '{ print $1 }' | grep test-vm-); do zfs destroy $ITEM; done")
+    print(
+        "          for ITEM in $(zfs list -t all | grep \"@deployment_\" | awk '{ print $1 }' | grep test-vm-); do zfs destroy $ITEM; done")
     print()
 
     # Reload DNS
@@ -1594,10 +1600,10 @@ def destroy_all(force:bool = typer.Option(False, help="Kill and destroy all VMs,
 
 
 @app.command()
-def snapshot(vm_name:str = typer.Argument(..., help="VM Name"),
-        stype:str = typer.Option("custom", help="Snapshot type: daily, weekly, etc"),
-        keep:int = typer.Option(3, help="How many snapshots to keep")
-    ):
+def snapshot(vm_name: str = typer.Argument(..., help="VM Name"),
+             stype: str = typer.Option("custom", help="Snapshot type: daily, weekly, etc"),
+             keep: int = typer.Option(3, help="How many snapshots to keep")
+             ):
     """
     Snapshot the VM (RAM snapshots are not supported). Snapshot will be taken at the storage level: ZFS or GlusterFS.
     Example: hoster vm snapshot test-vm-1 --type weekly --keep 5
@@ -1607,9 +1613,9 @@ def snapshot(vm_name:str = typer.Argument(..., help="VM Name"),
 
 
 @app.command()
-def snapshot_all(stype:str = typer.Option("custom", help="Snapshot type: daily, weekly, etc"),
-        keep:int = typer.Option(3, help="How many snapshots to keep")
-    ):
+def snapshot_all(stype: str = typer.Option("custom", help="Snapshot type: daily, weekly, etc"),
+                 keep: int = typer.Option(3, help="How many snapshots to keep")
+                 ):
     """ Snapshot all VMs """
 
     vm_list = VmList().plainList
@@ -1621,7 +1627,7 @@ def snapshot_all(stype:str = typer.Option("custom", help="Snapshot type: daily, 
 
 
 @app.command()
-def kill(vm_name:str = typer.Argument(..., help="VM Name")):
+def kill(vm_name: str = typer.Argument(..., help="VM Name")):
     """ Kill the VM immediately! """
     Operation.kill(vm_name=vm_name)
 
@@ -1636,15 +1642,16 @@ def kill_all():
 
 
 @app.command()
-def start(vm_name:str = typer.Argument(..., help="VM name"),
-    ):
+def start(vm_name: str = typer.Argument(..., help="VM name"),
+          ):
     """ Power on the VM """
 
     Operation.start(vm_name=vm_name)
 
+
 @app.command()
-def start_all(wait:int = typer.Option(5, help="Seconds to wait before starting the next VM on the list")
-    ):
+def start_all(wait: int = typer.Option(5, help="Seconds to wait before starting the next VM on the list")
+              ):
     """ Power on all production VMs """
 
     vm_list = VmList().plainList
@@ -1659,15 +1666,15 @@ def start_all(wait:int = typer.Option(5, help="Seconds to wait before starting t
 
 
 @app.command()
-def stop(vm_name:str = typer.Argument(..., help="VM name"),
-    ):
+def stop(vm_name: str = typer.Argument(..., help="VM name"),
+         ):
     """ Gracefully stop the VM """
     Operation.stop(vm_name=vm_name)
 
 
 @app.command()
-def stop_all(wait:int = typer.Option(5, help="Seconds to wait before stopping the next VM on the list")
-    ):
+def stop_all(wait: int = typer.Option(5, help="Seconds to wait before stopping the next VM on the list")
+             ):
     """ Gracefully stop all VMs running on this system """
 
     vm_list = VmList().plainList
@@ -1680,23 +1687,23 @@ def stop_all(wait:int = typer.Option(5, help="Seconds to wait before stopping th
 
 
 @app.command()
-def deploy(vm_name:str = typer.Argument("test-vm", help="New VM name"),
-        os_type:str = typer.Option("ubuntu2004", help="OS Type, for example: debian11 or ubuntu2004"),
-        # ip_address:str = typer.Option("10.0.0.0", help="Specify the IP address or leave at default to generate a random address"),
-        ds_id:int = typer.Option(0, help="Dataset ID to which this VM will be deployed"),
-    ):
+def deploy(vm_name: str = typer.Argument("test-vm", help="New VM name"),
+           os_type: str = typer.Option("ubuntu2004", help="OS Type, for example: debian11 or ubuntu2004"),
+           # ip_address:str = typer.Option("10.0.0.0", help="Specify the IP address or leave at default to generate a random address"),
+           ds_id: int = typer.Option(0, help="Dataset ID to which this VM will be deployed"),
+           ):
     """ New VM deployment """
 
     deployment_output = VmDeploy(vm_name=vm_name, os_type=os_type, dataset_id=ds_id).deploy()
     # Reload DNS
     VmDeploy().dns_registry()
     # Let user know, that everything went well
-    print (" 🟢 INFO: VM was deployed successfully: " + deployment_output["vm_name"])
+    print(" 🟢 INFO: VM was deployed successfully: " + deployment_output["vm_name"])
 
 
 @app.command()
-def cireset(vm_name:str = typer.Argument(..., help="VM name"),
-    ):
+def cireset(vm_name: str = typer.Argument(..., help="VM name"),
+            ):
     """ Reset the VM settings, including passwords, network settings, user keys, etc. """
     if vm_name not in VmList().plainList:
         sys.exit(" 🚦 ERROR: This VM doesn't exist: " + vm_name)
@@ -1706,17 +1713,17 @@ def cireset(vm_name:str = typer.Argument(..., help="VM name"),
     # print(vm_config_dict)
     vm_folder = CoreChecks(vm_name=vm_name).vm_folder()
     # print(vm_folder)
-    #_ Load host config _#
+    # _ Load host config _#
     with open("./configs/host.json", "r") as file:
         host_file = file.read()
 
     host_dict = json.loads(host_file)
     # print(host_dict)
 
-    host_name = host.HostInfo().hostName
+    host_name = host.get_hostname()
     # print(host_name)
 
-    #_ Load networks config _#
+    # _ Load networks config _#
     with open("./configs/networks.json", "r") as file:
         networks_file = file.read()
     networks_dict = json.loads(networks_file)
@@ -1772,7 +1779,7 @@ def cireset(vm_name:str = typer.Argument(..., help="VM name"),
         sys.exit(" ⛔ CRITICAL: CloudInit folder doesn't exist at this location: " + vm_folder)
 
     output_dict = {}
-    output_dict["random_instanse_id"] = random_password_generator(lenght=5)
+    output_dict["random_instanse_id"] = random_password_generator(length=5)
     output_dict["vm_name"] = vm_name
 
     output_dict["mac_address"] = vm_config_dict["networks"][0]["network_mac"]
@@ -1785,8 +1792,8 @@ def cireset(vm_name:str = typer.Argument(..., help="VM name"),
         ci_vm_ssh_keys.append(_ssh_key["key_value"])
     output_dict["vm_ssh_keys"] = ci_vm_ssh_keys
 
-    output_dict["root_password"] = random_password_generator(capitals=True, numbers=True, lenght=53)
-    output_dict["user_password"] = random_password_generator(capitals=True, numbers=True, lenght=53)
+    output_dict["root_password"] = random_password_generator(capitals=True, numbers=True, length=53)
+    output_dict["user_password"] = random_password_generator(capitals=True, numbers=True, length=53)
 
     # Read Cloud Init Metadata
     with open("./templates/cloudinit/meta-data", "r") as file:
@@ -1820,21 +1827,21 @@ def cireset(vm_name:str = typer.Argument(..., help="VM name"),
 
     # Create ISO file
     command = "genisoimage -output " + vm_folder + "/seed.iso -volid cidata -joliet -rock " + cloud_init_files_folder + "/user-data " + cloud_init_files_folder + "/meta-data " + cloud_init_files_folder + "/network-config"
-    subprocess.run(command, shell=True, stderr = subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+    subprocess.run(command, shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
 
     # Reload DNS
     VmDeploy().dns_registry()
 
     # Let user know, that everything went well
-    print (" 🟢 INFO: VM was reset successfully: " + vm_name)
+    print(" 🟢 INFO: VM was reset successfully: " + vm_name)
 
 
 @app.command()
-def replicate(vm_name:str = typer.Argument(..., help="VM name"),
-        ep_address:str = typer.Option("192.168.120.18", help="Endpoint server address, i.e. 192.168.1.1"),
-        ep_port:str = typer.Option("22", help="Endpoint server SSH port"),
-        direction:str = typer.Option("push", help="Direction of the replication: push or pull")
-    ):
+def replicate(vm_name: str = typer.Argument(..., help="VM name"),
+              ep_address: str = typer.Option("192.168.120.18", help="Endpoint server address, i.e. 192.168.1.1"),
+              ep_port: str = typer.Option("22", help="Endpoint server SSH port"),
+              direction: str = typer.Option("push", help="Direction of the replication: push or pull")
+              ):
     """ Replicate the VM to another host """
 
     if direction == "push":
@@ -1846,11 +1853,11 @@ def replicate(vm_name:str = typer.Argument(..., help="VM name"),
 
 
 @app.command()
-def replicate_all(vm_name:str = typer.Argument(..., help="VM name"),
-        ep_address:str = typer.Option("192.168.120.18", help="Endpoint server address, i.e. 192.168.1.1"),
-        ep_port:str = typer.Option("22", help="Endpoint server SSH port"),
-        direction:str = typer.Option("push", help="Direction of the replication: push or pull")
-    ):
+def replicate_all(vm_name: str = typer.Argument(..., help="VM name"),
+                  ep_address: str = typer.Option("192.168.120.18", help="Endpoint server address, i.e. 192.168.1.1"),
+                  ep_port: str = typer.Option("22", help="Endpoint server SSH port"),
+                  direction: str = typer.Option("push", help="Direction of the replication: push or pull")
+                  ):
     """ Replicate all production VMs to another host """
 
     vm_list = VmList().plainList
