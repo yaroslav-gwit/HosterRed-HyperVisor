@@ -1,5 +1,4 @@
 import json
-import os
 
 from rich.console import Console
 from rich.table import Table
@@ -25,10 +24,9 @@ app = typer.Typer()
 
 @app.command()
 def info(json_plain: bool = typer.Option(False, help="Output json instead of a table"),
-        json_pretty: bool = typer.Option(False, help="Output json instead of a table"),
-        table_title: bool = typer.Option(False, help="Show table title (useful when showing multiple tables)")
-    ):
-
+         json_pretty: bool = typer.Option(False, help="Output json instead of a table"),
+         table_title: bool = typer.Option(False, help="Show table title (useful when showing multiple tables)")
+         ):
     datasets = DatasetList().datasets
 
     if not json_plain and not json_pretty:
@@ -46,14 +44,8 @@ def info(json_plain: bool = typer.Option(False, help="Output json instead of a t
         table.add_column("Comment", justify="center", style="bright_cyan", no_wrap=True)
 
         for ds in datasets["datasets"]:
-            table.add_row(ds["id"],
-                        ds["name"],
-                        ds["type"],
-                        ds["mount_path"],
-                        ds["zfs_path"],
-                        str(ds["encrypted"]),
-                        ds["comment"],
-                    )
+            table.add_row(ds["id"], ds["name"], ds["type"], ds["mount_path"],
+                          ds["zfs_path"], str(ds["encrypted"]), ds["comment"], )
 
         Console().print(table)
 

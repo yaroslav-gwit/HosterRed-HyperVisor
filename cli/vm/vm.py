@@ -17,6 +17,10 @@ from jinja2 import Template
 import psutil
 import typer
 
+from rich.console import Console
+from rich.table import Table
+from rich import box
+
 # Own functions
 from cli.host import dataset
 from cli.host import host
@@ -231,7 +235,7 @@ class VmConfigs:
             vm_config = ds["mount_path"] + self.vm_name + self.vm_config
             if exists(vm_config):
                 command = "nano " + vm_config
-                shell_command = subprocess.run(command, shell=True)
+                subprocess.run(command, shell=True)
                 return
             elif ds == self.zfs_datasets["datasets"][-1] and not exists(vm_config):
                 print("Sorry, config file was not found for " + self.vm_name + " path: " + vm_config)
@@ -245,8 +249,9 @@ class VmConfigs:
 class VmList:
     def __init__(self):
         self.zfs_datasets = dataset.DatasetList().datasets
+        self.uptime_command_output = ""
 
-        vmColumnNames = []
+        vm_column_names = []
         zfs_datasets_list = []
         for ds in self.zfs_datasets["datasets"]:
             if ds["type"] == "zfs":
@@ -257,151 +262,29 @@ class VmList:
                 _dataset_listing = listdir("/" + ds + "/")
                 for vm_directory in _dataset_listing:
                     if exists("/" + ds + "/" + vm_directory + "/vm_config.json"):
-                        vmColumnNames.append(vm_directory)
+                        vm_column_names.append(vm_directory)
             else:
-                sys.exit(" 🚦 ERROR: Please create 2 zfs datasets: " + zfs_datasets_list)
+                sys.exit(" 🚦 ERROR: Please create 2 zfs datasets: " + str(zfs_datasets_list))
 
-        if not vmColumnNames:
+        if not vm_column_names:
             print("\n 🚦 ERROR: There are no VMs on this system. To deploy one, use:\n hoster vm deploy\n")
             sys.exit(0)
 
-        self.plainList = vmColumnNames.copy()
-        self.vmColumnNames = natsorted(vmColumnNames)
+        self.plainList = vm_column_names.copy()
+        self.vm_natsorted_list = natsorted(vm_column_names)
 
     def table_output(self, table_title: bool = False):
-        vmColumnNames = self.vmColumnNames
+        vm_list = self.vm_natsorted_list
 
-        if len(vmColumnNames) < 1:
+        if len(vm_list) < 1:
             print("\n 🚦 ERROR: There are no VMs on this system. To deploy one, use:\n hoster vm deploy\n")
             sys.exit(0)
 
-        vmColumnState = []
-        for vm_name in vmColumnNames:
-            vm_config = VmConfigs(vm_name).vm_config_read()
-            if CoreChecks(vm_name).vm_is_live():
-                state = "🟢"
-            elif vm_config.get("parent_host") != host.get_hostname():
-                state = "💾"
-            else:
-                state = "🔴"
-            if CoreChecks(vm_name).vm_is_encrypted():
-                state = state + "🔒"
-            if CoreChecks(vm_name).vm_in_production():
-                state = state + "🔁"
-            vmColumnState.append(state)
-
-        vmColumnCPU = []
-        for vm_name in vmColumnNames:
-            vm_config = VmConfigs(vm_name).vm_config_read()
-            vm_config = vm_config.get("cpu_cores", "-")
-            vmColumnCPU.append(vm_config)
-
-        vmColumnRAM = []
-        for vm_name in vmColumnNames:
-            vm_config = VmConfigs(vm_name).vm_config_read()
-            vm_config = vm_config.get("memory", "-")
-            vmColumnRAM.append(vm_config)
-
-        vmColumnVncPort = []
-        for vm_name in vmColumnNames:
-            vm_config = VmConfigs(vm_name).vm_config_read()
-            vm_config = vm_config.get("vnc_port", "-")
-            vmColumnVncPort.append(vm_config)
-
-        vmColumnVncPassword = []
-        for vm_name in vmColumnNames:
-            vm_config = VmConfigs(vm_name).vm_config_read()
-            vm_config = vm_config.get("vnc_password", "-")
-            vmColumnVncPassword.append(vm_config)
-
-        vmColumnOsDisk = []
-        for vm_name in vmColumnNames:
-            vm_config = VmConfigs(vm_name).vm_config_read()
-            vm_config = vm_config.get("disks", "-")
-            disk_image_name = vm_config[0].get("disk_image", "-")
-            if CoreChecks(vm_name, disk_image_name).disk_exists():
-                image_path = CoreChecks(vm_name, disk_image_name).disk_location()
-                command_size = "ls -ahl " + image_path + " | awk '{ print $5 }'"
-                command_used = "du -h " + image_path + " | awk '{ print $1 }'"
-                shell_command_size = subprocess.check_output(command_size, shell=True)
-                shell_command_used = subprocess.check_output(command_used, shell=True)
-                disk_size = shell_command_size.decode("utf-8").split()[0]
-                disk_used = shell_command_used.decode("utf-8").split()[0]
-                final_output = disk_used + "/" + disk_size
-                vmColumnOsDisk.append(final_output)
-            else:
-                vmColumnOsDisk.append("-")
-
-        vmColumnIpAddress = []
-        for vm_name in vmColumnNames:
-            vm_config = VmConfigs(vm_name).vm_config_read()
-            vm_config = vm_config.get("networks", "-")
-            vm_config = vm_config[0].get("ip_address", "-")
-            vmColumnIpAddress.append(vm_config)
-
-        vmColumnOsType = []
-        for vm_name in vmColumnNames:
-            vm_config = VmConfigs(vm_name).vm_config_read()
-            vm_config = vm_config.get("os_comment", "-")
-            vmColumnOsType.append(vm_config)
-        # vmColumnOsType = ["Debian 10" if var == "debian10" else var for var in vmColumnOsType]
-        # vmColumnOsType = ["Debian 11" if var == "debian11" else var for var in vmColumnOsType]
-        # vmColumnOsType = ["Ubuntu 20.04" if var == "ubuntu2004" else var for var in vmColumnOsType]
-        # vmColumnOsType = ["FreeBSD 13 ZFS" if var == "freebsd13zfs" else var for var in vmColumnOsType]
-        # vmColumnOsType = ["FreeBSD 13 UFS" if var == "freebsd13ufs" else var for var in vmColumnOsType]
-        # vmColumnOsType = ["AlmaLinux 8" if var == "almalinux8" else var for var in vmColumnOsType]
-        # vmColumnOsType = ["RockyLinux 8" if var == "rockylinux8" else var for var in vmColumnOsType]
-        # vmColumnOsType = ["Fedora 34" if var == "fedora34" else var for var in vmColumnOsType]
-        # vmColumnOsType = ["Windows 10" if var == "windows10" else var for var in vmColumnOsType]
-
-        vmColumnUptime = []
-        for vm_name in vmColumnNames:
-            if CoreChecks(vm_name).vm_is_live():
-                if not exists("/tmp/bhyve_vms_uptime.txt"):
-                    command = "ps axwww -o etimes,command > /tmp/bhyve_vms_uptime.txt"
-                    subprocess.run(command, shell=True)
-                elif (time.time() - os.path.getmtime("/tmp/bhyve_vms_uptime.txt")) > 10:
-                    command = "ps axwww -o etimes,command > /tmp/bhyve_vms_uptime.txt"
-                    subprocess.run(command, shell=True)
-                command = "grep 'bhyve: " + vm_name + "' /tmp/bhyve_vms_uptime.txt | grep -v grep | awk '{print $1}'"
-                shell_command = subprocess.check_output(command, shell=True)
-                try:
-                    vm_uptime = shell_command.decode("utf-8").split()[0]
-                    vm_uptime = host.human_readable_uptime(int(vm_uptime))
-                    vmColumnUptime.append(vm_uptime)
-                except:
-                    vmColumnUptime.append("-")
-            else:
-                vmColumnUptime.append("-")
-
-        vmColumnDescription = []
-        for vm_name in vmColumnNames:
-            vm_config = VmConfigs(vm_name).vm_config_read()
-            if vm_config.get("parent_host") != host.get_hostname():
-                vm_config = vm_config.get("parent_host", "-")
-                vmColumnDescription.append("💾⏩ " + vm_config)
-            else:
-                vm_config = VmConfigs(vm_name).vm_config_read()
-                vm_config = vm_config.get("description", "-")
-                vmColumnDescription.append(vm_config)
-
-        vmTableHeader = []
-        for vm_index in range(len(vmColumnNames)):
-            vmTableHeader.append(
-                [vmColumnNames[vm_index], vmColumnState[vm_index], vmColumnCPU[vm_index], vmColumnRAM[vm_index],
-                 vmColumnIpAddress[vm_index], vmColumnVncPort[vm_index], vmColumnVncPassword[vm_index],
-                 vmColumnOsDisk[vm_index], vmColumnOsType[vm_index], vmColumnUptime[vm_index],
-                 vmColumnDescription[vm_index], ])
-
-        from rich.console import Console
-        from rich.table import Table
-        from rich import box
-
+        # GENERATE AND PRINT THE TABLE
         if not table_title:
             table = Table(box=box.ROUNDED, show_lines=True, )
         else:
             table = Table(title=" VM List", box=box.ROUNDED, show_lines=True, title_justify="left")
-
         table.add_column("#", justify="center", style="bright_cyan", no_wrap=True)
         table.add_column("Name", justify="left", style="bright_cyan", no_wrap=True)
         table.add_column("State", justify="center", style="bright_cyan", no_wrap=True)
@@ -415,26 +298,103 @@ class VmList:
         table.add_column("Uptime", justify="center", style="bright_cyan", no_wrap=True)
         table.add_column("Description", justify="center", style="bright_cyan", no_wrap=True)
 
-        for n, a in enumerate(vmColumnNames):
+        vm_index = 0
+        for vm_name in vm_list:
+            # GET SPECIFIC VM CONFIG
+            vm_config = VmConfigs(vm_name).vm_config_read()
+
+            # VM LIVE CHECK
+            vm_is_live = CoreChecks(vm_name).vm_is_live()
+            if vm_is_live:
+                state = "🟢"
+            elif vm_config.get("parent_host") != host.get_hostname():
+                state = "💾"
+            else:
+                state = "🔴"
+            if CoreChecks(vm_name).vm_is_encrypted():
+                state = state + "🔒"
+            if CoreChecks(vm_name).vm_in_production():
+                state = state + "🔁"
+            vm_state = state
+
+            # GET CPU, RAM, VNC INFO, OS TYPE
+            vm_cpu = vm_config.get("cpu_cores", "-")
+            vm_ram = vm_config.get("memory", "-")
+            vm_vnc_port = vm_config.get("vnc_port", "-")
+            vm_vnc_password = vm_config.get("vnc_password", "-")
+            vm_os_type = vm_config.get("os_comment", "-")
+
+            # GET DISK INFO
+            vm_disks = vm_config.get("disks", "-")
+            disk_image_name = vm_disks[0].get("disk_image", "-")
+            if CoreChecks(vm_name, disk_image_name).disk_exists():
+                image_path = CoreChecks(vm_name, disk_image_name).disk_location()
+                command_size = "ls -ahl " + image_path + " | awk '{ print $5 }'"
+                command_used = "du -h " + image_path + " | awk '{ print $1 }'"
+                shell_command_size = subprocess.check_output(command_size, shell=True)
+                shell_command_used = subprocess.check_output(command_used, shell=True)
+                disk_size = shell_command_size.decode("utf-8").split()[0]
+                disk_used = shell_command_used.decode("utf-8").split()[0]
+                vm_disk_final_output = disk_used + "/" + disk_size
+            else:
+                vm_disk_final_output = "-"
+
+            # GET IP INFO
+            vm_networks = vm_config.get("networks", "-")
+            vm_ip_addr = vm_networks[0].get("ip_address", "-")
+            # vmColumnOsType = ["Debian 10" if var == "debian10" else var for var in vmColumnOsType]
+
+            # GET VM UPTIME
+            re_match_bhyve = re.compile(".*bhyve: " + vm_name + ".*")
+            vm_uptime = ""
+            if vm_is_live and len(self.uptime_command_output) < 1:
+                command = "ps axwww -o etimes,command"
+                shell_command = subprocess.check_output(command, shell=True)
+                self.uptime_command_output = shell_command
+
+                vm_uptimes = shell_command.decode("utf-8").split("\n")
+                for i in vm_uptimes:
+                    if re_match_bhyve.match(i):
+                        vm_uptime = i.split()[0]
+                        vm_uptime = host.human_readable_uptime(int(vm_uptime))
+
+            elif vm_is_live and len(self.uptime_command_output) > 1:
+                shell_command = self.uptime_command_output
+                vm_uptimes = shell_command.decode("utf-8").split("\n")
+                for i in vm_uptimes:
+                    if re_match_bhyve.match(i):
+                        vm_uptime = i.split()[0]
+                        vm_uptime = host.human_readable_uptime(int(vm_uptime))
+            else:
+                vm_uptime = "-"
+
+            # GET VM DESCRIPTION
+            if vm_config.get("parent_host") != host.get_hostname():
+                vm_description = vm_config.get("parent_host", "-")
+                vm_description = ("💾⏩ " + vm_description)
+            else:
+                vm_description = vm_config.get("description", "-")
+
+            vm_index = vm_index + 1
             table.add_row(
-                str(n + 1),
-                vmColumnNames[n],
-                vmColumnState[n],
-                vmColumnCPU[n],
-                vmColumnRAM[n],
-                vmColumnIpAddress[n],
-                vmColumnVncPort[n],
-                vmColumnVncPassword[n],
-                vmColumnOsDisk[n],
-                vmColumnOsType[n],
-                vmColumnUptime[n],
-                vmColumnDescription[n],
+                str(vm_index),
+                vm_name,
+                vm_state,
+                vm_cpu,
+                vm_ram,
+                vm_ip_addr,
+                vm_vnc_port,
+                vm_vnc_password,
+                vm_disk_final_output,
+                vm_os_type,
+                vm_uptime,
+                vm_description,
             )
 
         Console().print(table)
 
     def json_output(self):
-        vm_list_dict = self.vmColumnNames
+        vm_list_dict = self.vm_natsorted_list
         vm_list_json = json.dumps(vm_list_dict, indent=2)
 
         return vm_list_json
@@ -498,7 +458,7 @@ class VmDeploy:
             sys.exit("You can't assign this port to your VM! Allowed range: 5900-6100")
 
         while vnc_port in existing_vnc_ports:
-            if vnc_port >= 5900 and vnc_port <= 6100:
+            if 5900 <= vnc_port <= 6100:
                 vnc_port = vnc_port + 1
             else:
                 sys.exit("We ran out of available VNC ports!")
@@ -581,9 +541,9 @@ class VmDeploy:
 
     @staticmethod
     def mac_address_generator(prefix: str = "58:9C:FC"):
-        mac_addess = generate_mac.vid_provided(prefix)
-        mac_addess = mac_addess.lower()
-        return mac_addess
+        mac_address = generate_mac.vid_provided(prefix)
+        mac_address = mac_address.lower()
+        return mac_address
 
     def dns_registry(self):
         dns_registry = {}
