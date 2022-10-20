@@ -39,6 +39,46 @@ P.S. WebUI is coming too, stay tuned for that 😉
 - [x] ~~MacOS (any release)~~
 
 # Quickstart Section
+## Installation
+Install bash and login as root
+```
+pkg update && pkg install bash
+sudo su -
+```
+
+The first step is optional but highly recommended. Esentially, if you ignore to set any of these values they will be generated automatically. Specifically look at the network port and ZFS encryption password:
+```
+export DEF_NETWORK_NAME=internel
+export DEF_NETWORK_BR_ADDR=10.0.0.254
+export DEF_PUBLIC_INTERFACE=igb0
+
+export DEF_ZFS_ENCRYPTION_PASSWORD="SuperSecretRandom_password"
+```
+
+Run the installation script:
+```
+curl -S https://raw.githubusercontent.com/yaroslav-gwit/HosterRed-HyperVisor/python-branch-main/deploy.sh | bash
+```
+
+At the end of the installation you will receive a message like the below:
+```
+##### START #####
+
+The installation is now finished.
+Your ZFS encryption password: SuperSecretRandom_password
+Please save your password! If you lose it, your VMs on the encrypted dataset will be lost!
+
+Reboot the system now to apply changes.
+
+After the reboot mount the encrypted ZFS dataset and initialize HosterRed (these 2 steps are required after each reboot):
+zfs mount -a -l
+hoster init
+
+#####  END  #####
+```
+Save the ZFS encryption password, otherwise you'll lose your data!
+
+
 ## Backups
 ### Sheduled automatic snapshots and replication for all production VMs
 ```
