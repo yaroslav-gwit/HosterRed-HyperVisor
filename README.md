@@ -1,7 +1,7 @@
 # General Information
 ![HosterRed Logo](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/python-branch-main/screenshots/HosterRed%20Logo%20Dark.png)
 HosterRed: HyperVisor is a highly opinionated VM management framework, which includes: network isolation (at the VM level), dataset encryption (at the ZFS level), instant VM deployments, storage replication between 2 or more hosts and more. It uses Python3, FreeBSD, bhyve, ZFS, and PF to achieve all of it's goals ✅🚀.</br></br>
-![HosterRed Screenshot](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/python-branch-main/screenshots/HosterRed-Main-Screen.png)
+![HosterRed Screenshot](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/python-branch-main/screenshots/HosterRed-Main-Screen-Latest.png)
 
 # The why?
 For a long time I've been a Proxmox user, swearing by it and promoting it any way I could. That stopped when I've started to rent Hetzner hardware servers, as many problems risen up: unjustifiably high RAM usage on smaller servers, no integrated NAT configuration, multiple public IP management is a nightmare, and some other minor issues like root ZFS dataset encryption on BIOS systems. That's when I discovered FreeBSD and bhyve: I realized that I could just use PF to control the traffic between the VMs and internal/external bridges, use native ZFS encryption, and do so much more but there was only 1 small problem -- vmbhyve and CBSD just weren't what I needed. Meet HosterRed -- my own automation framework (or even a small ecosystem, if you will) around FreeBSD's bhyve, PF and ZFS. As a result I can deploy the VMs in a matter of seconds on any hardware old/new/powerfull or otherwise with minimal RAM overhead.</br></br>
