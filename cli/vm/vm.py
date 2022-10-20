@@ -622,7 +622,8 @@ class VmDeploy:
         template_ds = working_dataset + "/template-" + output_dict["os_type"]
         template_folder = working_dataset_path + "template-" + output_dict["os_type"]
         if exists(template_folder):
-            snapshot_name = "@deployment_" + output_dict["vm_name"] + "_" + VmDeploy.random_password_generator(length=7, numbers=True)
+            snapshot_name = "@deployment_" + output_dict["vm_name"] + "_" + VmDeploy.random_password_generator(length=7,
+                                                                                                               numbers=True)
             command = "zfs snapshot " + template_ds + snapshot_name
             # print(command)
             subprocess.run(command, shell=True)
@@ -982,37 +983,44 @@ class Operation:
 
     @staticmethod
     def stop(vm_name: str) -> None:
-        """
-        Gracefully stop the VM
-        """
+
+        """ Gracefully stop the VM """
+
         if vm_name not in VmList().plainList:
             print(" 🚦 ERROR: VM doesn't exist on this system.")
         elif CoreChecks(vm_name).vm_is_live():
             print(" 🔶 INFO: Gracefully stopping the VM: " + vm_name)
 
             # This code block is a duplicate. Another one exists in kill section.
-            command = "ps axf | grep -v grep | grep 'nmdm-" + vm_name + "' | awk '{ print $1 }'"
-            shell_command = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
-            console_list = shell_command.decode("utf-8").split()
-            for _console in console_list:
-                if _console:
-                    command = "kill -SIGKILL " + _console
-                    try:
-                        shell_command = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
-                    except Exception as e:
-                        pass
-                        # print("The error is: " + str(e))
-            try:
-                command = "cat /var/run/" + vm_name + ".pid"
-                shell_command = subprocess.check_output(command, shell=True)
-                parent_pid = int(shell_command.decode("utf-8").split()[0])
-                child_pid = psutil.Process(parent_pid).children()[-1].pid
-                running_vm_pid = str(child_pid)
-                command = "kill -s SIGTERM " + running_vm_pid
-                shell_command = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
-            except Exception as e:
-                pass
-                # print(e)
+            # Close any active consoles
+            command = "ps axf"
+            shell_command = subprocess.check_output(command, shell=True)
+            vm_consoles = shell_command.decode("utf-8").split("\n")
+            re_match_console = re.compile(".*nmdm-" + vm_name + "-1B")
+
+            console_list = []
+            for i in vm_consoles:
+                if re_match_console.match(i):
+                    console_list.append(i.split()[0])
+
+            for console_item in console_list:
+                command = "kill -SIGKILL " + console_item
+                subprocess.run(command)
+
+            # Send the shutdown signal to the VM itself
+            vm_process_list = []
+            command = "ps axf"
+            shell_command = subprocess.check_output(command, shell=True)
+            vm_process = shell_command.decode("utf-8").split("\n")
+
+            re_match_bhyve_process = re.compile(".*bhyve: " + vm_name + r"\(bhyve\)")
+            for i in vm_process:
+                if re_match_bhyve_process.match(i):
+                    vm_process_list.append(i.split()[0])
+
+            for process in vm_process_list:
+                command = "kill -SIGKILL " + process
+                subprocess.run(command)
 
             command = "ifconfig | grep " + vm_name + " | awk '{ print $2 }'"
             shell_command = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
@@ -1025,7 +1033,9 @@ class Operation:
                 shell_command = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
                 running_tap_adaptor_status = shell_command.decode("utf-8").split("\n")[0]
                 print(
-                    " 🔶 INFO: Network adaptor is still active (sleeping for 10 seconds) : " + vm_name + "/" + running_tap_adaptor)
+                    " 🔶 INFO: Network adaptor is still active (sleeping for 10 seconds) : "
+                    + vm_name + "/" + running_tap_adaptor)
+
                 iteration = iteration + 1
                 if iteration >= 10:
                     print(" 🔶 INFO: Wait time is over, killing the VM: " + vm_name)
@@ -1723,7 +1733,7 @@ def cireset(vm_name: str = typer.Argument(..., help="VM name"),
     vm_config_dict["networks"][0]["ip_address"] = network_ip_address
     vm_config_dict["networks"][0]["network_bridge"] = network_bridge_name
     vm_config_dict["vm_ssh_keys"] = vm_ssh_keys
-    vm_config_dict["vnc_port"] = vnc_port
+    vm_config_dict["vnc_port"] = str(vnc_port)
 
     final_output = json.dumps(vm_config_dict, indent=3)
 
@@ -1738,14 +1748,10 @@ def cireset(vm_name: str = typer.Argument(..., help="VM name"),
     if not os.path.exists(cloud_init_files_folder):
         sys.exit(" ⛔ CRITICAL: CloudInit folder doesn't exist at this location: " + vm_folder)
 
-    output_dict = {}
-    output_dict["random_instanse_id"] = random_password_generator(length=5)
-    output_dict["vm_name"] = vm_name
-
-    output_dict["mac_address"] = vm_config_dict["networks"][0]["network_mac"]
-    output_dict["os_type"] = vm_config_dict["os_type"]
-    output_dict["ip_address"] = vm_config_dict["networks"][0]["ip_address"]
-    output_dict["network_bridge_address"] = networks_dict["networks"][0]["bridge_address"]
+    output_dict = {"random_instanse_id": random_password_generator(length=5), "vm_name": vm_name,
+                   "mac_address": vm_config_dict["networks"][0]["network_mac"], "os_type": vm_config_dict["os_type"],
+                   "ip_address": vm_config_dict["networks"][0]["ip_address"],
+                   "network_bridge_address": networks_dict["networks"][0]["bridge_address"]}
 
     ci_vm_ssh_keys = []
     for _ssh_key in vm_ssh_keys:

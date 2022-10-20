@@ -117,10 +117,7 @@ if [ -x /usr/bin/resizewin ] ; then /usr/bin/resizewin -z ; fi
 # if [ -x /usr/bin/fortune ] ; then /usr/bin/fortune -s ; fi
 
 export EDITOR=micro
-EOF
 
-cat << EOF | cat >> /root/.profile
-export EDITOR=micro
 EOF
 
 
