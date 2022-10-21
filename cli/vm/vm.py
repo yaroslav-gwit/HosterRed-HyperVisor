@@ -247,9 +247,10 @@ class VmConfigs:
 
 
 class VmList:
-    def __init__(self):
+    def __init__(self, return_value: bool = False):
         self.zfs_datasets = dataset.DatasetList().datasets
         self.uptime_command_output = ""
+        self.return_value = return_value
 
         vm_column_names = []
         zfs_datasets_list = []
@@ -266,7 +267,7 @@ class VmList:
             else:
                 sys.exit(" 🚦 ERROR: Please create 2 zfs datasets: " + str(zfs_datasets_list))
 
-        if not vm_column_names:
+        if not vm_column_names and not self.return_value:
             print("\n 🚦 ERROR: There are no VMs on this system. To deploy one, use:\n hoster vm deploy\n")
             sys.exit(0)
 
@@ -423,7 +424,7 @@ class VmDeploy:
             ip_address = CoreChecks(vm_name=_vm).vm_ip_address()
             self.existing_ip_addresses.append(ip_address)
 
-        self.existing_vms = VmList().plainList
+        self.existing_vms = VmList(return_value=True).plainList
 
         # OS Type Settings
         os_type_list = ["debian11", "ubuntu2004", "freebsd13ufs", "freebsd13zfs"]
