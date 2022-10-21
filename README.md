@@ -43,7 +43,7 @@ P.S. WebUI is coming too, stay tuned for that 😉
 Login as root and install bash
 ```
 sudo su -
-pkg update && pkg install -y bash
+pkg update && pkg install -y bash curl
 ```
 
 The first step is optional but highly recommended. Esentially, if you ignore to set any of these values they will be generated automatically. Specifically look at the network port and ZFS encryption password:
