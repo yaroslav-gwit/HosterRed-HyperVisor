@@ -450,7 +450,7 @@ class VmDeploy:
         for _port in range(5900, 6100):
             allowed_vnc_ports.append(_port)
 
-        for _vm in VmList().plainList:
+        for _vm in VmList(return_value=True).plainList:
             _vm_vnc_port = CoreChecks(vm_name=_vm).vm_vnc_port()
             _vm_vnc_port = int(_vm_vnc_port)
             existing_vnc_ports.append(_vm_vnc_port)
