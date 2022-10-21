@@ -1005,7 +1005,7 @@ class Operation:
 
             for console_item in console_list:
                 command = "kill " + console_item
-                subprocess.run(command)
+                subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             # Send the shutdown signal to the VM itself
             vm_process_list = []
