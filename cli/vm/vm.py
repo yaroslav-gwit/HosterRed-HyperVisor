@@ -1004,7 +1004,7 @@ class Operation:
                     console_list.append(i.split()[0])
 
             for console_item in console_list:
-                command = "kill -SIGKILL " + console_item
+                command = "kill " + console_item
                 subprocess.run(command)
 
             # Send the shutdown signal to the VM itself
@@ -1019,30 +1019,27 @@ class Operation:
                     vm_process_list.append(i.split()[0])
 
             for process in vm_process_list:
-                command = "kill -SIGKILL " + process
-                subprocess.run(command)
+                if process:
+                    command = "kill " + process
+                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    time.sleep(3)
+                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    time.sleep(3)
 
             command = "ifconfig | grep " + vm_name + " | awk '{ print $2 }'"
             shell_command = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
-            running_tap_adaptor = shell_command.decode("utf-8").split()[0]
+            tap_interface_list = shell_command.decode("utf-8").split()
 
-            iteration = 0
-            while CoreChecks(vm_name).vm_is_live():
-                iteration = iteration + 1
-                print("Iteration: " + str(iteration))
-                time.sleep(10)
-                if iteration > 10:
-                    break
+            # iteration = 0
+            time.sleep(10)
 
-            # Kill the zombie process if any are found
-            Operation.kill(vm_name=vm_name, quiet=True)
+            command = "bhyvectl --destroy --vm=" + vm_name
+            subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-            # command = "bhyvectl --destroy --vm=" + vm_name
-            # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-            # for tap in tap_interface_list:
-            #     command = "ifconfig " + tap + " destroy"
-            #     subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            for tap in tap_interface_list:
+                if tap:
+                    command = "ifconfig " + tap + " destroy"
+                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             print(" 🟢 SUCCESS: The VM is fully stopped now: " + vm_name)
         else:
