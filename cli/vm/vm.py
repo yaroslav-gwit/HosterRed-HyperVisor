@@ -420,7 +420,7 @@ class VmDeploy:
         self.ip_address = ip_address
 
         self.existing_ip_addresses = []
-        for _vm in VmList().plainList:
+        for _vm in VmList(return_value=True).plainList:
             ip_address = CoreChecks(vm_name=_vm).vm_ip_address()
             self.existing_ip_addresses.append(ip_address)
 
