@@ -43,7 +43,7 @@ if [[ ! -d ${HOSTER_WD} ]]; then
     mkdir -p ${HOSTER_WD}
     git clone https://github.com/yaroslav-gwit/HosterRed-HyperVisor.git ${HOSTER_WD}
 else
-    cd "${HOSTER_WD}" || echo "Folder ${HOSTER_WD} doesn't exist!" && exit 1
+    cd "${HOSTER_WD}" || (echo "Folder ${HOSTER_WD} doesn't exist!" && exit 1)
     git pull
 fi
 
@@ -196,7 +196,7 @@ EOF
 
 
 #_ INIT PYTHON ENV _#
-cd "${HOSTER_WD}" || echo "Folder ${HOSTER_WD} doesn't exist!" && exit 1
+cd "${HOSTER_WD}" || (echo "Folder ${HOSTER_WD} doesn't exist!" && exit 1)
 if [[ ! -d venv ]]; then python3 -m venv venv; fi
 ${HOSTER_WD}venv/bin/python3 -m ensurepip
 ${HOSTER_WD}venv/bin/python3 -m pip install --upgrade pip
@@ -298,7 +298,7 @@ EOF
 
 
 #_ CREATE AN EXECUTABLE HOSTER FILE _#
-cd "${HOSTER_WD}" || echo "Folder ${HOSTER_WD} doesn't exist!" && exit 1
+cd "${HOSTER_WD}" || (echo "Folder ${HOSTER_WD} doesn't exist!" && exit 1)
 if [[ -f /bin/hoster ]]; then rm -f /bin/hoster; fi
 ln hoster /bin/hoster
 chmod +x /bin/hoster
