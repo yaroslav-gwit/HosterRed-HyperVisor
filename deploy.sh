@@ -277,8 +277,8 @@ pass in quick inet proto { tcp udp icmp } from { ${NETWORK_BR_ADDR}/24 } to any
 
 
 ### INCOMING HOST RULES ###
-pass in quick on { ${NETWORK_BR_ADDR} } inet proto icmp all # allow PING in
-pass in quick on { ${NETWORK_BR_ADDR} } proto tcp to port 22 keep state #ALLOW_SSH_ACCESS_TO_HOST
+pass in quick on { ${PUBLIC_INTERFACE} } inet proto icmp all # allow PING in
+pass in quick on { ${PUBLIC_INTERFACE} } proto tcp to port 22 keep state #ALLOW_SSH_ACCESS_TO_HOST
 #pass in proto tcp to port 80 keep state #HTTP_NGINX_PROXY
 #pass in proto tcp to port 443 keep state #HTTPS_NGINX_PROXY
 EOF
