@@ -3,7 +3,7 @@
 #_ SET DEFAULT VARS _#
 NETWORK_NAME="${DEF_NETWORK_NAME:=internal}"
 NETWORK_BR_ADDR="${DEF_NETWORK_BR_ADDR:=10.0.101.254}"
-PUBLIC_INTERFACE="${DEF_PUBLIC_INTERFACE:=igb0}"
+PUBLIC_INTERFACE="${DEF_PUBLIC_INTERFACE:=$(ifconfig | head -1 | awk '{ print $1 }' | sed s/://)}"
 
 
 #_ CHECK IF USER IS ROOT _#
@@ -19,15 +19,16 @@ pkg install -y htop curl wget gtar unzip pv sanoid cdrkit-genisoimage openssl
 pkg install -y bhyve-firmware bhyve-rc grub2-bhyve uefi-edk2-bhyve uefi-edk2-bhyve-csm
 
 if [[ -f /bin/bash ]]; then rm /bin/bash; fi
-ln $(which bash) /bin/bash
+ln "$(which bash)" /bin/bash
+chsh -s bash
 
 if [[ -f /bin/python3 ]]; then rm /bin/python3; fi
-ln $(which python3.9) /bin/python3
+ln "$(which python3.9)" /bin/python3
 
 
 #_ SET ENCRYPTED ZFS PASSWORD _#
 if [ -z "${DEF_ZFS_ENCRYPTION_PASSWORD}" ]; then 
-    ZFS_RANDOM_PASSWORD=`openssl rand -base64 32 | sed "s/=//g" | sed "s/\///g" | sed "s/\+//g"`
+    ZFS_RANDOM_PASSWORD=$(openssl rand -base64 32 | sed "s/=//g" | sed "s/\///g" | sed "s/\+//g")
 else 
     ZFS_RANDOM_PASSWORD=${DEF_ZFS_ENCRYPTION_PASSWORD}
 fi
@@ -42,7 +43,7 @@ if [[ ! -d ${HOSTER_WD} ]]; then
     mkdir -p ${HOSTER_WD}
     git clone https://github.com/yaroslav-gwit/HosterRed-HyperVisor.git ${HOSTER_WD}
 else
-    cd ${HOSTER_WD}
+    cd "${HOSTER_WD}" || echo "Folder ${HOSTER_WD} doesn't exist!" && exit 1
     git pull
 fi
 
@@ -50,16 +51,16 @@ fi
 #_ GENERATE SSH KEYS _#
 if [[ ! -f /root/.ssh/id_rsa ]]; then ssh-keygen -b 4096 -t rsa -f /root/.ssh/id_rsa -q -N ""; else echo " 🔷 INFO: SSH key was found, no need to generate a new one"; fi
 if [[ ! -f /root/.ssh/config ]]; then touch /root/.ssh/config && chmod 600 /root/.ssh/config; fi
-HOST_SSH_KEY=`cat /root/.ssh/id_rsa.pub`
+HOST_SSH_KEY=$(cat /root/.ssh/id_rsa.pub)
 
 
 #_ REGISTER IF REQUIRED DATASETS EXIST _#
-ENCRYPTED_DS=`zfs list | grep -c "zroot/vm-encrypted"`
-UNENCRYPTED_DS=`zfs list | grep -c "zroot/vm-unencrypted"`
+ENCRYPTED_DS=$(zfs list | grep -c "zroot/vm-encrypted")
+UNENCRYPTED_DS=$(zfs list | grep -c "zroot/vm-unencrypted")
 
 
 #_ CREATE ZFS DATASETS IF THEY DON'T EXIST _#
-if [[ ${ENCRYPTED_DS} < 1 ]]
+if [[ ${ENCRYPTED_DS} -lt 1 ]]
 then
     zpool set autoexpand=on zroot
     zpool set autoreplace=on zroot
@@ -67,7 +68,7 @@ then
     echo -e "${ZFS_RANDOM_PASSWORD}" | zfs create -o encryption=on -o keyformat=passphrase zroot/vm-encrypted
 fi
 
-if [[ ${UNENCRYPTED_DS} < 1 ]]
+if [[ ${UNENCRYPTED_DS} -lt 1 ]]
 then
     zpool set autoexpand=on zroot
     zpool set autoreplace=on zroot
@@ -78,20 +79,30 @@ fi
 
 #_ BOOTLOADER OPTIMISATIONS _#
 BOOTLOADER_FILE="/boot/loader.conf"
-CMD_LINE='fusefs_load="YES"' && if [[ `grep -c ${CMD_LINE} ${BOOTLOADER_FILE}` < 1 ]]; then echo ${CMD_LINE} >> ${BOOTLOADER_FILE}; fi
-CMD_LINE='vm.kmem_size="330M"' && if [[ `grep -c ${CMD_LINE} ${BOOTLOADER_FILE}` < 1 ]]; then echo ${CMD_LINE} >> ${BOOTLOADER_FILE}; fi
-CMD_LINE='vm.kmem_size_max="330M"' && if [[ `grep -c ${CMD_LINE} ${BOOTLOADER_FILE}` < 1 ]]; then echo ${CMD_LINE} >> ${BOOTLOADER_FILE}; fi
-CMD_LINE='vfs.zfs.arc_max="40M"' && if [[ `grep -c ${CMD_LINE} ${BOOTLOADER_FILE}` < 1 ]]; then echo ${CMD_LINE} >> ${BOOTLOADER_FILE}; fi
-CMD_LINE='vfs.zfs.vdev.cache.size="5M"' && if [[ `grep -c ${CMD_LINE} ${BOOTLOADER_FILE}` < 1 ]]; then echo ${CMD_LINE} >> ${BOOTLOADER_FILE}; fi
+# shellcheck disable=SC2089
+CMD_LINE='fusefs_load="YES"' && if [[ $(grep -c "${CMD_LINE}" ${BOOTLOADER_FILE}) -lt 1 ]]; then echo "${CMD_LINE}" >> ${BOOTLOADER_FILE}; fi
+# shellcheck disable=SC2089
+CMD_LINE='vm.kmem_size="330M"' && if [[ $(grep -c "${CMD_LINE}" ${BOOTLOADER_FILE}) -lt 1 ]]; then echo "${CMD_LINE}" >> ${BOOTLOADER_FILE}; fi
+# shellcheck disable=SC2089
+CMD_LINE='vm.kmem_size_max="330M"' && if [[ $(grep -c "${CMD_LINE}" ${BOOTLOADER_FILE}) -lt 1 ]]; then echo "${CMD_LINE}" >> ${BOOTLOADER_FILE}; fi
+# shellcheck disable=SC2089
+CMD_LINE='vfs.zfs.arc_max="40M"' && if [[ $(grep -c "${CMD_LINE}" ${BOOTLOADER_FILE}) -lt 1 ]]; then echo "${CMD_LINE}" >> ${BOOTLOADER_FILE}; fi
+# shellcheck disable=SC2089
+CMD_LINE='vfs.zfs.vdev.cache.size="5M"' && if [[ $(grep -c "${CMD_LINE}" ${BOOTLOADER_FILE}) -lt 1 ]]; then echo "${CMD_LINE}" >> ${BOOTLOADER_FILE}; fi
 
 
 #_ PF CONFIG BLOCK IN rc.conf _#
 RC_CONF_FILE="/etc/rc.conf"
-CMD_LINE='pf_enable="yes"' && if [[ `grep -c ${CMD_LINE} ${RC_CONF_FILE}` < 1 ]]; then echo ${CMD_LINE} >> ${RC_CONF_FILE}; fi
-CMD_LINE='pf_rules="/etc/pf.conf"' && if [[ `grep -c ${CMD_LINE} ${RC_CONF_FILE}` < 1 ]]; then echo ${CMD_LINE} >> ${RC_CONF_FILE}; fi
-CMD_LINE='pflog_enable="yes"' && if [[ `grep -c ${CMD_LINE} ${RC_CONF_FILE}` < 1 ]]; then echo ${CMD_LINE} >> ${RC_CONF_FILE}; fi
-CMD_LINE='pflog_logfile="/var/log/pflog"' && if [[ `grep -c ${CMD_LINE} ${RC_CONF_FILE}` < 1 ]]; then echo ${CMD_LINE} >> ${RC_CONF_FILE}; fi
-CMD_LINE='pflog_flags=""' && if [[ `grep -c ${CMD_LINE} ${RC_CONF_FILE}` < 1 ]]; then echo ${CMD_LINE} >> ${RC_CONF_FILE}; fi
+# shellcheck disable=SC2089
+CMD_LINE='pf_enable="yes"' && if [[ $(grep -c "${CMD_LINE}" ${RC_CONF_FILE}) -lt 1 ]]; then echo "${CMD_LINE}" >> ${RC_CONF_FILE}; fi
+# shellcheck disable=SC2089
+CMD_LINE='pf_rules="/etc/pf.conf"' && if [[ $(grep -c "${CMD_LINE}" ${RC_CONF_FILE}) -lt 1 ]]; then echo "${CMD_LINE}" >> ${RC_CONF_FILE}; fi
+# shellcheck disable=SC2089
+CMD_LINE='pflog_enable="yes"' && if [[ $(grep -c "${CMD_LINE}" ${RC_CONF_FILE}) -lt 1 ]]; then echo "${CMD_LINE}" >> ${RC_CONF_FILE}; fi
+# shellcheck disable=SC2089
+CMD_LINE='pflog_logfile="/var/log/pflog"' && if [[ $(grep -c "${CMD_LINE}" ${RC_CONF_FILE}) -lt 1 ]]; then echo "${CMD_LINE}" >> ${RC_CONF_FILE}; fi
+# shellcheck disable=SC2089
+CMD_LINE='pflog_flags=""' && if [[ $(grep -c "${CMD_LINE}" ${RC_CONF_FILE}) -lt 1 ]]; then echo "${CMD_LINE}" >> ${RC_CONF_FILE}; fi
 
 
 #_ SET CORRECT PROFILE FILE _#
@@ -183,7 +194,7 @@ EOF
 
 
 #_ INIT PYTHON ENV _#
-cd ${HOSTER_WD}
+cd "${HOSTER_WD}" || echo "Folder ${HOSTER_WD} doesn't exist!" && exit 1
 if [[ ! -d venv ]]; then python3 -m venv venv; fi
 ${HOSTER_WD}venv/bin/python3 -m ensurepip
 ${HOSTER_WD}venv/bin/python3 -m pip install --upgrade pip
@@ -285,7 +296,7 @@ EOF
 
 
 #_ CREATE AN EXECUTABLE HOSTER FILE _#
-cd ${HOSTER_WD}
+cd "${HOSTER_WD}" || echo "Folder ${HOSTER_WD} doesn't exist!" && exit 1
 if [[ -f /bin/hoster ]]; then rm -f /bin/hoster; fi
 ln hoster /bin/hoster
 chmod +x /bin/hoster
