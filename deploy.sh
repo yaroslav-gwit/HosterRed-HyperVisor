@@ -11,7 +11,7 @@ if [ "$EUID" -ne 0 ]; then echo " 🚦 ERROR: Please run this script as root use
 
 
 #_ INSTALL THE REQUIRED PACKAGES _#
-pkg update -y
+pkg update
 pkg upgrade -y
 pkg install -y nano micro bash bmon iftop mc fusefs-sshfs pftop fish nginx git
 pkg install -y rsync gnu-watch tmux fping qemu-utils python39 py39-devtools
@@ -136,6 +136,7 @@ cat << EOF | cat > ${HOSTER_WD}configs/networks.json
             "bridge_subnet": 24,
             "comment": "Internal Network"
         }
+    ]
 }
 EOF
 
