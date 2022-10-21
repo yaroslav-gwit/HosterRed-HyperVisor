@@ -188,7 +188,7 @@ cat << EOF | cat > ${HOSTER_WD}configs/datasets.json
             "mount_path": "/zroot/vm-unencrypted/",
             "zfs_path": "zroot/vm-unencrypted",
             "encrypted": false,
-            "comment": "ZFS Unecrypted"
+            "comment": "ZFS Unencrypted"
         }
     ]
 }
