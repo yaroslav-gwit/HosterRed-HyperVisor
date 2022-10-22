@@ -55,7 +55,7 @@ def self_update():
         Console(stderr=True).print("Hoster folder doesn't exist!")
         sys.exit(1)
 
-    with Console().status("[bold royal_blue1]Working on it...[/]"):
+    with Console().status("[bold royal_blue1]Pulling the latest changes...[/]"):
         invoke.run("git reset --hard", hide=True)
         try:
             git_result = invoke.run("git pull", hide=True)
@@ -64,12 +64,18 @@ def self_update():
             re_out_2 = re.compile(".*Already up-to-date.*")
             for index, value in enumerate(git_output):
                 if re_out_1.match(value) or re_out_2.match(value):
-                    job_status = " 🟢 INFO: [green]Hoster is already up-to-date![/]"
+                    git_pull_job_status = " 🟢 INFO: [green]Hoster is already up-to-date![/]"
                 elif not (re_out_1.match(value) or re_out_2.match(value)) and (index + 1) == len(git_output):
-                    job_status = " 🟢 INFO: [green]Hoster was updated successfully![/]"
+                    git_pull_job_status = " 🟢 INFO: [green]Hoster was updated successfully![/]"
         except invoke.exceptions.UnexpectedExit as e:
             pass
-    Console().print(job_status)
+    Console().print(git_pull_job_status)
+
+    with Console().status("[bold royal_blue1]Upgrading PIP dependencies...[/]"):
+        command = hoster_red_folder + "venv/bin/python3 -m pip install -r requirements.txt --upgrade"
+        invoke.run(command, hide=True)
+        pip_upgrade_job_status = " 🟢 INFO: [green]Hoster PIP dependencies were updated successfully![/]"
+    Console().print(git_pull_job_status)
 
 
 @app.callback(invoke_without_command=True)
