@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+from time import sleep
 
 from rich.console import Console
 # from rich.panel import Panel
@@ -68,6 +69,7 @@ def self_update():
                     Console().print("[green]Hoster was updated successfully!")
         except invoke.exceptions.UnexpectedExit as e:
             pass
+        sleep(2)
 
 
 @app.callback(invoke_without_command=True)
