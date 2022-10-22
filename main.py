@@ -75,7 +75,7 @@ def self_update():
         command = hoster_red_folder + "venv/bin/python3 -m pip install -r requirements.txt --upgrade"
         invoke.run(command, hide=True)
         pip_upgrade_job_status = " 🟢 INFO: [green]Hoster PIP dependencies were updated successfully![/]"
-    Console().print(git_pull_job_status)
+    Console().print(pip_upgrade_job_status)
 
 
 @app.callback(invoke_without_command=True)
