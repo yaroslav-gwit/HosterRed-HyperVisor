@@ -64,7 +64,7 @@ def self_update():
             re_out_2 = re.compile(".*Already up-to-date.*")
             for index, value in enumerate(git_output):
                 if re_out_1.match(value) or re_out_2.match(value):
-                    job_status = "[green] 🟢 INFO: Hoster is already up-to-date![/]"
+                    job_status = " 🟢 INFO: [green]Hoster is already up-to-date![/]"
                 elif not (re_out_1.match(value) or re_out_2.match(value)) and (index + 1) == len(git_output):
                     job_status = " 🟢 INFO: [green]Hoster was updated successfully![/]"
         except invoke.exceptions.UnexpectedExit as e:
