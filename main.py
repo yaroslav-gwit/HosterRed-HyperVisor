@@ -1,4 +1,12 @@
+import os
+import re
+import sys
+
+from rich.console import Console
+# from rich.panel import Panel
 import typer
+import invoke
+import json
 
 # Own libraries
 from cli.vm import vm
@@ -15,21 +23,57 @@ app.add_typer(dataset.app, name="dataset", help="Show or modify storage dataset 
 
 
 @app.command()
-def version(json: bool = typer.Option(False, help="JSON output")):
+def version(json_plain: bool = typer.Option(False, help="Plain JSON output")):
     """ Show version and exit """
-    print("Version: development-0.1-alpha")
+
+    version_string = "development-0.1-alpha"
+    if json_plain:
+        dict_output = {"version": version_string}
+        json_output = json.dumps(dict_output, sort_keys=False)
+        print(json_output)
+    else:
+        print("Version: " + version_string)
 
 
 @app.command()
 def init():
     """ Initialise all modules and services required by 'hoster' """
+
     host.init()
     network.init()
+
+
+@app.command()
+def self_update():
+    """ Pull the latest updates from our Git repo """
+
+    hoster_red_folder = "/opt/hoster-red/"
+    if os.path.exists(hoster_red_folder):
+        os.chdir(hoster_red_folder)
+    else:
+        Console(stderr=True).print("Hoster folder doesn't exist!")
+        sys.exit(1)
+
+    with Console().status("[bold royal_blue1]Working on it...[/]"):
+        invoke.run("git reset --hard", hide=True)
+        try:
+            git_result = invoke.run("git pull", hide=True)
+            git_output = git_result.stdout.splitlines()
+            re_out_1 = re.compile(".*Already up to date.*")
+            re_out_2 = re.compile(".*Already up-to-date.*")
+            for index, value in enumerate(git_output):
+                if re_out_1.match(value) or re_out_2.match(value):
+                    Console().print("[green]Hoster is already up-to-date!")
+                elif not (re_out_1.match(value) or re_out_2.match(value)) and (index + 1) == len(git_output):
+                    Console().print("[green]Hoster was updated successfully!")
+        except invoke.exceptions.UnexpectedExit as e:
+            pass
 
 
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context):
     """ Bhyve automation framework """
+
     if ctx.invoked_subcommand is None:
         print()
         host.table_output(table_title=True)
