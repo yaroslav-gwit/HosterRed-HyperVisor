@@ -55,7 +55,6 @@ def self_update():
         Console(stderr=True).print("Hoster folder doesn't exist!")
         sys.exit(1)
 
-    console = Console()
     with Console().status("[bold royal_blue1]Working on it...[/]"):
         invoke.run("git reset --hard", hide=True)
         try:
@@ -65,11 +64,12 @@ def self_update():
             re_out_2 = re.compile(".*Already up-to-date.*")
             for index, value in enumerate(git_output):
                 if re_out_1.match(value) or re_out_2.match(value):
-                    console.print("[green]Hoster is already up-to-date![/]")
+                    status = "[green]Hoster is already up-to-date![/]"
                 elif not (re_out_1.match(value) or re_out_2.match(value)) and (index + 1) == len(git_output):
-                    console.print("[green]Hoster was updated successfully![/]")
+                    status = "[green]Hoster was updated successfully![/]"
         except invoke.exceptions.UnexpectedExit as e:
             pass
+    Console().print(status)
 
 
 @app.callback(invoke_without_command=True)
