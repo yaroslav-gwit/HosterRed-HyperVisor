@@ -1,6 +1,6 @@
 # General Information
 ![HosterRed Logo](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/python-branch-main/screenshots/HosterRed%20Logo%20Dark.png)
-HosterRed: HyperVisor is a highly opinionated VM management framework, which includes: network isolation (at the VM level), dataset encryption (at the ZFS level), instant VM deployments, storage replication between 2 or more hosts and more. It uses Python3, FreeBSD, bhyve, ZFS, and PF to achieve all of it's goals ✅🚀.</br></br>
+Hoster is a highly opinionated VM management framework, which includes: network isolation (at the VM level), dataset encryption (at the ZFS level), instant VM deployments, storage replication between 2 or more hosts and more. It uses Python3, FreeBSD, bhyve, ZFS, and PF to achieve all of it's goals ✅🚀.</br></br>
 ![HosterRed Screenshot](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/python-branch-main/screenshots/HosterRed-Main-Screen-Latest.png)
 
 # The why?
