@@ -131,6 +131,6 @@ dmypy.json
 # Screenshots
 screenshots/
 
-.configs/datasets.json
-.configs/host.json
-.configs/networks.json
+/configs/datasets.json
+/configs/host.json
+/configs/networks.json
