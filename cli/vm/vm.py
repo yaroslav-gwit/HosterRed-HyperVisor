@@ -603,6 +603,10 @@ class VmDeploy:
             output_dict["os_comment"] = "FreeBSD 13 UFS"
         elif self.os_type == "freebsd13zfs":
             output_dict["os_comment"] = "FreeBSD 13 ZFS"
+        elif self.os_type == "almalinux8":
+            output_dict["os_comment"] = "AlmaLinux 8"
+        elif self.os_type == "rockylinux8":
+            output_dict["os_comment"] = "RockyLinux 8"
         else:
             output_dict["os_comment"] = self.os_type
 
