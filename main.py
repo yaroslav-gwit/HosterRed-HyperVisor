@@ -14,6 +14,7 @@ from cli.vm import vm
 from cli.host import host
 from cli.network import network
 from cli.dataset import dataset
+from cli.image import image
 
 """ Section below is responsible for the CLI input/output """
 app = typer.Typer(context_settings=dict(max_content_width=800))
@@ -21,6 +22,7 @@ app.add_typer(vm.app, name="vm", help="List, Create, Remove or any other VM rela
 app.add_typer(host.app, name="host", help="Show or modify host related information")
 app.add_typer(network.app, name="network", help="Show or modify network related information")
 app.add_typer(dataset.app, name="dataset", help="Show or modify storage dataset related information")
+app.add_typer(image.app, name="image", help="Download or update OS images")
 
 
 @app.command()
