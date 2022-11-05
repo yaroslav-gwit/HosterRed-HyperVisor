@@ -46,11 +46,12 @@ def download(
 
     with open("/tmp/" + image_zip_name, "wb") as handle:
         try:
-            for data in tqdm(image_download_stream.iter_content(), desc="Downloading " + os_type + "...", colour="green", total=image_size, initial=0, unit="b", unit_divisor=1024, unit_scale=True):
+            for data in tqdm(image_download_stream.iter_content(chunk_size=128), desc="Downloading " + os_type + "...", colour="green", total=image_size, initial=0, unit="b", unit_divisor=1024, unit_scale=True):
                 handle.write(data)
         except KeyboardInterrupt as e:
             print("Process was cancelled by the user (Ctrl+C)")
             os.remove("/tmp/" + image_zip_name)
+            sys.exit(1)
 
     if zipfile.is_zipfile("/tmp/" + image_zip_name):
         with zipfile.ZipFile("/tmp/" + image_zip_name, "r") as zip_ref:
