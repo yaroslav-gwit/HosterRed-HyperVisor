@@ -3,6 +3,7 @@ import sys
 import json
 import shutil
 import zipfile
+import subprocess
 
 import typer
 import invoke
@@ -65,7 +66,8 @@ def download(
 
     try:
         command = "wget " + image_url + " -O /tmp/" + os_type + ".zip"
-        invoke.run(command)
+        subprocess.run(command, shell=True)
+        # invoke.run(command)
     except KeyboardInterrupt as e:
         print("Process was cancelled by the user (Ctrl+C)")
         os.remove("/tmp/" + image_zip_name)
