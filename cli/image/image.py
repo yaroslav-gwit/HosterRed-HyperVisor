@@ -16,6 +16,7 @@ app = typer.Typer()
 @app.command()
 def download(
         os_type: str = typer.Argument("debian11", help="OS or distro to download"),
+        chunk_size: int = typer.Option(16, help="Download file chunk size"),
 ):
     """ Download a ready to deploy OS image """
     json_image_url = "https://images.yari.pw/"
@@ -46,7 +47,7 @@ def download(
 
     with open("/tmp/" + image_zip_name, "wb") as handle:
         try:
-            for data in tqdm(image_download_stream.iter_content(chunk_size=16), desc="Downloading " + os_type + "...", colour="green", total=image_size, initial=0, unit="b", unit_divisor=1024, unit_scale=True):
+            for data in tqdm(image_download_stream.iter_content(chunk_size=chunk_size), desc="Downloading " + os_type + "...", colour="green", total=image_size, initial=0, unit="b", unit_divisor=1024, unit_scale=True):
                 handle.write(data)
         except KeyboardInterrupt as e:
             print("Process was cancelled by the user (Ctrl+C)")
