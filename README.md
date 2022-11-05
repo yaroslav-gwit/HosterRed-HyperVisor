@@ -20,20 +20,16 @@ P.S. WebUI is coming too, stay tuned for that 😉
 ### List of supported OSes
 - [x] Debian 11
 - [x] AlmaLinux 8
+- [x] RockyLinux 8
 - [x] Ubuntu 20.04
-- [x] FreeBSD 13 UFS
-- [x] FreeBSD 13 ZFS
 - [x] Windows 10 (You'll have to provide your own image, instructions on how to build one will be released in the Wiki section soon)
 
 ### OSes on the roadmap
+- [ ] FreeBSD 13 UFS
+- [ ] FreeBSD 13 ZFS
 - [ ] Ubuntu 20.04 LVM Hardened
 - [ ] Fedora (latest)
 - [ ] CentOS 7
-- [ ] OpenBSD
-- [ ] OpenSUSE Leap
-- [ ] OpenSUSE Tumbleweed
-- [ ] Windows 11
-- [ ] Windows Server 2019
 
 ### OSes not on the roadmap
 - [x] ~~MacOS (any release)~~
@@ -82,9 +78,11 @@ Save the ZFS encryption password, otherwise you'll lose your data!
 ## Backups
 ### Sheduled automatic snapshots and replication for all production VMs
 ```
+#== AUTOMATIC SNAPSHOTS ==#
 @hourly     root  hoster vm snapshot-all  --stype hourly  --keep 3
 @daily      root  hoster vm snapshot-all  --stype daily   --keep 5
 @weekly     root  hoster vm snapshot-all  --stype weekly  --keep 3
 @monthly    root  hoster vm snapshot-all  --stype monthly --keep 6
-20 * * * *  root  hoster vm replicate-all --ep-address 192.168.1.11
+#== AUTOMATIC REPLICATION TO OTHER NODES ==#
+#20 * * * *  root  hoster vm replicate-all --ep-address 192.168.1.11
 ```
