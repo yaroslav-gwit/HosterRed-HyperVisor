@@ -18,7 +18,6 @@ app = typer.Typer()
 @app.command()
 def download(
         os_type: str = typer.Argument("debian11", help="OS or distro to download"),
-        chunk_size: int = typer.Option(16, help="Download file chunk size"),
         zfs_path: str = typer.Option("zroot/vm-encrypted", help="Set the ZFS dataset path"),
 ):
     """ Download a ready to deploy OS image """
@@ -62,16 +61,24 @@ def download(
     else:
         command = "zfs create " + zfs_path + "/template-" + os_type
         print("Executing: " + command)
-        result = invoke.run(command, hide=True)
+        invoke.run(command, hide=True)
 
-    with requests.get(image_url, stream=True) as r:
-        try:
-            with open("/tmp/" + image_zip_name, 'wb') as f:
-                shutil.copyfileobj(r.raw, f)
-        except KeyboardInterrupt as e:
-            print("Process was cancelled by the user (Ctrl+C)")
-            os.remove("/tmp/" + image_zip_name)
-            sys.exit(1)
+    try:
+        command = "wget " + image_url + " -O /tmp/" + os_type + ".zip"
+        invoke.run(command)
+    except KeyboardInterrupt as e:
+        print("Process was cancelled by the user (Ctrl+C)")
+        os.remove("/tmp/" + image_zip_name)
+        sys.exit(1)
+
+    # with requests.get(image_url, stream=True) as r:
+    #     try:
+    #         with open("/tmp/" + image_zip_name, 'wb') as f:
+    #             shutil.copyfileobj(r.raw, f)
+    #     except KeyboardInterrupt as e:
+    #         print("Process was cancelled by the user (Ctrl+C)")
+    #         os.remove("/tmp/" + image_zip_name)
+    #         sys.exit(1)
 
     # with open("/tmp/" + image_zip_name, "wb") as handle:
     #     try:
