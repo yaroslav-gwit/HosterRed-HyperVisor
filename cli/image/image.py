@@ -18,7 +18,7 @@ app = typer.Typer()
 def download(
         os_type: str = typer.Argument("debian11", help="OS or distro to download"),
         chunk_size: int = typer.Option(16, help="Download file chunk size"),
-        zfs_path: str = typer.Option("zroot/vm_encrypted", help="Set the ZFS dataset path"),
+        zfs_path: str = typer.Option("zroot/vm-encrypted", help="Set the ZFS dataset path"),
 ):
     """ Download a ready to deploy OS image """
 
