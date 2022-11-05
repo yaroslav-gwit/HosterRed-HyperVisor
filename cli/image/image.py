@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import shutil
 import zipfile
 
 import typer
@@ -63,14 +64,23 @@ def download(
         print("Executing: " + command)
         result = invoke.run(command, hide=True)
 
-    with open("/tmp/" + image_zip_name, "wb") as handle:
+    with requests.get(image_url, stream=True) as r:
         try:
-            for data in tqdm(image_download_stream.iter_content(chunk_size=chunk_size), desc="Downloading " + os_type + "... ", colour="green", total=image_size, initial=0, unit="b", unit_divisor=1024, unit_scale=True):
-                handle.write(data)
+            with open("/tmp/" + image_zip_name, 'wb') as f:
+                shutil.copyfileobj(r.raw, f)
         except KeyboardInterrupt as e:
             print("Process was cancelled by the user (Ctrl+C)")
             os.remove("/tmp/" + image_zip_name)
             sys.exit(1)
+
+    # with open("/tmp/" + image_zip_name, "wb") as handle:
+    #     try:
+    #         for data in tqdm(image_download_stream.iter_content(chunk_size=chunk_size), desc="Downloading " + os_type + "... ", colour="green", total=image_size, initial=0, unit="b", unit_divisor=1024, unit_scale=True):
+    #             handle.write(data)
+    #     except KeyboardInterrupt as e:
+    #         print("Process was cancelled by the user (Ctrl+C)")
+    #         os.remove("/tmp/" + image_zip_name)
+    #         sys.exit(1)
 
     if zipfile.is_zipfile("/tmp/" + image_zip_name):
         with zipfile.ZipFile("/tmp/" + image_zip_name, "r") as zip_ref:
