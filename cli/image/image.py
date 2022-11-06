@@ -45,7 +45,7 @@ def download(
         temp = i.get(os_type)
         if temp:
             os_image_list = temp
-    latest_os_image = natsorted(os_image_list)[0]
+    latest_os_image = natsorted(os_image_list)[-1]
 
     image_url = "https://images.yari.pw/images/" + latest_os_image
     image_zip_name = os_type + ".zip"
