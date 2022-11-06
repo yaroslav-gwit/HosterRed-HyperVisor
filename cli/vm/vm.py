@@ -1812,19 +1812,18 @@ def replicate(vm_name: str = typer.Argument(..., help="VM name"),
 
 
 @app.command()
-def replicate_all(vm_name: str = typer.Argument(..., help="VM name"),
-                  ep_address: str = typer.Option("192.168.120.18", help="Endpoint server address, i.e. 192.168.1.1"),
+def replicate_all(ep_address: str = typer.Option("192.168.120.18", help="Endpoint server address, i.e. 192.168.1.1"),
                   ep_port: str = typer.Option("22", help="Endpoint server SSH port"),
                   direction: str = typer.Option("push", help="Direction of the replication: push or pull")
                   ):
     """ Replicate all production VMs to another host """
 
     vm_list = VmList().plainList
-    for _vm in vm_list:
-        _vm_live_status = CoreChecks(vm_name=_vm).vm_cpus()["live_status"]
-        if _vm_live_status == "production":
+    for vm in vm_list:
+        vm_live_status = CoreChecks(vm_name=vm).vm_cpus()["live_status"]
+        if vm_live_status == "production":
             if direction == "push":
-                ZFSReplication.push(vm_name=vm_name, ep_address=ep_address, ep_port=ep_port)
+                ZFSReplication.push(vm_name=vm, ep_address=ep_address, ep_port=ep_port)
             elif direction == "pull":
                 print("This function has not been implemented yet!")
             else:
