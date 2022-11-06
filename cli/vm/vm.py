@@ -1082,7 +1082,7 @@ class ZFSReplication:
 
         # Check if VM is from this host:
         vm_config_dict = VmConfigs(vm_name).vm_config_read()
-        host_name = host.HostInfo().hostName
+        host_name = host.get_hostname()
         if vm_config_dict["parent_host"] != host_name:
             sys.exit(" 🚦 ERROR: VM is already a backup from another host, can't replicate: " + vm_name)
 
