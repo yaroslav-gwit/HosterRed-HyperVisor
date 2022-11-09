@@ -66,7 +66,7 @@ def download(
 
     print(Console().print("Will download: " + image_url))
     try:
-        command = "wget " + image_url + " -O /tmp/" + os_type + ".zip"
+        command = "wget " + image_url + " -O /tmp/" + os_type + ".zip -q --show-progress"
         subprocess.run(command, shell=True)
     except KeyboardInterrupt as e:
         print("Process was cancelled by the user (Ctrl+C)")
