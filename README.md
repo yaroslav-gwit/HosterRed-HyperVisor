@@ -5,9 +5,8 @@ Hoster is a highly opinionated VM management framework, which includes: network 
 
 # The why?
 For a long time I've been a Proxmox user, swearing by it and promoting it any way I could. That stopped when I've started to rent Hetzner hardware servers, as many problems risen up: unjustifiably high RAM usage on smaller servers, no integrated NAT configuration, multiple public IP management is a nightmare, and some other minor issues like root ZFS dataset encryption on BIOS systems. That's when I discovered FreeBSD and bhyve: I realized that I could just use PF to control the traffic between the VMs and internal/external bridges, use native ZFS encryption, and do so much more but there was only 1 small problem -- vmbhyve and CBSD just weren't what I needed. Meet HosterRed -- my own automation framework (or even a small ecosystem, if you will) around FreeBSD's bhyve, PF and ZFS. As a result I can deploy the VMs in a matter of seconds on any hardware old/new/powerfull or otherwise with minimal RAM overhead.</br></br>
-To network all of the nodes together as one happy family of "hosters" I use Nebula (https://www.defined.net/nebula/).</br></br>
+To network all of the nodes together as one happy family of "hosters" I use Nebula (https://www.defined.net/nebula/) and a FastAPI wrapper around it to automate the process.</br></br>
 Now HosterRed is used by a couple of individuals (including myself) as their hosting platform of choise. Install it, play around with it, and you will be pleasantly surprised by the experience.</br></br>
-P.S. WebUI is coming too, stay tuned for that 😉
 
 ### VM Status (state) icons
 🟢 - VM is running
