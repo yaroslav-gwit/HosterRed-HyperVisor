@@ -43,7 +43,7 @@ pkg update && pkg install -y bash curl tmux
 
 The first step is optional but highly recommended. Esentially, if you ignore to set any of these values they will be generated automatically. Specifically look at the network port and ZFS encryption password:
 ```
-export DEF_NETWORK_NAME=internel
+export DEF_NETWORK_NAME=internal
 export DEF_NETWORK_BR_ADDR=10.0.0.254
 export DEF_PUBLIC_INTERFACE=igb0
 
