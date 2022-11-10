@@ -56,7 +56,7 @@ def download(
             os.remove(image_end_location + "/disk0.img")
         else:
             Console(stderr=True).print(" 🔴 ERROR: Sorry, the image file already exists: " + "/" + zfs_path + "/template-" + os_type + "/disk0.img")
-            Console().print(" 🟢 INFO: Use [green]--force[/] flag to overwrite the existing image")
+            Console().print(" 🟢 INFO: Use [green]--force[/] flag to overwrite the existing image, for example: [green]hoster image download debian11 --force[/]")
             sys.exit(1)
     elif os.path.exists(image_end_location):
         pass
