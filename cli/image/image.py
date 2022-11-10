@@ -74,7 +74,7 @@ def download(
         sys.exit(1)
 
     if zipfile.is_zipfile("/tmp/" + image_zip_name):
-        with Console().status("[bold royal_blue1]Unzipping the image archive...[/]"):
+        with Console().status(" [bold green]Unzipping the image archive...[/]"):
             with zipfile.ZipFile("/tmp/" + image_zip_name, "r") as zip_ref:
                 zip_ref.extractall(image_end_location)
                 os.remove("/tmp/" + image_zip_name)
