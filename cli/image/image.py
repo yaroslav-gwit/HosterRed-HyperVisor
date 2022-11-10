@@ -61,15 +61,15 @@ def download(
         pass
     else:
         command = "zfs create " + zfs_path + "/template-" + os_type
-        print("Executing: " + command)
+        Console().print(" 🔷 DEBUG: Executing: " + command)
         subprocess.run(command, shell=True, stdout=subprocess.DEVNULL)
 
-    Console().print("Will download: " + image_url)
+    Console().print(" 🟢 INFO: Downloading: " + image_url)
     try:
         command = "wget " + image_url + " -O /tmp/" + os_type + ".zip -q --show-progress"
         subprocess.run(command, shell=True)
     except KeyboardInterrupt as e:
-        Console().print("Process was cancelled by the user (Ctrl+C)")
+        Console().print(" 🔴 CANCELLED: Process was cancelled by the user (Ctrl+C)")
         os.remove("/tmp/" + image_zip_name)
         sys.exit(1)
 
@@ -78,8 +78,8 @@ def download(
             with zipfile.ZipFile("/tmp/" + image_zip_name, "r") as zip_ref:
                 zip_ref.extractall(image_end_location)
                 os.remove("/tmp/" + image_zip_name)
-        Console().print("Image was unpacked to: /" + zfs_path + "/template-" + os_type + "/disk0.img")
-        Console().print("Downloaded archive was cleaned up from: /tmp/" + image_zip_name)
+        Console().print(" 🔷 DEBUG: Image was unpacked to: /" + zfs_path + "/template-" + os_type + "/disk0.img")
+        Console().print(" 🔷 DEBUG: Downloaded archive was cleaned up from: /tmp/" + image_zip_name)
     else:
         Console(stderr=True).print("Sorry, the downloaded file is not a ZIP archive: " + "/tmp/" + image_zip_name)
         os.remove("/tmp/" + image_zip_name)
