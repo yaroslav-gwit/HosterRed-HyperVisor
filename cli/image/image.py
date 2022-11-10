@@ -55,7 +55,8 @@ def download(
         if force_update:
             os.remove(image_end_location + "/disk0.img")
         else:
-            print("Sorry, the image file already exists: " + "/" + zfs_path + "/template-" + os_type + "/disk0.img", file=sys.stderr)
+            Console(stderr=True).print(" 🔴 ERROR: Sorry, the image file already exists: " + "/" + zfs_path + "/template-" + os_type + "/disk0.img")
+            Console().print(" 🟢 INFO: Use [green]--force[/] flag to overwrite the existing image")
             sys.exit(1)
     elif os.path.exists(image_end_location):
         pass
@@ -74,7 +75,7 @@ def download(
         sys.exit(1)
 
     if zipfile.is_zipfile("/tmp/" + image_zip_name):
-        with Console().status(" [bold green]Unzipping the image archive...[/]"):
+        with Console().status("[bold green]Unzipping the image archive...[/]"):
             with zipfile.ZipFile("/tmp/" + image_zip_name, "r") as zip_ref:
                 zip_ref.extractall(image_end_location)
                 os.remove("/tmp/" + image_zip_name)
