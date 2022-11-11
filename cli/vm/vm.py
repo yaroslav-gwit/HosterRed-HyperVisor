@@ -232,7 +232,7 @@ class VmConfigs:
 
     def vm_config_manual_edit(self):
         text_editor = os.getenv("EDITOR")
-        check_editor_output = subprocess.check_output(f"which {text_editor}", stderr=subprocess.DEVNULL, text=True)
+        check_editor_output = subprocess.check_output(f"which {text_editor}", stderr=subprocess.DEVNULL, text=True, shell=True)
         if len(check_editor_output) < 1:
             text_editor = "nano"
         for ds in self.zfs_datasets["datasets"]:
