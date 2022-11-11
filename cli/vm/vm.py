@@ -231,10 +231,11 @@ class VmConfigs:
                 sys.exit(1)
 
     def vm_config_manual_edit(self):
+        text_editor = os.getenv("EDITOR")
         for ds in self.zfs_datasets["datasets"]:
             vm_config = ds["mount_path"] + self.vm_name + self.vm_config
             if exists(vm_config):
-                command = "nano " + vm_config
+                command = f"{text_editor} {vm_config}"
                 subprocess.run(command, shell=True)
                 return
             elif ds == self.zfs_datasets["datasets"][-1] and not exists(vm_config):
