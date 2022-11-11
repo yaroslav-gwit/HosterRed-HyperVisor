@@ -232,6 +232,9 @@ class VmConfigs:
 
     def vm_config_manual_edit(self):
         text_editor = os.getenv("EDITOR")
+        check_editor_output = subprocess.check_output(f"which {text_editor}", stderr=subprocess.DEVNULL, text=True)
+        if len(check_editor_output) < 1:
+            text_editor = "nano"
         for ds in self.zfs_datasets["datasets"]:
             vm_config = ds["mount_path"] + self.vm_name + self.vm_config
             if exists(vm_config):
