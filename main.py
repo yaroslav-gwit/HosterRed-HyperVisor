@@ -45,10 +45,10 @@ def version(json_plain: bool = typer.Option(False, help="Plain JSON output")):
 @app.command()
 def init():
     """ Initialise all modules and services required by 'hoster' """
-
     host.init()
     network.init()
-    nebula.init()
+    if os.path.exists("/opt/hoster-red/configs/nebula.json"):
+        nebula.init(download_service=False, download_binary=False)
 
 
 # SECTION APP SELF UPDATE

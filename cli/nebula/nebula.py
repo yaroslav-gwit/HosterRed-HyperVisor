@@ -106,13 +106,13 @@ class NebulaFuncs:
                     f.write(config_text)
                 print(" 🔷 DEBUG: Downloading new certificates")
                 self.get_certs()
-                if reload:
-                    print(" 🔷 DEBUG: Reloading the service")
-                    command = "/opt/nebula/nebula_service.sh"
-                    subprocess.run(command, shell=True)
-                print(" 🟢 INFO: All done, and you now have the latest Nebula settings. Welcome back to the cluster, buddy!")
             else:
                 print(" 🔷 DEBUG: Config file was not changed, skipping any further steps...")
+            if reload:
+                print(" 🔷 DEBUG: Reloading/starting the service")
+                command = "/opt/nebula/nebula_service.sh"
+                subprocess.run(command, shell=True)
+                print(" 🟢 INFO: All done, and you now have the latest Nebula settings. Welcome back to the cluster, buddy!")
 
 
 """ Section below is responsible for the CLI input/output """
@@ -121,10 +121,14 @@ app = typer.Typer()
 
 @app.command()
 def init(service_reload: bool = typer.Option(True, help="Reload the service after initialisation"),
+         download_binary: bool = typer.Option(True, help="Download a fresh version of Nebula binary"),
+         download_service: bool = typer.Option(True, help="Download a fresh version of Nebula service file"),
          ):
     """ Initialize Nebula on this hoster (download, setup and configure) """
-    NebulaFuncs().get_latest_service_file(reload=False)
-    NebulaFuncs().get_latest_nebula_bin(reload=False)
+    if download_service:
+        NebulaFuncs().get_latest_service_file(reload=False)
+    if download_binary:
+        NebulaFuncs().get_latest_nebula_bin(reload=False)
     NebulaFuncs().get_config(reload=service_reload)
 
 
@@ -140,6 +144,12 @@ def update_service(service_reload: bool = typer.Option(True, help="Reload the se
                    ):
     """ Download the latest Nebula service file """
     NebulaFuncs().get_latest_service_file(reload=service_reload)
+
+
+@app.command()
+def reload_service():
+    """ Start or restart the Nebula service """
+    NebulaFuncs().get_config(reload=True)
 
 
 """ If this file is executed from the command line, activate Typer """
