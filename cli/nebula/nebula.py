@@ -8,6 +8,7 @@ import sys
 import os
 
 
+os.chdir("/opt/hoster-red/")
 if not os.path.exists("./configs/nebula.json"):
     print(" 🟢 FATAL: Nebula config was not found!")
     sys.exit(1)
@@ -122,9 +123,6 @@ app = typer.Typer()
 def init(service_reload: bool = typer.Option(True, help="Reload the service after initialisation"),
          ):
     """ Initialize Nebula on this hoster (download, setup and configure) """
-    if not os.path.exists("./configs/nebula.json"):
-        print(" 🟢 FATAL: Nebula config was not found!")
-        sys.exit(1)
     get_latest_service_file(reload=False)
     get_latest_nebula_bin(reload=False)
     get_config(reload=service_reload)
@@ -133,18 +131,12 @@ def init(service_reload: bool = typer.Option(True, help="Reload the service afte
 def update_binary(service_reload: bool = typer.Option(True, help="Reload the service after initialisation"),
                   ):
     """ Download the latest compatible Nebula binary """
-    if not os.path.exists("./configs/nebula.json"):
-        print(" 🟢 FATAL: Nebula config was not found!")
-        sys.exit(1)
     get_latest_nebula_bin(reload=service_reload)
 
 
 def update_service(service_reload: bool = typer.Option(True, help="Reload the service after initialisation"),
                    ):
     """ Download the latest Nebula service file """
-    if not os.path.exists("./configs/nebula.json"):
-        print(" 🟢 FATAL: Nebula config was not found!")
-        sys.exit(1)
     get_latest_service_file(reload=service_reload)
 
 
