@@ -159,6 +159,12 @@ def kill_service():
     print(" 🔶 INFO: Nebula service was killed")
 
 
+@app.command()
+def show_log():
+    """ Show the latest Nebula logs (runs tail -f /opt/nebula/log.txt)"""
+    subprocess.run("tail -f /opt/nebula/log.txt", shell=True)
+
+
 """ If this file is executed from the command line, activate Typer """
 if __name__ == "__main__":
     app()
