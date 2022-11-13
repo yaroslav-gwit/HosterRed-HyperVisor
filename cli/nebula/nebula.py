@@ -37,8 +37,7 @@ class NebulaFuncs:
             os.mkdir("/opt/nebula/")
             subprocess.run("chmod 700 /opt/nebula/", shell=True)
 
-        self.config_text_local = "/opt/nebula/config.yaml"
-
+        self.config_text_local = "/opt/nebula/config.yml"
 
     def get_certs(self, reload: bool = True):
         certificate_request_url = "https://" + self.api_server + "/get_certs?cluster_name=" + self.cluster_name + \
@@ -49,7 +48,6 @@ class NebulaFuncs:
                 f.write(certificate_request.text)
             command = "bash cert_files.sh"
             subprocess.run(command, shell=True)
-
 
     def get_latest_service_file(self, reload: bool = True):
         service_request_url = "https://" + self.api_server + "/get_bins?os=freebsd&nebula=false&service=true"
@@ -64,7 +62,6 @@ class NebulaFuncs:
         else:
             Console().print(" 🟢 INFO: New service file has been downloaded")
 
-
     def get_latest_nebula_bin(self, reload: bool = True):
         with Console().status("[royal_blue1]Downloading the latest Nebula binary...[/]"):
             binary_request_url = "https://" + self.api_server + "/get_bins?os=freebsd&nebula=true&service=false"
@@ -74,7 +71,7 @@ class NebulaFuncs:
                 if os.path.exists("/opt/nebula/nebula"):
                     os.remove("/opt/nebula/nebula")
                 with open("/opt/nebula/nebula", "wb") as f:
-                    for data in binary_request.iter_content():
+                    for data in binary_request.iter_content(chunk_size=8):
                         f.write(data)
         command = "chmod +x /opt/nebula/nebula"
         subprocess.run(command, shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
@@ -84,7 +81,6 @@ class NebulaFuncs:
             Console().print(" 🟢 INFO: New binary has been installed and service reloaded")
         else:
             Console().print(" 🟢 INFO: New binary has been installed")
-
 
     def get_config(self, reload: bool = True):
         config_request_url = "https://" + self.api_server + "/get_config?cluster_name=" + self.cluster_name + "&cluster_id="\
