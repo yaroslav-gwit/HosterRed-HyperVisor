@@ -63,7 +63,7 @@ def self_update():
         Console(stderr=True).print("Hoster folder doesn't exist!")
         sys.exit(1)
 
-    with Console().status("[bold royal_blue1]Pulling the latest changes...[/]"):
+    with Console().status("[royal_blue1]Pulling the latest changes...[/]"):
         invoke.run("git reset --hard", hide=True)
         try:
             git_result = invoke.run("git pull", hide=True)
@@ -79,7 +79,7 @@ def self_update():
             pass
     Console().print(git_pull_job_status)
 
-    with Console().status("[bold royal_blue1]Upgrading PIP dependencies...[/]"):
+    with Console().status("[royal_blue1]Upgrading PIP dependencies...[/]"):
         command = hoster_red_folder + "venv/bin/python3 -m pip install -r requirements.txt --upgrade"
         invoke.run(command, hide=True)
         pip_upgrade_job_status = " 🟢 INFO: [green]Hoster PIP dependencies were updated successfully![/]"
