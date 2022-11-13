@@ -118,7 +118,7 @@ class NebulaFuncs:
                 print(" 🔷 DEBUG: Downloading new certificates")
                 self.get_certs()
             else:
-                print(" 🔷 DEBUG: Config file was not changed, skipping any further steps...")
+                print(" 🔷 DEBUG: Config file was not changed, skipping the download step...")
             if reload:
                 print(" 🔷 DEBUG: Reloading/starting the service")
                 command = "/opt/nebula/nebula_service.sh"
