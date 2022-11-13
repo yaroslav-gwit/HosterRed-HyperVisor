@@ -70,7 +70,7 @@ class NebulaFuncs:
             binary_request_url = "https://" + self.api_server + "/get_bins?os=freebsd&nebula=true&service=false"
             binary_request = requests.get(binary_request_url, stream=True)
             if binary_request.status_code == 200:
-                subprocess.run("kill \"$(pgrep -lf '/opt/nebula/config.yml' | awk '{ print $1 }')\"", stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+                subprocess.run("kill \"$(pgrep -lf '/opt/nebula/config.yml' | awk '{ print $1 }')\"", shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
                 if os.path.exists("/opt/nebula/nebula"):
                     os.remove("/opt/nebula/nebula")
                 with open("/opt/nebula/nebula", "wb") as f:
