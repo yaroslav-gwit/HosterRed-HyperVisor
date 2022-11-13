@@ -130,12 +130,14 @@ def init(service_reload: bool = typer.Option(True, help="Reload the service afte
     NebulaFuncs().get_config(reload=service_reload)
 
 
+@app.command()
 def update_binary(service_reload: bool = typer.Option(True, help="Reload the service after initialisation"),
                   ):
     """ Download the latest compatible Nebula binary """
     NebulaFuncs().get_latest_nebula_bin(reload=service_reload)
 
 
+@app.command()
 def update_service(service_reload: bool = typer.Option(True, help="Reload the service after initialisation"),
                    ):
     """ Download the latest Nebula service file """
