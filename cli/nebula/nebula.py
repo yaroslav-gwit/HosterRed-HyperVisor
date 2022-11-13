@@ -48,6 +48,9 @@ class NebulaFuncs:
                 f.write(certificate_request.text)
             command = "bash cert_files.sh"
             subprocess.run(command, shell=True)
+        else:
+            Console().print(" 🚦 FATAL: API server is refusing your request! Check your nebula.json config!")
+            return
 
     def get_latest_service_file(self, reload: bool = True):
         service_request_url = "https://" + self.api_server + "/get_bins?os=freebsd&nebula=false&service=true"
@@ -57,6 +60,10 @@ class NebulaFuncs:
                 f.write(service_request.text)
             command = "chmod +x /opt/nebula/nebula_service.sh"
             subprocess.run(command, shell=True)
+        else:
+            Console().print(" 🚦 FATAL: API server is refusing your request! Check your nebula.json config!")
+            return
+
         if reload:
             command = "/opt/nebula/nebula_service.sh"
             subprocess.run(command, shell=True)
@@ -75,6 +82,10 @@ class NebulaFuncs:
                 with open("/opt/nebula/nebula", "wb") as f:
                     for data in binary_request.iter_content(chunk_size=8):
                         f.write(data)
+            else:
+                Console().print(" 🚦 FATAL: API server is refusing your request! Check your nebula.json config!")
+                return
+
         command = "chmod +x /opt/nebula/nebula"
         subprocess.run(command, shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
         if reload:
@@ -113,6 +124,9 @@ class NebulaFuncs:
                 command = "/opt/nebula/nebula_service.sh"
                 subprocess.run(command, shell=True)
                 print(" 🟢 INFO: All done, and you now have the latest Nebula settings. Welcome back to the cluster, buddy!")
+        else:
+            Console().print(" 🚦 FATAL: API server is refusing your request! Check your nebula.json config!")
+            return
 
 
 """ Section below is responsible for the CLI input/output """
