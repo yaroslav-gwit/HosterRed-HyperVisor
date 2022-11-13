@@ -123,7 +123,7 @@ class NebulaFuncs:
                 print(" 🔷 DEBUG: Reloading/starting the service")
                 command = "/opt/nebula/nebula_service.sh"
                 subprocess.run(command, shell=True)
-                print(" 🟢 INFO: All done, and you now have the latest Nebula settings. Welcome back to the cluster, buddy!")
+                print(" 🟢 INFO: All done, and you now have the latest Nebula settings. Welcome to the cluster, buddy!")
         else:
             Console().print(" 🚦 FATAL: API server is refusing your request! Check your nebula.json config!")
             return
