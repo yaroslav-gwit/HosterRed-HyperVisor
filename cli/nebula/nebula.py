@@ -148,8 +148,15 @@ def update_service(service_reload: bool = typer.Option(True, help="Reload the se
 
 @app.command()
 def reload_service():
-    """ Start or restart the Nebula service """
+    """ Start or restart the Nebula service (status detected automatically, no flags needed) """
     NebulaFuncs().get_config(reload=True)
+
+
+@app.command()
+def kill_service():
+    """ Kill the Nebula service process """
+    subprocess.run("kill \"$(pgrep -lf '/opt/nebula/config.yml' | awk '{ print $1 }')\"", shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+    print(" 🔶 INFO: Nebula service was killed")
 
 
 """ If this file is executed from the command line, activate Typer """
