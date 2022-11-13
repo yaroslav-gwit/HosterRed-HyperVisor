@@ -1,0 +1,12 @@
+{
+    "cluster_name": "YOUR_CLUSTER_NAME_HERE",
+    "cluster_id": "9Y2VbDRHeaQM66gFySBpDrk",
+    "host_id": "4mHHNKXhA68L8Waswc2qz99",
+
+    "nat_punch": "True",
+    "listen_address": "0.0.0.0",
+    "listen_port": "6000",
+    "mtu": "1300",
+    "use_relays": "True",
+    "api_server": "nebula-api-server.domain.com"
+}

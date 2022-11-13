@@ -26,7 +26,7 @@ from cli.host import dataset
 from cli.host import host
 
 
-# STANDALONE FUNCTIONS
+# SECTION STANDALONE FUNCTIONS
 def random_password_generator(capitals: bool = False, numbers: bool = False, length: int = 8, specials: bool = False):
     letters_var = "asdfghjklqwertyuiopzxcvbnm"
     capitals_var = "ASDFGHJKLZXCVBNMQWERTYUIOP"
@@ -100,6 +100,7 @@ def ip_address_generator(ip_address: str = "10.0.0.0", existing_ip_addresses=Non
     return ip_address
 
 
+# SECTION CLASS CORE CHECKS
 class CoreChecks:
     def __init__(self, vm_name, disk_image_name="disk0.img"):
         if not vm_name:
@@ -405,8 +406,9 @@ class VmList:
         return vm_list_json
 
 
+# SECTION CLASS VM DEPLOY
 class VmDeploy:
-    def __init__(self, vm_name: str = "test-vm", ip_address: str = "10.0.0.0", os_type: str = "ubuntu2004",
+    def __init__(self, vm_name: str = "test-vm", ip_address: str = "10.0.0.0", os_type: str = "debian11",
                  vnc_port: int = 5900, dataset_id: int = 0):
         # _ Load networks config _#
         with open("./configs/networks.json", "r") as file:

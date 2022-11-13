@@ -58,7 +58,7 @@ def byte_converter(bytes: int = 1) -> str:
     return str(round(float(iteration), 2)) + value_type
 
 
-# Returns Dict or Str depending if "table_output" is True
+# Returns Dict or Str, which depends on "table_output" to be True or False
 def get_ram_info(table_output: bool = True):
     import subprocess
 
@@ -331,8 +331,7 @@ def init():
                 modules_loaded.append(module)
                 continue
 
-    modules_loaded = set(modules_loaded);
-    modules_loaded = list(modules_loaded)
+    modules_loaded = set(modules_loaded); modules_loaded = list(modules_loaded)
     for module in modules_loaded:
         if module in module_list:
             module_list.remove(module)

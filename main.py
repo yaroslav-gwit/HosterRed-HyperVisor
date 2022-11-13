@@ -15,6 +15,7 @@ from cli.host import host
 from cli.network import network
 from cli.dataset import dataset
 from cli.image import image
+from cli.nebula import nebula
 
 """ Section below is responsible for the CLI input/output """
 app = typer.Typer(context_settings=dict(max_content_width=800))
@@ -23,13 +24,15 @@ app.add_typer(host.app, name="host", help="Show or modify host related informati
 app.add_typer(network.app, name="network", help="Show or modify network related information")
 app.add_typer(dataset.app, name="dataset", help="Show or modify storage dataset related information")
 app.add_typer(image.app, name="image", help="Download or update OS images")
+app.add_typer(nebula.app, name="nebula", help="Manage Nebula overlay networking")
 
 
+# SECTION APP VERSION
 @app.command()
 def version(json_plain: bool = typer.Option(False, help="Plain JSON output")):
     """ Show version and exit """
 
-    version_string = "development-0.1-alpha"
+    version_string = "2022_11_13_dev"
     if json_plain:
         dict_output = {"version": version_string}
         json_output = json.dumps(dict_output, sort_keys=False)
@@ -38,14 +41,17 @@ def version(json_plain: bool = typer.Option(False, help="Plain JSON output")):
         print("Version: " + version_string)
 
 
+# SECTION APP INIT
 @app.command()
 def init():
     """ Initialise all modules and services required by 'hoster' """
 
     host.init()
     network.init()
+    nebula.init()
 
 
+# SECTION APP SELF UPDATE
 @app.command()
 def self_update():
     """ Pull the latest updates from our Git repo """
@@ -80,6 +86,7 @@ def self_update():
     Console().print(pip_upgrade_job_status)
 
 
+# SECTION APP MAIN
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context):
     """ Bhyve automation framework """
