@@ -55,8 +55,10 @@ class NebulaFuncs:
         if service_request.status_code == 200:
             with open("/opt/nebula/nebula_service.sh", "w") as f:
                 f.write(service_request.text)
-        if reload:
             command = "chmod +x /opt/nebula/nebula_service.sh"
+            subprocess.run(command, shell=True)
+        if reload:
+            command = "/opt/nebula/nebula_service.sh"
             subprocess.run(command, shell=True)
             Console().print(" 🟢 INFO: New service file has been installed and reload initiated")
         else:
