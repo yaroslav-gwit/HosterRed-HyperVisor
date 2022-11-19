@@ -118,12 +118,12 @@ class NebulaFuncs:
                 print(" 🔷 DEBUG: Downloading new certificates")
                 self.get_certs()
             else:
-                print(" 🔷 DEBUG: Config file was not changed, skipping the download step...")
+                print(" 🔷 DEBUG: Config file has not changed, skipping the download step...")
             if reload:
                 print(" 🔷 DEBUG: Reloading/starting the service")
-                command = "/opt/nebula/nebula_service.sh"
+                command = "/opt/nebula/nebula_service.sh noout"
                 subprocess.run(command, shell=True)
-                print(" 🟢 INFO: All done, and you now have the latest Nebula settings. Welcome to the cluster, buddy!")
+                print(" 🟢 INFO: All done. Welcome to the cluster, buddy!")
         else:
             Console().print(" 🚦 FATAL: API server is refusing your request! Check your nebula.json config!")
             return
