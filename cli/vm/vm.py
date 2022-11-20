@@ -1001,7 +1001,7 @@ class Operation:
             # This code block is a duplicate. Another one exists in kill section.
             # Close any active consoles
             command = "pgrep -lf \"cu -l\""
-            shell_command = subprocess.check_output(command, shell=True, text=True)
+            shell_command = subprocess.check_output(command, shell=True, text=True, stderr=subprocess.DEVNULL)
             vm_consoles = shell_command.split("\n")
             re_match_console = re.compile(".*nmdm-" + vm_name + "-1B")
 
@@ -1018,7 +1018,7 @@ class Operation:
             # Send the shutdown signal to the VM itself
             vm_process_list = []
             command = "pgrep -lf \"bhyve:\""
-            shell_command = subprocess.check_output(command, shell=True, text=True)
+            shell_command = subprocess.check_output(command, shell=True, text=True, stderr=subprocess.DEVNULL)
             vm_process = shell_command.split("\n")
 
             re_match_bhyve_process = re.compile(".*" + vm_name)
