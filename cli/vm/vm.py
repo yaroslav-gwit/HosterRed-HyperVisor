@@ -740,7 +740,7 @@ class Operation:
             sys.exit("VM doesn't exist on this system.")
         else:
             if not CoreChecks(vm_name).vm_is_live() and not quiet:
-                Console().print(" 🔶 INFO: VM process is already dead: [green]" + vm_name + "[/]!")
+                Console().print(" 🔶 INFO: VM process is already dead: [royal_blue1]" + vm_name + "[/]!")
 
             # FIND AND KILL THE VM PROCESS
             command = "pgrep -lf \"bhyve:\""
@@ -784,6 +784,17 @@ class Operation:
                     command = "kill -s KILL " + vm_console.split()[0]
                     if not quiet:
                         Console().print(" 🔷 DEBUG: Killing an active console: [green]" + command + "[/]")
+                    subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+            # KILL THE PARENT VM SHELL HELPER
+            command = "pgrep -lf \"vm_start.sh\""
+            shell_output = subprocess.check_output(command + " || true", shell=True, text=True).split("\n")
+            re_vm_match = re.compile(r".*\s" + vm_name)
+            for vm_parent in shell_output:
+                if re_vm_match.match(vm_parent):
+                    command = "kill -s KILL " + vm_parent.split()[0]
+                    if not quiet:
+                        Console().print(" 🔷 DEBUG: Killing a VM parent process: [green]" + command + "[/]")
                     subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         Console().print(" 🔶 INFO: The VM has been killed and it's resources are cleaned up: [green]" + vm_name + "[/]")
