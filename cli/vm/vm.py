@@ -747,16 +747,21 @@ class Operation:
             re_vm_process_match = re.compile(".*" + vm_name)
             for process in all_vm_processes:
                 if re_vm_process_match.match(process):
-                    print(" 🔶 DEBUG: Sending the kill signal: kill -s KILL " + process.split()[0])
+                    process_id = process.split()[0]
+                    command = "kill -s SIGKILL " + process_id
+                    if not quiet:
+                        print(" 🔷 DEBUG: Sending the kill signal: " + command)
+                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-            # command = "kill -s SIGKILL " + console_list[0]
-            # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            # if not quiet:
-            #     print(" 🔶 INFO: Forcefully killed the VM process: " + console_list[0] + " " + vm_name)
-            #
             # command = "ifconfig | grep " + vm_name + " | awk '{ print $2 }'"
-            # shell_command = subprocess.check_output(command, shell=True, text=True)
-            # tap_interface_list = shell_command.split("\n")
+            # tap_interface_list = []
+            re_nw_interface_match = re.compile(r"\s+description:.*\s" + vm_name + r"\s.*")
+            shell_output = subprocess.check_output("ifconfig", shell=True, text=True).split("\n")
+            for nw_interface in shell_output:
+                if re_nw_interface_match(nw_interface):
+                    tap = nw_interface.split()[2]
+                    command = "ifconfig " + tap + " destroy"
+                    print(" 🔷 DEBUG: Destroying the TAP interface: " + command)
             #
             # command = "bhyvectl --destroy --vm=" + vm_name + " || true"
             # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
