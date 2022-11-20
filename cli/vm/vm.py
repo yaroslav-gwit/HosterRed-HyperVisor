@@ -1025,7 +1025,7 @@ class Operation:
                     print(" 🔶 INFO: Sending TERM signal to the Bhyve VM Process: " + command)
                     subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-            print(" 🟢 SUCCESS: The VM is fully stopped now: " + vm_name)
+            print(" 🟢 SUCCESS: The VM will be fully stopped shortly: " + vm_name)
 
         else:
             print(" 🔶 INFO: VM is already stopped: " + vm_name)
@@ -1034,7 +1034,7 @@ class Operation:
     def show_log(vm_name: str) -> None:
         """ Show the live VM's log output """
         log_file_location = CoreChecks(vm_name).vm_folder() + "/vm.log"
-        print(log_file_location)
+        print(" 🟢 INFO: Using this VM log file: " + log_file_location)
         if vm_name not in VmList().plainList:
             print(" 🚦 ERROR: VM doesn't exist on this system.")
         elif exists(log_file_location):
