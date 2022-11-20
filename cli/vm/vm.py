@@ -233,7 +233,8 @@ class VmConfigs:
 
     def vm_config_manual_edit(self):
         text_editor = os.getenv("EDITOR")
-        check_editor_output = subprocess.check_output(f"which {text_editor}", stderr=subprocess.DEVNULL, text=True, shell=True)
+        check_editor_output = subprocess.check_output(f"which {text_editor}", stderr=subprocess.DEVNULL, text=True,
+                                                      shell=True)
         if len(check_editor_output) < 1:
             text_editor = "nano"
         for ds in self.zfs_datasets["datasets"]:
@@ -917,7 +918,8 @@ class Operation:
                     generic_disk_text = ":0," + vm_disks[disk]["disk_type"] + ","
                     disk_image = vm_disks[disk]["disk_image"]
                     if disk == 0:
-                        disk_final = " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(vm_name=vm_name, disk_image_name=disk_image).disk_location()
+                        disk_final = " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(vm_name=vm_name,
+                                                                                              disk_image_name=disk_image).disk_location()
                     else:
                         bhyve_pci = bhyve_pci + 1
                         disk_final = disk_final + " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(
@@ -925,13 +927,15 @@ class Operation:
             else:
                 generic_disk_text = ":0," + vm_disks[0]["disk_type"] + ","
                 disk_image = vm_disks[0]["disk_image"]
-                disk_final = " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(vm_name=vm_name, disk_image_name=disk_image).disk_location()
+                disk_final = " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(vm_name=vm_name,
+                                                                                      disk_image_name=disk_image).disk_location()
 
             command3 = disk_final
 
             os_type = CoreChecks(vm_name).vm_os_type()
             vm_cpus = CoreChecks(vm_name).vm_cpus()
-            command5 = " -c sockets=" + vm_cpus["cpu_sockets"] + ",cores=" + vm_cpus["cpu_cores"] + " -m " + vm_cpus["memory"]
+            command5 = " -c sockets=" + vm_cpus["cpu_sockets"] + ",cores=" + vm_cpus["cpu_cores"] + " -m " + vm_cpus[
+                "memory"]
 
             bhyve_pci = bhyve_pci + 1
             vnc_port = str(vm_cpus["vnc_port"])
@@ -941,7 +945,8 @@ class Operation:
 
             bhyve_pci = bhyve_pci + 1
             if vm_cpus["loader"] == "bios":
-                command7 = " -s " + str(bhyve_pci) + ":" + str(bhyve_pci_2) + ",xhci,tablet -l com1,/dev/nmdm-" + vm_name + "-1A -l bootrom,/usr/local/share/uefi-firmware/BHYVE_UEFI_CSM.fd -u " + vm_name
+                command7 = " -s " + str(bhyve_pci) + ":" + str(
+                    bhyve_pci_2) + ",xhci,tablet -l com1,/dev/nmdm-" + vm_name + "-1A -l bootrom,/usr/local/share/uefi-firmware/BHYVE_UEFI_CSM.fd -u " + vm_name
                 # command = command1 + command2 + command3 + command4 + command5 + command6 + command7
                 command = command1 + command2 + command3 + command5 + command6 + command7
             elif vm_cpus["loader"] == "uefi":
@@ -1626,6 +1631,13 @@ def stop_all(wait: int = typer.Option(5, help="Seconds to wait before stopping t
             time.sleep(wait)
         else:
             print("VM is already stopped: " + vm)
+
+
+@app.command()
+def show_log(vm_name: str = typer.Argument(..., help="VM name"),
+             ):
+    """ Show the live VM's log output """
+    Operation.show_log(vm_name=vm_name)
 
 
 @app.command()
