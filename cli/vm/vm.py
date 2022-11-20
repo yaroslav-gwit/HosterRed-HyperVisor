@@ -751,15 +751,15 @@ class Operation:
             for process in all_vm_processes:
                 if re_vm_process_match.match(process):
                     process_id = process.split()[0]
-                    command = "kill -s SIGKILL " + process_id
+                    command = "kill -s KILL " + process_id
                     if not quiet:
                         Console().print(" 🔷 DEBUG: Sending the kill signal: [green]" + command + "[/]")
-                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             command = "bhyvectl --destroy --vm=" + vm_name
             if not quiet:
                 Console().print(" 🔷 DEBUG: Cleaning up the Bhyve /dev/vmm/ process: [green]" + command + "[/]")
-            subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             time.sleep(1)
             re_nw_interface_match = re.compile(r"\s+description:.*\s" + vm_name + r"\s.*")
@@ -770,7 +770,17 @@ class Operation:
                     command = "ifconfig " + tap + " destroy"
                     if not quiet:
                         Console().print(" 🔷 DEBUG: Destroying the TAP interface: [green]" + command + "[/]")
-                    subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    # subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+            command = "pgrep -lf \"cu -l\""
+            shell_output = subprocess.check_output(command + " || true", shell=True, text=True).split("\n")
+            re_vm_console_match = re.compile(".*nmdm-" + vm_name + "-1B")
+            for vm_console in shell_output:
+                if re_vm_console_match.match(vm_console):
+                    command = "kill -s KILL " + vm_console.split()[0]
+                    if not quiet:
+                        Console().print(" 🔷 DEBUG: Killing an active console: [green]" + command + "[/]")
+                    # subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         Console().print(" 🔶 INFO:  The VM has been killed and it's resources are cleaned up: [green]" + vm_name + "[/]")
 
