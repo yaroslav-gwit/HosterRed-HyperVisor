@@ -739,6 +739,9 @@ class Operation:
         if vm_name not in VmList().plainList:
             sys.exit("VM doesn't exist on this system.")
         else:
+            if not CoreChecks(vm_name).vm_is_live() and not quiet:
+                Console().print(" 🔶 INFO:  VM process is already dead: [green]" + vm_name + "[/]!")
+
             # Find and kill the VM process
             command = "pgrep -lf \"bhyve:\""
             shell_command = subprocess.check_output(command + " || true", shell=True, text=True)
@@ -769,12 +772,7 @@ class Operation:
                         Console().print(" 🔷 DEBUG: Destroying the TAP interface: [green]" + command + "[/]")
                     subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        if CoreChecks(vm_name).vm_is_live():
-            if not quiet:
-                Console().print(" 🔶 INFO:  Killed the VM: [green]" + vm_name + "[/]")
-        else:
-            if not quiet:
-                Console().print(" 🔶 INFO:  VM process is already dead: [green]" + vm_name + "[/]!")
+        Console().print(" 🔶 INFO:  The VM has been killed and it's resources are cleaned up: [green]" + vm_name + "[/]")
 
     @staticmethod
     def start(vm_name: str) -> None:
