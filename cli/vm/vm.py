@@ -1017,7 +1017,7 @@ class Operation:
 
             # Send the shutdown signal to the VM itself
             vm_process_list = []
-            command = "pgrep -lf \"bhyve:\""
+            command = "pgrep -lf \"bhyve:\" || true"
             shell_command = subprocess.check_output(command, shell=True, text=True, stderr=subprocess.DEVNULL)
             vm_process = shell_command.split("\n")
 
@@ -1028,7 +1028,7 @@ class Operation:
 
             for process in vm_process_list:
                 if process:
-                    command = "kill -s TERM" + process
+                    command = "kill -s TERM " + process
                     print(command)
                     # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     # time.sleep(3)
