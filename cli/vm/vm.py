@@ -751,14 +751,14 @@ class Operation:
                     command = "kill -s SIGKILL " + process_id
                     if not quiet:
                         print(" 🔷 DEBUG: Sending the kill signal: " + command)
-                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             # command = "ifconfig | grep " + vm_name + " | awk '{ print $2 }'"
             # tap_interface_list = []
             re_nw_interface_match = re.compile(r"\s+description:.*\s" + vm_name + r"\s.*")
             shell_output = subprocess.check_output("ifconfig", shell=True, text=True).split("\n")
             for nw_interface in shell_output:
-                if re_nw_interface_match(nw_interface):
+                if re_nw_interface_match.match(nw_interface):
                     tap = nw_interface.split()[2]
                     command = "ifconfig " + tap + " destroy"
                     print(" 🔷 DEBUG: Destroying the TAP interface: " + command)
