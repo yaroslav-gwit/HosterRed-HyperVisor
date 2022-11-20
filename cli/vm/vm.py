@@ -740,7 +740,7 @@ class Operation:
             sys.exit("VM doesn't exist on this system.")
         else:
             # Find and kill the VM process
-            command = "pgrep - lf \"bhyve:\""
+            command = "pgrep -lf \"bhyve:\""
             shell_command = subprocess.check_output(command, shell=True, text=True)
             all_vm_processes = shell_command.split("\n")
 
