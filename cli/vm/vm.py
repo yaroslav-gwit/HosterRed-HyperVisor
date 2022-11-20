@@ -1012,26 +1012,9 @@ class Operation:
             for process in vm_process_list:
                 if process:
                     command = "kill -s TERM " + process
+                    print(" 🔶 INFO: Sending TERM signal to the Bhyve VM Process: " + command)
                     subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    # time.sleep(3)
-                    # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    # time.sleep(3)
 
-            # command = "ifconfig | grep " + vm_name + " | awk '{ print $2 }'"
-            # shell_command = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
-            # tap_interface_list = shell_command.decode("utf-8").split()
-            #
-            # time.sleep(10)
-            #
-            # command = "bhyvectl --destroy --vm=" + vm_name
-            # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            #
-            # for tap in tap_interface_list:
-            #     if tap:
-            #         command = "ifconfig " + tap + " destroy"
-            #         subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            #
-            # Operation.kill(vm_name=vm_name, quiet=True)
             print(" 🟢 SUCCESS: The VM is fully stopped now: " + vm_name)
 
         else:
