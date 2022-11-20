@@ -1552,7 +1552,8 @@ def restart(vm_name: str = typer.Argument(..., help="VM name"),
             ):
     """ Gracefully restart the VM applying any new settings from the config file"""
     Operation.stop(vm_name=vm_name)
-    time.sleep(3)
+    while CoreChecks().vm_is_live():
+        time.sleep(3)
     Operation.start(vm_name=vm_name)
 
 
