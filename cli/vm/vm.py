@@ -719,7 +719,7 @@ class Operation:
         """
         Function responsible for completely removing VMs from the system
         """
-        if force == True and CoreChecks(vm_name).vm_is_live():
+        if force and CoreChecks(vm_name).vm_is_live():
             kill(vm_name=vm_name)
             time.sleep(3)
 
@@ -730,7 +730,7 @@ class Operation:
         else:
             command = "zfs destroy -rR " + CoreChecks(vm_name).vm_location()
             # ADD DEBUG/FAKE RUN
-            shell_command = subprocess.check_output(command, shell=True)
+            subprocess.run(command, shell=True)
             print(" 🔶 INFO: The VM was destroyed: " + command)
 
     @staticmethod
@@ -750,13 +750,13 @@ class Operation:
                     process_id = process.split()[0]
                     command = "kill -s SIGKILL " + process_id
                     if not quiet:
-                        print(" 🔷 DEBUG: Sending the kill signal: " + command)
-                    # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        Console().print(" 🔷 DEBUG: Sending the kill signal: [green]" + command + "[/]")
+                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             command = "bhyvectl --destroy --vm=" + vm_name
             if not quiet:
-                print(" 🔷 DEBUG: Cleaning up the Bhyve /dev/vmm/ process: " + command)
-            # subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                Console().print(" 🔷 DEBUG: Cleaning up the Bhyve /dev/vmm/ process: [green]" + command + "[/]")
+            subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             time.sleep(1)
             re_nw_interface_match = re.compile(r"\s+description:.*\s" + vm_name + r"\s.*")
@@ -766,16 +766,15 @@ class Operation:
                     tap = nw_interface.split()[1]
                     command = "ifconfig " + tap + " destroy"
                     if not quiet:
-                        print(" 🔷 DEBUG: Destroying the TAP interface: " + command)
-                    # subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        Console().print(" 🔷 DEBUG: Destroying the TAP interface: [green]" + command + "[/]")
+                    subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         if CoreChecks(vm_name).vm_is_live():
             if not quiet:
-                print(" 🔶 INFO: Killed the VM: " + vm_name)
+                Console().print(" 🔶 INFO:  Killed the VM: [green]" + vm_name + "[/]")
         else:
             if not quiet:
-                print(" 🔶 INFO: VM process is already dead: " + vm_name + "!")
-
+                Console().print(" 🔶 INFO:  VM process is already dead: [green]" + vm_name + "[/]!")
 
     @staticmethod
     def start(vm_name: str) -> None:
