@@ -735,113 +735,46 @@ class Operation:
 
     @staticmethod
     def kill(vm_name: str, quiet: bool = False):
-        """
-        Function that forcefully kills the VM
-        """
+        """ Function that forcefully kills the VM """
         if vm_name not in VmList().plainList:
             sys.exit("VM doesn't exist on this system.")
-        elif CoreChecks(vm_name).vm_is_live():
-            # This code block is a duplicate. Another one exists in stop section.
-            command = "ps axf | grep -v grep | grep 'nmdm-" + vm_name + "' | awk '{ print $1 }'"
-            shell_command = subprocess.check_output(command, shell=True)
-            console_list = shell_command.decode("utf-8").split()
-            for _console in console_list:
-                if _console:
-                    command = "kill -SIGKILL " + _console
-                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
+        else:
             # Find and kill the VM process
-            try:
-                pid_file = "/var/run/" + vm_name + ".pid"
-                if exists(pid_file):
-                    command = "cat /var/run/" + vm_name + ".pid"
-                    shell_command = subprocess.check_output(command, shell=True)
-                    parent_pid = int(shell_command.decode("utf-8").split()[0])
-                    child_pid = psutil.Process(parent_pid).children()[-1].pid
-                    running_vm_pid = str(child_pid)
-                    command = "kill -s SIGKILL " + running_vm_pid
-                    shell_command = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
+            command = "pgrep - lf \"bhyve:\""
+            shell_command = subprocess.check_output(command, shell=True, text=True)
+            all_vm_processes = shell_command.split("\n")
 
-                    if not quiet:
-                        print(" 🔶 INFO: Could not find the PID file for: " + vm_name)
-                    command = "top -b -d1 -a all | grep \"/" + vm_name + "/\" | grep bash | awk '{print $1}'"
-                    shell_command = subprocess.check_output(command, shell=True)
-                    console_list = shell_command.decode("utf-8").split()
-                    command = "kill -s SIGKILL " + console_list[0]
-                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    if not quiet:
-                        print(" 🔶 INFO: Forcefully killed the VM process: " + console_list[0] + " " + vm_name)
+            re_vm_process_match = re.compile(".*" + vm_name)
+            for process in all_vm_processes:
+                if re_vm_process_match.match(process):
+                    print(" 🔶 DEBUG: Sending the kill signal: kill -s KILL " + process.split()[0])
 
+            # command = "kill -s SIGKILL " + console_list[0]
+            # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # if not quiet:
+            #     print(" 🔶 INFO: Forcefully killed the VM process: " + console_list[0] + " " + vm_name)
+            #
+            # command = "ifconfig | grep " + vm_name + " | awk '{ print $2 }'"
+            # shell_command = subprocess.check_output(command, shell=True, text=True)
+            # tap_interface_list = shell_command.split("\n")
+            #
+            # command = "bhyvectl --destroy --vm=" + vm_name + " || true"
+            # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            #
+            # time.sleep(1)
+            # if tap_interface_list:
+            #     for tap in tap_interface_list:
+            #         if tap:
+            #             command = "ifconfig " + tap + " destroy"
+            #             subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-                else:
-                    if not quiet:
-                        print(" 🔶 INFO: Could not find the PID file for: " + vm_name)
-                    command = "top -b -d1 -a all | grep \"/" + vm_name + "/\" | grep bash | awk '{print $1}'"
-                    shell_command = subprocess.check_output(command, shell=True)
-                    console_list = shell_command.decode("utf-8").split()
-                    command = "kill -s SIGKILL " + console_list[0]
-                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    if not quiet:
-                        print(" 🔶 INFO: Forcefully killed the VM process: " + console_list[0] + " " + vm_name)
-
-            except Exception as e:
-                print(" 🔶 INFO: Could not find the PID file for: " + vm_name)
-                if not quiet:
-                    print(" 🔶 INFO: Could not find the PID file for: " + vm_name)
-                command = "top -b -d1 -a all | grep \"/" + vm_name + "/\" | grep bash | awk '{print $1}'"
-                shell_command = subprocess.check_output(command, shell=True)
-                console_list = shell_command.decode("utf-8").split()
-                command = "kill -s SIGKILL " + console_list[0]
-                subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                if not quiet:
-                    print(" 🔶 INFO: Forcefully killed the VM process: " + console_list[0] + " " + vm_name)
-                # print(e)
-
-            # command = "ps axf | grep -v grep | grep " + vm_name + " | grep bhyve: | awk '{ print $1 }'"
-            # shell_command = subprocess.check_output(command, shell=True)
-            # try:
-            #     running_vm_pid = shell_command.decode("utf-8").split()[0]
-            #     command = "kill -SIGKILL " + running_vm_pid
-            #     subprocess.run(command, shell=True)
-            # except:
-            #     print(" 🔶 INFO: Could not find the process for the VM: " + vm_name)
-
-            # This block is a duplicate. Creating a function would be a good idea for the future!
-            command = "ifconfig | grep " + vm_name + " | awk '{ print $2 }'"
-            shell_command = subprocess.check_output(command, shell=True)
-            tap_interface_list = shell_command.decode("utf-8").split()
-
-            command = "bhyvectl --destroy --vm=" + vm_name
-            subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-            time.sleep(1)
-
-            if tap_interface_list:
-                for tap in tap_interface_list:
-                    if tap:
-                        command = "ifconfig " + tap + " destroy"
-                        subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if CoreChecks(vm_name).vm_is_live():
             if not quiet:
                 print(" 🔶 INFO: Killed the VM: " + vm_name)
         else:
-            # This block is a duplicate. Creating a function would be a good idea for the future!
-            command = "ifconfig | grep " + vm_name + " | awk '{ print $2 }'"
-            shell_command = subprocess.check_output(command, shell=True)
-            tap_interface_list = shell_command.decode("utf-8").split()
-            if tap_interface_list:
-                for tap in tap_interface_list:
-                    if tap:
-                        command = "ifconfig " + tap + " destroy"
-                        subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             if not quiet:
                 print(" 🔶 INFO: VM is already dead: " + vm_name + "!")
 
-        # Remove PID file if it still exists
-        try:
-            command = "rm /var/run/" + vm_name + ".pid"
-            subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        except:
-            pass
 
     @staticmethod
     def start(vm_name: str) -> None:
@@ -882,8 +815,7 @@ class Operation:
                 # print(command)
                 subprocess.run(command, shell=True)
 
-                command = 'ifconfig ' + tap_interface + ' description ' + '"' + tap_interface + ' ' + vm_name + ' ' + 'interface' + str(
-                    interface) + '"'
+                command = 'ifconfig ' + tap_interface + ' description ' + '"' + tap_interface + ' ' + vm_name + ' ' + 'interface' + str(interface) + '"'
                 # print(command)
                 subprocess.run(command, shell=True)
 
@@ -900,19 +832,15 @@ class Operation:
                     network_adaptor_type = vm_network_interfaces[interface]["network_adaptor_type"]
                     generic_network_text = "," + network_adaptor_type + ","
                     if interface == 0:
-                        network_final = "-s " + str(bhyve_pci_1) + ":" + str(bhyve_pci_2) + generic_network_text + \
-                                        tap_interface_list[interface] + ",mac=" + vm_network_interfaces[interface][
-                                            "network_mac"]
+                        network_final = "-s " + str(bhyve_pci_1) + ":" + str(bhyve_pci_2) + generic_network_text + tap_interface_list[interface] + ",mac=" + vm_network_interfaces[interface]["network_mac"]
                     else:
                         bhyve_pci_2 = bhyve_pci_2 + 1
                         network_final = network_final + space + "-s " + str(bhyve_pci_1) + ":" + str(
-                            bhyve_pci_2) + generic_network_text + tap_interface_list[interface] + ",mac=" + \
-                                        vm_network_interfaces[interface]["network_mac"]
+                            bhyve_pci_2) + generic_network_text + tap_interface_list[interface] + ",mac=" + vm_network_interfaces[interface]["network_mac"]
             else:
                 network_adaptor_type = vm_network_interfaces[0]["network_adaptor_type"]
                 generic_network_text = "," + network_adaptor_type + ","
-                network_final = "-s " + str(bhyve_pci_1) + ":" + str(bhyve_pci_2) + generic_network_text + \
-                                tap_interface_list[0] + ",mac=" + vm_network_interfaces[0]["network_mac"]
+                network_final = "-s " + str(bhyve_pci_1) + ":" + str(bhyve_pci_2) + generic_network_text + tap_interface_list[0] + ",mac=" + vm_network_interfaces[0]["network_mac"]
 
             command2 = network_final
 
@@ -923,8 +851,7 @@ class Operation:
                     generic_disk_text = ":0," + vm_disks[disk]["disk_type"] + ","
                     disk_image = vm_disks[disk]["disk_image"]
                     if disk == 0:
-                        disk_final = " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(vm_name=vm_name,
-                                                                                              disk_image_name=disk_image).disk_location()
+                        disk_final = " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(vm_name=vm_name, disk_image_name=disk_image).disk_location()
                     else:
                         bhyve_pci = bhyve_pci + 1
                         disk_final = disk_final + " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(
@@ -932,8 +859,7 @@ class Operation:
             else:
                 generic_disk_text = ":0," + vm_disks[0]["disk_type"] + ","
                 disk_image = vm_disks[0]["disk_image"]
-                disk_final = " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(vm_name=vm_name,
-                                                                                      disk_image_name=disk_image).disk_location()
+                disk_final = " -s " + str(bhyve_pci) + generic_disk_text + CoreChecks(vm_name=vm_name, disk_image_name=disk_image).disk_location()
 
             command3 = disk_final
 
@@ -967,48 +893,16 @@ class Operation:
             command = "nohup ./cli/shell_helpers/vm_start.sh " + '"' + command + '"' + " " + vm_name + " >> " + vm_folder + "/vm.log 2>&1 &"
             subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
 
-            # GENERATE VM SERVICE FILE FOR SUPERVISORD
-            # if CoreChecks(vm_name).vm_in_production:
-            # vm_autostart = "true"
-            # else:
-            # vm_autostart = "false"
-
-            # with open("./configs/service.vm.conf.jinja", "r") as file:
-            #     vm_service_template = file.read()
-            # vm_service_template = Template(vm_service_template)
-            # vm_service_template = vm_service_template.render(
-            #     vm_name=vm_name,
-            #     command=command,
-            #     # autostart=vm_autostart,
-            #     vm_folder=vm_folder,
-            # )
-            # with open("/var/run/" + vm_name + ".vm.conf", "w") as file:
-            #     file.write(vm_service_template)
-
-            # print(vm_service_template)
-
-            # command = "supervisorctl -u user -p 123 update " + vm_name
-            # print(command)
-            # command = "supervisorctl -u user -p 123 start " + vm_name
-            # print(command)
-            # subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
-
-            # _EOF_ GENERATE VM SERVICE FILE FOR SUPERVISORD
-
         else:
             print(" 🚦 ERROR: Such VM '" + vm_name + "' doesn't exist!")
 
     @staticmethod
     def stop(vm_name: str) -> None:
-
         """ Gracefully stop the VM """
-
         if vm_name not in VmList().plainList:
             print(" 🚦 ERROR: VM doesn't exist on this system.")
         elif CoreChecks(vm_name).vm_is_live():
             print(" 🔶 INFO: Gracefully stopping the VM: " + vm_name)
-
-            # Send the shutdown signal to the VM process
             vm_process_list = []
             command = "pgrep -lf \"bhyve:\" || true"
             shell_command = subprocess.check_output(command, shell=True, text=True, stderr=subprocess.DEVNULL)
