@@ -1553,8 +1553,10 @@ def restart(vm_name: str = typer.Argument(..., help="VM name"),
     """ Gracefully restart the VM applying any new settings from the config file"""
     Operation.stop(vm_name=vm_name)
     while CoreChecks(vm_name=vm_name).vm_is_live():
+        Console().print(" 🔷 DEBUG: The VM is still ALIVE, waiting 3 seconds before the next check: [royal_blue1]" + vm_name + "[/]")
         time.sleep(3)
     Operation.start(vm_name=vm_name)
+    Console().print(" 🟢 INFO:  The VM has been restarted: [green]" + vm_name + "[/]")
 
 
 @app.command()
