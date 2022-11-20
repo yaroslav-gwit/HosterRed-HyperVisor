@@ -1000,9 +1000,9 @@ class Operation:
 
             # This code block is a duplicate. Another one exists in kill section.
             # Close any active consoles
-            command = "ps axf"
-            shell_command = subprocess.check_output(command, shell=True)
-            vm_consoles = shell_command.decode("utf-8").split("\n")
+            command = "pgrep -lf \"cu -l\""
+            shell_command = subprocess.check_output(command, shell=True, text=True)
+            vm_consoles = shell_command.split("\n")
             re_match_console = re.compile(".*nmdm-" + vm_name + "-1B")
 
             console_list = []
@@ -1012,43 +1012,44 @@ class Operation:
 
             for console_item in console_list:
                 command = "kill " + console_item
-                subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                print(command)
+                # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             # Send the shutdown signal to the VM itself
             vm_process_list = []
-            command = "ps axf"
-            shell_command = subprocess.check_output(command, shell=True)
-            vm_process = shell_command.decode("utf-8").split("\n")
+            command = "pgrep -lf \"bhyve:\""
+            shell_command = subprocess.check_output(command, shell=True, text=True)
+            vm_process = shell_command.split("\n")
 
-            re_match_bhyve_process = re.compile(".*bhyve: " + vm_name + r"\(bhyve\)")
+            re_match_bhyve_process = re.compile(".*" + vm_name)
             for i in vm_process:
                 if re_match_bhyve_process.match(i):
                     vm_process_list.append(i.split()[0])
 
             for process in vm_process_list:
                 if process:
-                    command = "kill " + process
-                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    time.sleep(3)
-                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    time.sleep(3)
+                    command = "kill -s TERM" + process
+                    print(command)
+                    # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    # time.sleep(3)
+                    # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    # time.sleep(3)
 
-            command = "ifconfig | grep " + vm_name + " | awk '{ print $2 }'"
-            shell_command = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
-            tap_interface_list = shell_command.decode("utf-8").split()
-
-            # iteration = 0
-            time.sleep(10)
-
-            command = "bhyvectl --destroy --vm=" + vm_name
-            subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-            for tap in tap_interface_list:
-                if tap:
-                    command = "ifconfig " + tap + " destroy"
-                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-            Operation.kill(vm_name=vm_name, quiet=True)
+            # command = "ifconfig | grep " + vm_name + " | awk '{ print $2 }'"
+            # shell_command = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
+            # tap_interface_list = shell_command.decode("utf-8").split()
+            #
+            # time.sleep(10)
+            #
+            # command = "bhyvectl --destroy --vm=" + vm_name
+            # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            #
+            # for tap in tap_interface_list:
+            #     if tap:
+            #         command = "ifconfig " + tap + " destroy"
+            #         subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            #
+            # Operation.kill(vm_name=vm_name, quiet=True)
             print(" 🟢 SUCCESS: The VM is fully stopped now: " + vm_name)
 
         else:
