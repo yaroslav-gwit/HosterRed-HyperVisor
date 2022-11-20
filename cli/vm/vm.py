@@ -149,6 +149,11 @@ class CoreChecks:
                 sys.exit("VM doesn't exist!")
 
     def vm_folder(self):
+        """
+        This function returns an absolute VM folder path, eg: '/zroot/vm-encrypted/test-vm-1'
+        Keep in mind there is no trailing "/" sign!
+        """
+
         for ds in self.zfs_datasets["datasets"]:
             if exists(ds["mount_path"] + self.vm_name):
                 vm_folder = ds["mount_path"] + self.vm_name
@@ -1028,7 +1033,7 @@ class Operation:
     @staticmethod
     def show_log(vm_name: str) -> None:
         """ Show the live VM's log output """
-        log_file_location = CoreChecks(vm_name).vm_folder() + "vm.log"
+        log_file_location = CoreChecks(vm_name).vm_folder() + "/vm.log"
         print(log_file_location)
         if vm_name not in VmList().plainList:
             print(" 🚦 ERROR: VM doesn't exist on this system.")
