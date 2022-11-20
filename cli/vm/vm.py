@@ -742,7 +742,7 @@ class Operation:
             if not CoreChecks(vm_name).vm_is_live() and not quiet:
                 Console().print(" 🔶 INFO:  VM process is already dead: [green]" + vm_name + "[/]!")
 
-            # Find and kill the VM process
+            # FIND AND KILL THE VM PROCESS
             command = "pgrep -lf \"bhyve:\""
             shell_command = subprocess.check_output(command + " || true", shell=True, text=True)
             all_vm_processes = shell_command.split("\n")
@@ -754,13 +754,16 @@ class Operation:
                     command = "kill -s KILL " + process_id
                     if not quiet:
                         Console().print(" 🔷 DEBUG: Sending the kill signal: [green]" + command + "[/]")
-                    # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+            # CLEAN UP BHYVE /DEV/VMM PROCESS
+            time.sleep(2)
             command = "bhyvectl --destroy --vm=" + vm_name
             if not quiet:
                 Console().print(" 🔷 DEBUG: Cleaning up the Bhyve /dev/vmm/ process: [green]" + command + "[/]")
-            # subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+            # CLEAN UP THE TAP INTERFACES
             time.sleep(1)
             re_nw_interface_match = re.compile(r"\s+description:.*\s" + vm_name + r"\s.*")
             shell_output = subprocess.check_output("ifconfig", shell=True, text=True).split("\n")
@@ -770,8 +773,9 @@ class Operation:
                     command = "ifconfig " + tap + " destroy"
                     if not quiet:
                         Console().print(" 🔷 DEBUG: Destroying the TAP interface: [green]" + command + "[/]")
-                    # subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+            # CLEAN UP ANY OPEN CONSOLES
             command = "pgrep -lf \"cu -l\""
             shell_output = subprocess.check_output(command + " || true", shell=True, text=True).split("\n")
             re_vm_console_match = re.compile(".*nmdm-" + vm_name + "-1B")
@@ -780,7 +784,7 @@ class Operation:
                     command = "kill -s KILL " + vm_console.split()[0]
                     if not quiet:
                         Console().print(" 🔷 DEBUG: Killing an active console: [green]" + command + "[/]")
-                    # subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         Console().print(" 🔶 INFO:  The VM has been killed and it's resources are cleaned up: [green]" + vm_name + "[/]")
 
@@ -894,7 +898,8 @@ class Operation:
                 # command = command1 + command2 + command3 + command4 + command5 + command6 + command7
                 command = command1 + command2 + command3 + command5 + command6 + command7
             else:
-                print(" 🚦 ERROR: Loader is not supported!")
+                print(" 🚦 ERROR: Loader is not supported!", file=sys.stderr)
+                sys.exit(1)
 
             vm_folder = CoreChecks(vm_name).vm_folder()
 
