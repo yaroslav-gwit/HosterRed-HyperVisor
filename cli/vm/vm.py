@@ -740,8 +740,8 @@ class Operation:
             sys.exit("VM doesn't exist on this system.")
         else:
             # Find and kill the VM process
-            command = "pgrep -lf \"bhyve:\" || true"
-            shell_command = subprocess.check_output(command, shell=True, text=True)
+            command = "pgrep -lf \"bhyve:\""
+            shell_command = subprocess.check_output(command + " || true", shell=True, text=True)
             all_vm_processes = shell_command.split("\n")
 
             re_vm_process_match = re.compile(".*" + vm_name)
@@ -753,10 +753,10 @@ class Operation:
                         print(" 🔷 DEBUG: Sending the kill signal: " + command)
                     # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-            command = "bhyvectl --destroy --vm=" + vm_name + " || true"
+            command = "bhyvectl --destroy --vm=" + vm_name
             if not quiet:
                 print(" 🔷 DEBUG: Cleaning up the Bhyve /dev/vmm/ process: " + command)
-            # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             time.sleep(1)
             re_nw_interface_match = re.compile(r"\s+description:.*\s" + vm_name + r"\s.*")
@@ -764,10 +764,10 @@ class Operation:
             for nw_interface in shell_output:
                 if re_nw_interface_match.match(nw_interface):
                     tap = nw_interface.split()[1]
-                    command = "ifconfig " + tap + " destroy || true"
+                    command = "ifconfig " + tap + " destroy"
                     if not quiet:
                         print(" 🔷 DEBUG: Destroying the TAP interface: " + command)
-                    # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    # subprocess.run(command + " || true", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         if CoreChecks(vm_name).vm_is_live():
             if not quiet:
