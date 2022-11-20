@@ -998,24 +998,7 @@ class Operation:
         elif CoreChecks(vm_name).vm_is_live():
             print(" 🔶 INFO: Gracefully stopping the VM: " + vm_name)
 
-            # This code block is a duplicate. Another one exists in kill section.
-            # Close any active consoles
-            command = "pgrep -lf \"cu -l\" || true"
-            shell_command = subprocess.check_output(command, shell=True, text=True, stderr=subprocess.DEVNULL)
-            vm_consoles = shell_command.split("\n")
-            re_match_console = re.compile(".*nmdm-" + vm_name + "-1B")
-
-            console_list = []
-            for i in vm_consoles:
-                if re_match_console.match(i):
-                    console_list.append(i.split()[0])
-
-            for console_item in console_list:
-                command = "kill " + console_item
-                print(command)
-                # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-            # Send the shutdown signal to the VM itself
+            # Send the shutdown signal to the VM process
             vm_process_list = []
             command = "pgrep -lf \"bhyve:\" || true"
             shell_command = subprocess.check_output(command, shell=True, text=True, stderr=subprocess.DEVNULL)
@@ -1029,8 +1012,7 @@ class Operation:
             for process in vm_process_list:
                 if process:
                     command = "kill -s TERM " + process
-                    print(command)
-                    # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     # time.sleep(3)
                     # subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     # time.sleep(3)

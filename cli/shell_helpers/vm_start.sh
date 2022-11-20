@@ -3,19 +3,10 @@
 COMMAND=$1
 VM_NAME=$2
 
-# CHECK IF OLD PID EXISTS AND REMOVE IT IF IT DOES
-if [[ -f /var/run/${VM_NAME}.pid ]]; then
-    rm /var/run/${VM_NAME}.pid
-fi
-
-# GET OWN PID AND WRITE IT INTO VM PID FILE
-# echo "$$" > /var/run/${VM_NAME}.pid
-echo "${BASHPID}" > /var/run/${VM_NAME}.pid
-
 echo ""
-echo "🟢 __NEW_START__ 🟢"
-echo "🔶 INFO: This bhyve command was executed to start the VM at $(date):"
-echo $COMMAND
+echo "🟢 INFO: NEW VM START $(date)"
+echo "🔶 INFO: This bhyve command was executed:"
+echo "$COMMAND"
 
 echo ""
 $COMMAND
@@ -23,22 +14,11 @@ $COMMAND
 while [[ $? == 0 ]]
 do
     echo ""
-    echo "🔶 INFO: The VM has been restarted on: $(date)"
+    echo "🔶 INFO: The VM has been restarted: $(date)"
     $COMMAND
     sleep 1
     echo ""
 done
 
 sleep 1
-
-if [[ $(ifconfig | grep -c $VM_NAME) > 0 ]]
-then
-    if [[ -f /var/run/${VM_NAME}.pid ]]; then
-        rm /var/run/${VM_NAME}.pid
-    fi
-    
-    # PRINT OUT THE EXIT TIME/DATE AND CLEANUP EVERYTHING
-    echo ""
-    echo "🔶 INFO: The VM exited on $(date)" && hoster vm kill $VM_NAME > /dev/null
-    echo ""
-fi
+echo "🟢 INFO: The VM exited on $(date)" && hoster vm kill "$VM_NAME" > /dev/null
