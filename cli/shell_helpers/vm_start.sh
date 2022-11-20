@@ -21,4 +21,4 @@ do
 done
 
 sleep 1
-echo "🟢 INFO: The VM exited on $(date)" && hoster vm kill "$VM_NAME" > /dev/null
+echo "🔴 INFO: The VM exited on $(date)" && hoster vm kill "$VM_NAME" > /dev/null

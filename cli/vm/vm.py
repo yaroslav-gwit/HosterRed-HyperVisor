@@ -937,6 +937,7 @@ class Operation:
         else:
             print(" 🔶 INFO: VM is already stopped: " + vm_name)
 
+
     @staticmethod
     def show_log(vm_name: str) -> None:
         """ Show the live VM's log output """
@@ -1547,9 +1548,18 @@ def stop_all(wait: int = typer.Option(5, help="Seconds to wait before stopping t
 
 
 @app.command()
+def restart(vm_name: str = typer.Argument(..., help="VM name"),
+            ):
+    """ Gracefully restart the VM applying any new settings from the config file"""
+    Operation.stop(vm_name=vm_name)
+    time.sleep(3)
+    Operation.start(vm_name=vm_name)
+
+
+@app.command()
 def show_log(vm_name: str = typer.Argument(..., help="VM name"),
              ):
-    """ Show the live VM's log output """
+    """ Show live VM's log output """
     Operation.show_log(vm_name=vm_name)
 
 
