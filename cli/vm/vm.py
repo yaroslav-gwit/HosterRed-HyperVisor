@@ -1000,7 +1000,7 @@ class Operation:
 
             # This code block is a duplicate. Another one exists in kill section.
             # Close any active consoles
-            command = "pgrep -lf \"cu -l\""
+            command = "pgrep -lf \"cu -l\" || true"
             shell_command = subprocess.check_output(command, shell=True, text=True, stderr=subprocess.DEVNULL)
             vm_consoles = shell_command.split("\n")
             re_match_console = re.compile(".*nmdm-" + vm_name + "-1B")
