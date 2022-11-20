@@ -1567,7 +1567,7 @@ def restart(vm_name: str = typer.Argument(..., help="VM name"),
         Console().print(" 🔷 DEBUG: The VM is still ALIVE, waiting 10 seconds before the next check: [royal_blue1]" + vm_name + "[/]")
         time.sleep(10)
     Operation.start(vm_name=vm_name)
-    Console().print(" 🟢 INFO: The VM has been restarted: [green]" + vm_name + "[/]")
+    Console().print(" 🟢 INFO: The VM has been restarted: [royal_blue1]" + vm_name + "[/]")
 
 
 @app.command()
