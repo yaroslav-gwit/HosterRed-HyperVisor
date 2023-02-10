@@ -33,11 +33,9 @@ func VmMain() {
 	var wg = &sync.WaitGroup{}
 	wg.Add(2)
 	var vmInfo []string
-	go func() { defer wg.Done(); vmInfo = getAllVms() }()
-	// var vmInfo = getAllVms()
 	var thisHostName string
+	go func() { defer wg.Done(); vmInfo = getAllVms() }()
 	go func() { defer wg.Done(); thisHostName = GetHostName() }()
-	// var thisHostName = GetHostName()
 	wg.Wait()
 
 	var ID = 0
@@ -77,10 +75,17 @@ func VmMain() {
 	t.SetHeaderStyle(table.StyleBold)
 
 	for _, vmName := range vmInfo {
+		wg.Add(2)
+		var vmOsDiskFullSize string
+		var vmOsDiskFree string
+		go func() { defer wg.Done(); vmOsDiskFullSize = getOsDiskFullSize(vmName) }()
+		go func() { defer wg.Done(); vmOsDiskFree = getOsDiskFree(vmName) }()
+		wg.Wait()
+		// var vmOsDiskFullSize = getOsDiskFullSize(vmName)
+		// var vmOsDiskFree = getOsDiskFree(vmName)
 
-		var vmOsDiskFullSize = getOsDiskFullSize(vmName)
-		var vmOsDiskFree = getOsDiskFree(vmName)
 		// getVmUptime(vmName)
+
 		vmConfigVar = vmConfig(vmName)
 		ID = ID + 1
 		vmLive = vmLiveCheckString(vmName)
