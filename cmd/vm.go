@@ -268,7 +268,7 @@ func getVmUptimeNew(vmName string) {
 	rexMatchVmName, _ := regexp.Compile(`.*bhyve: ` + vmName + `.*`)
 	for _, v := range vmsUptime {
 		if rexMatchVmName.MatchString(v) {
-			println(v)
+			println(strings.Split(v, " ")[0])
 		}
 	}
 }
