@@ -107,7 +107,7 @@ func VmMain() {
 		var cpuCoresInt, _ = strconv.Atoi(vmConfigVar.CPUCores)
 		var cpuSocketsInt, _ = strconv.Atoi(vmConfigVar.CPUSockets)
 		cpuFinal = strconv.Itoa(cpuCoresInt * cpuSocketsInt)
-		var vmUptimeVar = getVmUptime(vmName)
+		var vmUptimeVar = getVmUptimeNew(vmName)
 
 		t.AddRow(strconv.Itoa(ID),
 			vmName,
@@ -246,12 +246,12 @@ func getVmFolder(vmName string) string {
 	return finalResponse
 }
 
-func getVmUptimeNew(vmName string) {
+func getVmUptimeNew(vmName string) string {
 	var vmsUptime []string
 	if len(allVmsUptime) > 0 {
 		vmsUptime = allVmsUptime
 	} else {
-		println("allVmsUptime is empty!")
+		// println("allVmsUptime is empty!")
 		var psEtime1 = "ps"
 		var psEtime2 = "axwww"
 		var psEtime3 = "-o"
@@ -291,9 +291,10 @@ func getVmUptimeNew(vmName string) {
 			fmt.Println(vmName, finalResult)
 			break
 		} else if i == (len(vmsUptime) - 1) {
-			fmt.Println(vmName, "offline")
+			finalResult = "0s"
 		}
 	}
+	return finalResult
 }
 
 func getVmUptime(vmName string) string {
