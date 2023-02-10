@@ -13,7 +13,7 @@ var rootCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		HostMain()
-		VmMain()
+		VmListMain()
 	},
 }
 
@@ -29,8 +29,9 @@ func init() {
 	hostCmd.Flags().BoolVarP(&jsonOutput, "json-output", "j", false, "Output as JSON (useful for automation)")
 
 	rootCmd.AddCommand(vmCmd)
-	vmCmd.Flags().BoolVarP(&jsonOutputVm, "json", "j", false, "Output as JSON (useful for automation)")
-	vmCmd.Flags().BoolVarP(&jsonPrettyOutputVm, "json-pretty", "", false, "Pretty JSON Output")
+	vmCmd.AddCommand(vmListCmd)
+	vmListCmd.Flags().BoolVarP(&jsonOutputVm, "json", "j", false, "Output as JSON (useful for automation)")
+	vmListCmd.Flags().BoolVarP(&jsonPrettyOutputVm, "json-pretty", "", false, "Pretty JSON Output")
 
 	rootCmd.AddCommand(versionCmd)
 }
