@@ -17,12 +17,13 @@ import (
 )
 
 var (
-	jsonOutputVm bool
+	jsonOutputVm       bool
+	jsonPrettyOutputVm bool
 
 	vmCmd = &cobra.Command{
 		Use:   "vm",
 		Short: "VM related operations",
-		Long:  `VM related operations, ie VM deloyment, stopping/starting the VMs, etc`,
+		Long:  `VM related operations: VM deploy, VM stop, VM start, VM destroy, etc`,
 		Run: func(cmd *cobra.Command, args []string) {
 			VmMain()
 		},
@@ -30,9 +31,23 @@ var (
 )
 
 var allVmsUptime []string
+var wg = &sync.WaitGroup{}
 
 func VmMain() {
-	var wg = &sync.WaitGroup{}
+	if jsonOutputVm {
+		vmJsonOutput(false)
+	} else if jsonPrettyOutputVm {
+		vmJsonOutput(true)
+	} else {
+		vmTableOutput()
+	}
+}
+
+func vmJsonOutput(pretty bool) {
+	println("bla")
+}
+
+func vmTableOutput() {
 	wg.Add(2)
 	var vmInfo []string
 	var thisHostName string
@@ -78,7 +93,6 @@ func VmMain() {
 	t.SetHeaderStyle(table.StyleBold)
 
 	for _, vmName := range vmInfo {
-		// getVmUptimeNew(vmName)
 		var vmOsDiskFullSize string
 		var vmOsDiskFree string
 		var vmUptimeVar string
@@ -88,10 +102,6 @@ func VmMain() {
 		go func() { defer wg.Done(); vmEncrypted = encryptionCheckString(vmName) }()
 		go func() { defer wg.Done(); vmUptimeVar = getVmUptimeNew(vmName) }()
 		wg.Wait()
-		// var vmOsDiskFullSize = getOsDiskFullSize(vmName)
-		// var vmOsDiskFree = getOsDiskFree(vmName)
-
-		// getVmUptime(vmName)
 
 		vmConfigVar = vmConfig(vmName)
 		ID = ID + 1
@@ -105,14 +115,6 @@ func VmMain() {
 		} else {
 			vmProduction = ""
 		}
-
-		// var vmUptimeVar string
-		// wg.Add(2)
-		// go func() { defer wg.Done(); vmEncrypted = encryptionCheckString(vmName) }()
-		// go func() { defer wg.Done(); vmUptimeVar = getVmUptimeNew(vmName) }()
-		// vmEncrypted = encryptionCheckString(vmName)
-		// vmUptimeVar = getVmUptimeNew(vmName)
-		// wg.Wait()
 
 		var cpuCoresInt, _ = strconv.Atoi(vmConfigVar.CPUCores)
 		var cpuSocketsInt, _ = strconv.Atoi(vmConfigVar.CPUSockets)
@@ -133,13 +135,6 @@ func VmMain() {
 
 	t.Render()
 }
-
-// type vmInfoStruct struct {
-// 	vmName      string
-// 	vmDataset   string
-// 	vmFolder    string
-// 	vmEncrypted string
-// }
 
 func getAllVms() []string {
 	var zfsDatasets []string
@@ -260,7 +255,6 @@ func getVmUptimeNew(vmName string) string {
 	if len(allVmsUptime) > 0 {
 		vmsUptime = allVmsUptime
 	} else {
-		// println("allVmsUptime is empty!")
 		var psEtime1 = "ps"
 		var psEtime2 = "axwww"
 		var psEtime3 = "-o"
@@ -296,8 +290,6 @@ func getVmUptimeNew(vmName string) string {
 			finalResult = finalResult + strconv.Itoa(hoursModulus) + "h "
 			finalResult = finalResult + strconv.Itoa(minutesModulus) + "m "
 			finalResult = finalResult + strconv.Itoa(secondsModulus) + "s"
-
-			// fmt.Println(vmName, finalResult)
 			break
 		} else if i == (len(vmsUptime) - 1) {
 			finalResult = "0s"
@@ -358,7 +350,6 @@ func getVmUptimeNew(vmName string) string {
 // }
 
 func getOsDiskFullSize(vmName string) string {
-	// fmt.Println("VM Name: " + vmName)
 	var filePath = getVmFolder(vmName) + "/disk0.img"
 	var osDiskLs string
 	var osDiskLsArg1 = "ls"
@@ -382,12 +373,10 @@ func getOsDiskFullSize(vmName string) string {
 		}
 	}
 	osDiskLs = osDiskLsList[3]
-	// fmt.Println(osDiskLs)go
 	return osDiskLs
 }
 
 func getOsDiskFree(vmName string) string {
-	// fmt.Println("VM Name: " + vmName)
 	var filePath = getVmFolder(vmName) + "/disk0.img"
 	var osDiskDu string
 	var osDiskDuArg1 = "du"
@@ -409,15 +398,8 @@ func getOsDiskFree(vmName string) string {
 			osDiskDuList = append(osDiskDuList, i)
 		}
 	}
-
-	// for n, i := range osDiskDuList {
-	// fmt.Println(n, i)
-	// }
 	osDiskDu = osDiskDuList[0]
-	// osDiskDu = strings.ReplaceAll(osDiskDu, "\t", "")
-	// osDiskDu = strings.ReplaceAll(osDiskDu, " ", "")
 	osDiskDu = strings.TrimSpace(osDiskDu)
-	// fmt.Println(osDiskDu)
 	return osDiskDu
 }
 

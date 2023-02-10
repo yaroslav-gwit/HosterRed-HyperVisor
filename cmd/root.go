@@ -26,17 +26,19 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(hostCmd)
-	rootCmd.AddCommand(vmCmd)
 	hostCmd.Flags().BoolVarP(&jsonOutput, "json-output", "j", false, "Output as JSON (useful for automation)")
-	vmCmd.Flags().BoolVarP(&jsonOutputVm, "json-output", "j", false, "Output as JSON (useful for automation)")
+
+	rootCmd.AddCommand(vmCmd)
+	vmCmd.Flags().BoolVarP(&jsonOutputVm, "json", "j", false, "Output as JSON (useful for automation)")
+	vmCmd.Flags().BoolVarP(&jsonPrettyOutputVm, "json-pretty", "", false, "Pretty JSON Output")
 
 	rootCmd.AddCommand(versionCmd)
 }
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print the version number of HosterRed",
+	Short: "Print the version number of HosterCore",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("HosterRed: v0.1")
+		fmt.Println("HosterRed v0.1, Golang version")
 	},
 }

@@ -21,7 +21,7 @@ var (
 	hostCmd = &cobra.Command{
 		Use:   "host",
 		Short: "Host related operations",
-		Long:  `Host related operations, ie set host name, get basic host info, etc`,
+		Long:  `Host related operations.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			HostMain()
 		},
@@ -29,7 +29,7 @@ var (
 )
 
 func HostMain() {
-	// USE GOLANG SYNC LIB TO GET ALL THE DATA CONCURENTLY
+	// USE GOLANG SYNC LIB TO GET ALL THE DATA CONCURRENTLY
 	var tHostname string
 	var tLiveVms string
 	var tSystemUptime string
