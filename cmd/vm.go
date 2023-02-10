@@ -269,7 +269,8 @@ func getVmUptimeNew(vmName string) {
 	for _, v := range vmsUptime {
 		if rexMatchVmName.MatchString(v) {
 			v = strings.TrimSpace(v)
-			println(strings.Split(v, " ")[0])
+			v = strings.Split(v, " ")[0]
+			fmt.Println(vmName, v)
 		}
 	}
 }
