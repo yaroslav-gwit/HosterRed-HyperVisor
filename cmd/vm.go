@@ -266,11 +266,13 @@ func getVmUptimeNew(vmName string) {
 		vmsUptime = strings.Split(allVmsUptime, "\n")
 	}
 	rexMatchVmName, _ := regexp.Compile(`.*bhyve: ` + vmName + `.*`)
-	for _, v := range vmsUptime {
+	for i, v := range vmsUptime {
 		if rexMatchVmName.MatchString(v) {
 			v = strings.TrimSpace(v)
 			v = strings.Split(v, " ")[0]
 			fmt.Println(vmName, v)
+		} else if i == (len(vmsUptime)-1) && !rexMatchVmName.MatchString(v) {
+			fmt.Println(vmName, "offline")
 		}
 	}
 }
