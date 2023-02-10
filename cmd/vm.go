@@ -30,7 +30,7 @@ var (
 	}
 )
 
-var allVmsUptime string
+var allVmsUptime []string
 
 func VmMain() {
 	var wg = &sync.WaitGroup{}
@@ -249,7 +249,7 @@ func getVmFolder(vmName string) string {
 func getVmUptimeNew(vmName string) {
 	var vmsUptime []string
 	if len(allVmsUptime) > 0 {
-		vmsUptime = strings.Split(allVmsUptime, "\n")
+		vmsUptime = allVmsUptime
 	} else {
 		println("allVmsUptime is empty!")
 		var psEtime1 = "ps"
@@ -262,8 +262,8 @@ func getVmUptimeNew(vmName string) {
 		if err != nil {
 			log.Fatal("getVmUptimeNew Error: ", err)
 		}
-		allVmsUptime = string(stdout)
-		vmsUptime = strings.Split(allVmsUptime, "\n")
+		allVmsUptime = strings.Split(string(stdout), "\n")
+		vmsUptime = allVmsUptime
 	}
 	rexMatchVmName, _ := regexp.Compile(`.*bhyve: ` + vmName + `.*`)
 	for i, v := range vmsUptime {
