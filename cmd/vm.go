@@ -102,11 +102,17 @@ func VmMain() {
 			vmProduction = ""
 		}
 
-		vmEncrypted = encryptionCheckString(vmName)
+		var vmUptimeVar string
+		wg.Add(2)
+		go func() { defer wg.Done(); vmEncrypted = encryptionCheckString(vmName) }()
+		go func() { defer wg.Done(); vmUptimeVar = getVmUptimeNew(vmName) }()
+		// vmEncrypted = encryptionCheckString(vmName)
+		// vmUptimeVar = getVmUptimeNew(vmName)
+		wg.Wait()
+
 		var cpuCoresInt, _ = strconv.Atoi(vmConfigVar.CPUCores)
 		var cpuSocketsInt, _ = strconv.Atoi(vmConfigVar.CPUSockets)
 		cpuFinal = strconv.Itoa(cpuCoresInt * cpuSocketsInt)
-		var vmUptimeVar = getVmUptimeNew(vmName)
 
 		t.AddRow(strconv.Itoa(ID),
 			vmName,
