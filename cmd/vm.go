@@ -288,7 +288,7 @@ func getVmUptimeNew(vmName string) string {
 			finalResult = finalResult + strconv.Itoa(minutesModulus) + "m "
 			finalResult = finalResult + strconv.Itoa(secondsModulus) + "s"
 
-			fmt.Println(vmName, finalResult)
+			// fmt.Println(vmName, finalResult)
 			break
 		} else if i == (len(vmsUptime) - 1) {
 			finalResult = "0s"
