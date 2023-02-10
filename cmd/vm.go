@@ -62,17 +62,18 @@ func VmMain() {
 		table.AlignCenter, // OS Disk Used
 		table.AlignCenter) // Description
 
-	t.SetHeaders("ID",
-		"\nVM Name",
-		"\nVM Status",
-		"\nCPU/RAM",
-		"\nMain IP",
+	t.SetHeaders(
+		"ID",
+		"VM Name",
+		"VM Status",
+		"CPU/RAM",
+		"Main IP",
 		"VNC\nPort",
 		"VNC\nPassword",
-		"\nOS Comment",
-		"\nVM Uptime",
+		"OS Type",
+		"VM Uptime",
 		"OS Disk\n(Used/Total)",
-		"\nDescription")
+		"VM\nDescription")
 
 	t.SetHeaderStyle(table.StyleBold)
 
