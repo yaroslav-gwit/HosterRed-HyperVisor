@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
 
 	"facette.io/natsort"
 	"github.com/aquasecurity/table"
@@ -27,9 +28,17 @@ var (
 	}
 )
 
+// var wg = &sync.WaitGroup{}
 func VmMain() {
-	var vmInfo = getAllVms()
-	var thisHostName = GetHostName()
+	var wg = &sync.WaitGroup{}
+	wg.Add(2)
+	var vmInfo []string
+	go func() { defer wg.Done(); vmInfo = getAllVms() }()
+	// var vmInfo = getAllVms()
+	var thisHostName string
+	go func() { defer wg.Done(); thisHostName = GetHostName() }()
+	// var thisHostName = GetHostName()
+	wg.Wait()
 
 	var ID = 0
 	var vmLive string
@@ -68,6 +77,7 @@ func VmMain() {
 	t.SetHeaderStyle(table.StyleBold)
 
 	for _, vmName := range vmInfo {
+
 		var vmOsDiskFullSize = getOsDiskFullSize(vmName)
 		var vmOsDiskFree = getOsDiskFree(vmName)
 		// getVmUptime(vmName)
