@@ -3,9 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-
-	// "io/ioutil"
-
 	"log"
 	"os"
 	"os/exec"
@@ -146,7 +143,6 @@ func getAllVms() []string {
 		var dsFolder = "/" + dataset + "/"
 		var _, err = os.Stat(dsFolder)
 		if !os.IsNotExist(err) {
-			// vmFolders, err := ioutil.ReadDir(dsFolder)
 			vmFolders, err := os.ReadDir(dsFolder)
 
 			if err != nil {
@@ -175,7 +171,7 @@ func encryptionCheck(vmName string) bool {
 	var dsFolder string
 	var finalResponse bool
 	zfsDatasets = append(zfsDatasets, "zroot/vm-encrypted")
-	// zfsDatasets = append(zfsDatasets, "zroot/vm-unencrypted")
+	zfsDatasets = append(zfsDatasets, "zroot/vm-unencrypted")
 
 	for _, dataset := range zfsDatasets {
 		dsFolder = "/" + dataset + "/"
