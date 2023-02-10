@@ -272,7 +272,9 @@ func getVmUptimeNew(vmName string) {
 			v = strings.Split(v, " ")[0]
 			fmt.Println(vmName, v)
 		} else if i == (len(vmsUptime) - 1) {
-			fmt.Println(vmName, "offline")
+			if !rexMatchVmName.MatchString(v) {
+				fmt.Println(vmName, "offline")
+			}
 		}
 	}
 }
