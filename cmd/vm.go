@@ -77,12 +77,15 @@ func VmMain() {
 	t.SetHeaderStyle(table.StyleBold)
 
 	for _, vmName := range vmInfo {
-		getVmUptimeNew(vmName)
-		wg.Add(2)
+		// getVmUptimeNew(vmName)
 		var vmOsDiskFullSize string
 		var vmOsDiskFree string
+		var vmUptimeVar string
+		wg.Add(4)
 		go func() { defer wg.Done(); vmOsDiskFullSize = getOsDiskFullSize(vmName) }()
 		go func() { defer wg.Done(); vmOsDiskFree = getOsDiskFree(vmName) }()
+		go func() { defer wg.Done(); vmEncrypted = encryptionCheckString(vmName) }()
+		go func() { defer wg.Done(); vmUptimeVar = getVmUptimeNew(vmName) }()
 		wg.Wait()
 		// var vmOsDiskFullSize = getOsDiskFullSize(vmName)
 		// var vmOsDiskFree = getOsDiskFree(vmName)
@@ -102,13 +105,13 @@ func VmMain() {
 			vmProduction = ""
 		}
 
-		var vmUptimeVar string
-		wg.Add(2)
-		go func() { defer wg.Done(); vmEncrypted = encryptionCheckString(vmName) }()
-		go func() { defer wg.Done(); vmUptimeVar = getVmUptimeNew(vmName) }()
+		// var vmUptimeVar string
+		// wg.Add(2)
+		// go func() { defer wg.Done(); vmEncrypted = encryptionCheckString(vmName) }()
+		// go func() { defer wg.Done(); vmUptimeVar = getVmUptimeNew(vmName) }()
 		// vmEncrypted = encryptionCheckString(vmName)
 		// vmUptimeVar = getVmUptimeNew(vmName)
-		wg.Wait()
+		// wg.Wait()
 
 		var cpuCoresInt, _ = strconv.Atoi(vmConfigVar.CPUCores)
 		var cpuSocketsInt, _ = strconv.Atoi(vmConfigVar.CPUSockets)
@@ -302,56 +305,56 @@ func getVmUptimeNew(vmName string) string {
 	return finalResult
 }
 
-func getVmUptime(vmName string) string {
-	var pidFile = "/var/run/" + vmName + ".pid"
-	var pidResult string
-	var finalResult string
-	var content, err = os.ReadFile(pidFile)
-	if err != nil {
-		finalResult = "-"
-	} else {
-		pidResult = string(content)
-		pidResult = strings.Replace(pidResult, "\n", "", -1)
-	}
+// func getVmUptime(vmName string) string {
+// 	var pidFile = "/var/run/" + vmName + ".pid"
+// 	var pidResult string
+// 	var finalResult string
+// 	var content, err = os.ReadFile(pidFile)
+// 	if err != nil {
+// 		finalResult = "-"
+// 	} else {
+// 		pidResult = string(content)
+// 		pidResult = strings.Replace(pidResult, "\n", "", -1)
+// 	}
 
-	if len(pidResult) > 0 {
-		var vmUptime string
-		var vmUptimeArg1 = "ps"
-		var vmUptimeArg2 = "-o"
-		var vmUptimeArg3 = "etimes="
-		var vmUptimeArg4 = "-p"
-		var vmUptimeArg5 = pidResult
+// 	if len(pidResult) > 0 {
+// 		var vmUptime string
+// 		var vmUptimeArg1 = "ps"
+// 		var vmUptimeArg2 = "-o"
+// 		var vmUptimeArg3 = "etimes="
+// 		var vmUptimeArg4 = "-p"
+// 		var vmUptimeArg5 = pidResult
 
-		var cmd = exec.Command(vmUptimeArg1, vmUptimeArg2, vmUptimeArg3, vmUptimeArg4, vmUptimeArg5)
-		stdout, err := cmd.Output()
-		if err != nil {
-			fmt.Println("Func getVmUptime: There has been an error:", err)
-			// os.Exit(1)
-		} else {
-			vmUptime = string(stdout)
-			vmUptime = strings.Replace(vmUptime, "\n", "", -1)
-		}
+// 		var cmd = exec.Command(vmUptimeArg1, vmUptimeArg2, vmUptimeArg3, vmUptimeArg4, vmUptimeArg5)
+// 		stdout, err := cmd.Output()
+// 		if err != nil {
+// 			fmt.Println("Func getVmUptime: There has been an error:", err)
+// 			// os.Exit(1)
+// 		} else {
+// 			vmUptime = string(stdout)
+// 			vmUptime = strings.Replace(vmUptime, "\n", "", -1)
+// 		}
 
-		var vmUptimeInt, _ = strconv.ParseInt(vmUptime, 10, 64)
-		var secondsModulus = int(vmUptimeInt) % 60.0
+// 		var vmUptimeInt, _ = strconv.ParseInt(vmUptime, 10, 64)
+// 		var secondsModulus = int(vmUptimeInt) % 60.0
 
-		var minutesSince = (float64(vmUptimeInt) - float64(secondsModulus)) / 60.0
-		var minutesModulus = int(minutesSince) % 60.0
+// 		var minutesSince = (float64(vmUptimeInt) - float64(secondsModulus)) / 60.0
+// 		var minutesModulus = int(minutesSince) % 60.0
 
-		var hoursSince = (minutesSince - float64(minutesModulus)) / 60
-		var hoursModulus = int(hoursSince) % 24
+// 		var hoursSince = (minutesSince - float64(minutesModulus)) / 60
+// 		var hoursModulus = int(hoursSince) % 24
 
-		var daysSince = (int(hoursSince) - hoursModulus) / 24
+// 		var daysSince = (int(hoursSince) - hoursModulus) / 24
 
-		if finalResult != "-" {
-			finalResult = strconv.Itoa(daysSince) + "d "
-			finalResult = finalResult + strconv.Itoa(hoursModulus) + "h "
-			finalResult = finalResult + strconv.Itoa(minutesModulus) + "m "
-			finalResult = finalResult + strconv.Itoa(secondsModulus) + "s"
-		}
-	}
-	return finalResult
-}
+// 		if finalResult != "-" {
+// 			finalResult = strconv.Itoa(daysSince) + "d "
+// 			finalResult = finalResult + strconv.Itoa(hoursModulus) + "h "
+// 			finalResult = finalResult + strconv.Itoa(minutesModulus) + "m "
+// 			finalResult = finalResult + strconv.Itoa(secondsModulus) + "s"
+// 		}
+// 	}
+// 	return finalResult
+// }
 
 func getOsDiskFullSize(vmName string) string {
 	// fmt.Println("VM Name: " + vmName)

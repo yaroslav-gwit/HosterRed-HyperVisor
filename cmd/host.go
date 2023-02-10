@@ -3,7 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"regexp"
@@ -249,7 +248,7 @@ func getArcSize() string {
 }
 
 func getNumberOfRunningVms() string {
-	files, err := ioutil.ReadDir("/dev/vmm/")
+	files, err := os.ReadDir("/dev/vmm/")
 	var finalResult string
 	if err != nil {
 		// fmt.Println("funcError getNumberOfRunningVms: " + err.Error())
