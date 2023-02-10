@@ -3,7 +3,9 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+
+	// "io/ioutil"
+
 	"log"
 	"os"
 	"os/exec"
@@ -144,7 +146,8 @@ func getAllVms() []string {
 		var dsFolder = "/" + dataset + "/"
 		var _, err = os.Stat(dsFolder)
 		if !os.IsNotExist(err) {
-			vmFolders, err := ioutil.ReadDir(dsFolder)
+			// vmFolders, err := ioutil.ReadDir(dsFolder)
+			vmFolders, err := os.ReadDir(dsFolder)
 
 			if err != nil {
 				fmt.Println("Error!", err)
@@ -219,7 +222,8 @@ func vmLiveCheckString(vmName string) string {
 func vmConfig(vmName string) VmConfigStruct {
 	var configFile = getVmFolder(vmName) + "/vm_config.json"
 	var jsonData = VmConfigStruct{}
-	var content, err = ioutil.ReadFile(configFile)
+	// var content, err = ioutil.ReadFile(configFile)
+	var content, err = os.ReadFile(configFile)
 	if err != nil {
 		fmt.Println("vmConfig Function Error: ", err)
 	}
@@ -301,7 +305,7 @@ func getVmUptime(vmName string) string {
 	var pidFile = "/var/run/" + vmName + ".pid"
 	var pidResult string
 	var finalResult string
-	var content, err = ioutil.ReadFile(pidFile)
+	var content, err = os.ReadFile(pidFile)
 	if err != nil {
 		finalResult = "-"
 	} else {
