@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -28,7 +30,8 @@ var (
 	}
 )
 
-// var wg = &sync.WaitGroup{}
+var allVmsUptime string
+
 func VmMain() {
 	var wg = &sync.WaitGroup{}
 	wg.Add(2)
@@ -75,6 +78,7 @@ func VmMain() {
 	t.SetHeaderStyle(table.StyleBold)
 
 	for _, vmName := range vmInfo {
+		getVmUptimeNew(vmName)
 		wg.Add(2)
 		var vmOsDiskFullSize string
 		var vmOsDiskFree string
@@ -243,21 +247,29 @@ func getVmFolder(vmName string) string {
 }
 
 func getVmUptimeNew(vmName string) {
-	// r, _ := regexp.Compile(vmName)
-	// fmt.Println(r.MatchString("peach"))
-	var psEtime1 = "ps"
-	var psEtime2 = "axwww"
-	var psEtime3 = "-o"
-	var psEtime4 = "etimes,command"
+	var vmsUptime []string
+	if len(allVmsUptime) > 0 {
+		vmsUptime = strings.Split(allVmsUptime, "\n")
+	} else {
+		var psEtime1 = "ps"
+		var psEtime2 = "axwww"
+		var psEtime3 = "-o"
+		var psEtime4 = "etimes,command"
 
-	var cmd = exec.Command(psEtime1, psEtime2, psEtime3, psEtime4)
-	// stdout, err := cmd.Output()
-	_, err := cmd.Output()
-	if err != nil {
-		fmt.Println("Func getVmUptime: There has been an error:", err)
-		// os.Exit(1)
+		var cmd = exec.Command(psEtime1, psEtime2, psEtime3, psEtime4)
+		stdout, err := cmd.Output()
+		if err != nil {
+			log.Fatal("getVmUptimeNew Error: ", err)
+		}
+		allVmsUptime = string(stdout)
+		vmsUptime = strings.Split(allVmsUptime, "\n")
 	}
-	// fmt.Println(stdout)
+	rexMatchVmName, _ := regexp.Compile(`.*bhyve: ` + vmName + `.*`)
+	for _, v := range vmsUptime {
+		if rexMatchVmName.MatchString(v) {
+			println(v)
+		}
+	}
 }
 
 func getVmUptime(vmName string) string {
