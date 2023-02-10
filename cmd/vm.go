@@ -171,7 +171,7 @@ func encryptionCheck(vmName string) bool {
 	var dsFolder string
 	var finalResponse bool
 	zfsDatasets = append(zfsDatasets, "zroot/vm-encrypted")
-	zfsDatasets = append(zfsDatasets, "zroot/vm-unencrypted")
+	// zfsDatasets = append(zfsDatasets, "zroot/vm-unencrypted")
 
 	for _, dataset := range zfsDatasets {
 		dsFolder = "/" + dataset + "/"
@@ -218,7 +218,6 @@ func vmLiveCheckString(vmName string) string {
 func vmConfig(vmName string) VmConfigStruct {
 	var configFile = getVmFolder(vmName) + "/vm_config.json"
 	var jsonData = VmConfigStruct{}
-	// var content, err = ioutil.ReadFile(configFile)
 	var content, err = os.ReadFile(configFile)
 	if err != nil {
 		fmt.Println("vmConfig Function Error: ", err)
@@ -405,8 +404,9 @@ func getOsDiskFree(vmName string) string {
 	// fmt.Println(n, i)
 	// }
 	osDiskDu = osDiskDuList[0]
-	osDiskDu = strings.ReplaceAll(osDiskDu, "\t", "")
-	osDiskDu = strings.ReplaceAll(osDiskDu, " ", "")
+	// osDiskDu = strings.ReplaceAll(osDiskDu, "\t", "")
+	// osDiskDu = strings.ReplaceAll(osDiskDu, " ", "")
+	osDiskDu = strings.TrimSpace(osDiskDu)
 	// fmt.Println(osDiskDu)
 	return osDiskDu
 }
