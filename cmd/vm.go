@@ -273,7 +273,7 @@ func getVmUptimeNew(vmName string) {
 }
 
 func getVmUptime(vmName string) string {
-	getVmUptimeNew(vmName)
+	// getVmUptimeNew(vmName)
 	var pidFile = "/var/run/" + vmName + ".pid"
 	var pidResult string
 	var finalResult string
