@@ -250,8 +250,8 @@ func getVmUptimeNew(vmName string) {
 	var vmsUptime []string
 	if len(allVmsUptime) > 0 {
 		vmsUptime = strings.Split(allVmsUptime, "\n")
-		println("allVmsUptime is empty!")
 	} else {
+		println("allVmsUptime is empty!")
 		var psEtime1 = "ps"
 		var psEtime2 = "axwww"
 		var psEtime3 = "-o"
