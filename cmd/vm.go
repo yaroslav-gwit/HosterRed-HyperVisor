@@ -250,6 +250,7 @@ func getVmUptimeNew(vmName string) {
 	var vmsUptime []string
 	if len(allVmsUptime) > 0 {
 		vmsUptime = strings.Split(allVmsUptime, "\n")
+		println("allVmsUptime is empty!")
 	} else {
 		var psEtime1 = "ps"
 		var psEtime2 = "axwww"
@@ -273,7 +274,6 @@ func getVmUptimeNew(vmName string) {
 }
 
 func getVmUptime(vmName string) string {
-	// getVmUptimeNew(vmName)
 	var pidFile = "/var/run/" + vmName + ".pid"
 	var pidResult string
 	var finalResult string
