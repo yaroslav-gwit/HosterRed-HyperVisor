@@ -92,7 +92,7 @@ func HostMain() {
 			"System Uptime",
 			"RAM\n(Used/Total)",
 			"SWAP\n(Used/Total)",
-			"ARC Size",
+			"ARC\nCache Size",
 			"Zroot\n(Used/Total)",
 			"Zroot\nStatus",
 		)
@@ -142,12 +142,12 @@ type ramResponse struct {
 func getHostRam() ramResponse {
 	// GET SYSCTL "vm.stats.vm.v_free_count" AND RETURN THE VALUE
 	var vFreeCount string
-	var vFreeCountArg1 = "sysctl"
-	var vFreeCountArg2 = "-nq"
-	var vFreeCountArg3 = "vm.stats.vm.v_free_count"
+	vFreeCountArg1 := "sysctl"
+	vFreeCountArg2 := "-nq"
+	vFreeCountArg3 := "vm.stats.vm.v_free_count"
 
-	var cmd = exec.Command(vFreeCountArg1, vFreeCountArg2, vFreeCountArg3)
-	var stdout, err = cmd.Output()
+	cmd := exec.Command(vFreeCountArg1, vFreeCountArg2, vFreeCountArg3)
+	stdout, err := cmd.Output()
 	if err != nil {
 		fmt.Println("Func freeRam/vFreeCount: There has been an error:", err)
 		os.Exit(1)
@@ -164,9 +164,9 @@ func getHostRam() ramResponse {
 	vFreeCount = vFreeCountList[0]
 
 	var realMem string
-	var realMemArg1 = "sysctl"
-	var realMemArg2 = "-nq"
-	var realMemArg3 = "hw.realmem"
+	realMemArg1 := "sysctl"
+	realMemArg2 := "-nq"
+	realMemArg3 := "hw.realmem"
 
 	cmd = exec.Command(realMemArg1, realMemArg2, realMemArg3)
 	stdout, err = cmd.Output()
@@ -206,16 +206,15 @@ func getHostRam() ramResponse {
 	}
 	hwPagesize = hwPagesizeList[0]
 
-	var vFreeCountInt, _ = strconv.Atoi(vFreeCount)
-	var hwPagesizeInt, _ = strconv.Atoi(hwPagesize)
-	var realMemInt, _ = strconv.Atoi(realMem)
+	vFreeCountInt, _ := strconv.Atoi(vFreeCount)
+	hwPagesizeInt, _ := strconv.Atoi(hwPagesize)
+	realMemInt, _ := strconv.Atoi(realMem)
 
-	var finalResultFree = vFreeCountInt * hwPagesizeInt
-	// var finalResultReal = realMemInt * hwPagesizeInt
-	var finalResultReal = realMemInt
-	var finalResultUsed int = (finalResultReal - finalResultFree)
+	finalResultFree := vFreeCountInt * hwPagesizeInt
+	finalResultReal := realMemInt
+	finalResultUsed := (finalResultReal - finalResultFree)
 
-	var ramResponseVar = ramResponse{}
+	ramResponseVar := ramResponse{}
 	ramResponseVar.free = ByteConversion(finalResultFree)
 	ramResponseVar.used = ByteConversion(finalResultUsed)
 	ramResponseVar.all = ByteConversion(finalResultReal)
@@ -226,12 +225,12 @@ func getHostRam() ramResponse {
 func getArcSize() string {
 	// GET SYSCTL "vm.stats.vm.v_free_count" AND RETURN THE VALUE
 	var arcSize string
-	var arcSizeArg1 = "sysctl"
-	var arcSizeArg2 = "-nq"
-	var arcSizeArg3 = "kstat.zfs.misc.arcstats.size"
+	arcSizeArg1 := "sysctl"
+	arcSizeArg2 := "-nq"
+	arcSizeArg3 := "kstat.zfs.misc.arcstats.size"
 
-	var cmd = exec.Command(arcSizeArg1, arcSizeArg2, arcSizeArg3)
-	var stdout, err = cmd.Output()
+	cmd := exec.Command(arcSizeArg1, arcSizeArg2, arcSizeArg3)
+	stdout, err := cmd.Output()
 	if err != nil {
 		fmt.Println("Func getArcSize/arcSize: There has been an error:", err)
 		os.Exit(1)
@@ -245,12 +244,9 @@ func getArcSize() string {
 			arcSizeList = append(arcSizeList, i)
 		}
 	}
-	arcSize = arcSizeList[0]
 
-	var acrSizeInt, _ = strconv.Atoi(arcSize)
-	var finalResult = ByteConversion(acrSizeInt)
-
-	return finalResult
+	acrSizeInt, _ := strconv.Atoi(arcSizeList[0])
+	return ByteConversion(acrSizeInt)
 }
 
 func getNumberOfRunningVms() string {
