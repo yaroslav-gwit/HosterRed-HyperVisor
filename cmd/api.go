@@ -27,7 +27,7 @@ var (
 )
 
 func StartApiServer(listenPort int, user string, password string) {
-	app := fiber.New(fiber.Config{DisableStartupMessage: true, Prefork: true})
+	app := fiber.New(fiber.Config{DisableStartupMessage: true, Prefork: false})
 
 	app.Use(logger.New(logger.Config{
 		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
