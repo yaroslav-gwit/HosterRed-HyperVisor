@@ -46,8 +46,9 @@ func StartApiServer(listenPort int, user string, password string) {
 		return fiberContext.SendString(string(jsonResult))
 	})
 
-	fmt.Println("Use these credentials to authenticate with API:")
-	fmt.Println("Username:", user, ". Password:", password)
+	fmt.Println("")
+	fmt.Println(" Use these credentials to authenticate with the API:")
+	fmt.Println(" Username:", user, "|| Password:", password)
 
 	app.Listen("0.0.0.0:" + strconv.Itoa(listenPort))
 }
