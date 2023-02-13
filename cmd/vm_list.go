@@ -88,7 +88,7 @@ func vmTableOutput() {
 		table.AlignCenter) // Description
 
 	t.SetHeaders("VMs")
-	t.SetHeaderColSpans(0, 1)
+	t.SetHeaderColSpans(0, 1, 1, 1, 1)
 
 	t.AddHeaders(
 		"ID",
