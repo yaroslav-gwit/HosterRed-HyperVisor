@@ -88,19 +88,21 @@ func vmTableOutput() {
 
 	if tableUnixOutputVm {
 		t.SetDividers(table.Dividers{
-			ALL: "",
-			NES: "",
-			NSW: "",
-			NEW: "",
-			ESW: "",
-			NE:  "",
-			NW:  "",
-			SW:  "",
-			ES:  "",
-			EW:  "",
-			NS:  "",
+			ALL: " ",
+			NES: " ",
+			NSW: " ",
+			NEW: " ",
+			ESW: " ",
+			NE:  " ",
+			NW:  " ",
+			SW:  " ",
+			ES:  " ",
+			EW:  " ",
+			NS:  " ",
 		})
 		t.SetRowLines(false)
+		t.SetBorderTop(false)
+		t.SetBorderBottom(false)
 	} else {
 		t.SetHeaders("List of VMs")
 		t.SetHeaderColSpans(0, 11)
