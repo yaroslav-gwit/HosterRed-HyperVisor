@@ -35,16 +35,26 @@ var wg = &sync.WaitGroup{}
 
 func VmListMain() {
 	if jsonOutputVm {
-		vmJsonOutput(false)
+		vmList := vmJsonOutput()
+		jsonPrint, err := json.Marshal(vmList)
+		if err != nil {
+			log.Fatal(err)
+		}
+		println(string(jsonPrint))
 	} else if jsonPrettyOutputVm {
-		vmJsonOutput(true)
+		vmList := vmJsonOutput()
+		jsonPrint, err := json.MarshalIndent(vmList, "", "   ")
+		if err != nil {
+			log.Fatal(err)
+		}
+		println(string(jsonPrint))
 	} else {
 		vmTableOutput()
 	}
 }
 
-func vmJsonOutput(pretty bool) {
-	println("bla")
+func vmJsonOutput() []string {
+	return getAllVms()
 }
 
 func vmTableOutput() {

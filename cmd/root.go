@@ -9,7 +9,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "hoster",
-	Short: "HosterRed is a highly opinionated Bhyve automation library written in Go",
+	Short: "HosterCore is a highly opinionated Bhyve automation platform written in Go",
 
 	Run: func(cmd *cobra.Command, args []string) {
 		HostMain()
@@ -25,14 +25,17 @@ func Execute() {
 }
 
 func init() {
+	// Host command section
 	rootCmd.AddCommand(hostCmd)
-	hostCmd.Flags().BoolVarP(&jsonOutput, "json-output", "j", false, "Output as JSON (useful for automation)")
+	hostCmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "Output as JSON (useful for automation)")
 
+	// VM command section
 	rootCmd.AddCommand(vmCmd)
 	vmCmd.AddCommand(vmListCmd)
 	vmListCmd.Flags().BoolVarP(&jsonOutputVm, "json", "j", false, "Output as JSON (useful for automation)")
 	vmListCmd.Flags().BoolVarP(&jsonPrettyOutputVm, "json-pretty", "", false, "Pretty JSON Output")
 
+	// Version command section
 	rootCmd.AddCommand(versionCmd)
 }
 
