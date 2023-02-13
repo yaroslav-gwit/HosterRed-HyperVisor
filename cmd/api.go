@@ -27,7 +27,7 @@ var (
 )
 
 func StartApiServer(listenPort int, user string, password string) {
-	app := fiber.New()
+	app := fiber.New(fiber.Config{DisableStartupMessage: true, Prefork: true})
 
 	app.Use(logger.New(logger.Config{
 		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
@@ -49,6 +49,7 @@ func StartApiServer(listenPort int, user string, password string) {
 	fmt.Println("")
 	fmt.Println(" Use these credentials to authenticate with the API:")
 	fmt.Println(" Username:", user, "|| Password:", password)
+	fmt.Println(" Address: http://0.0.0.0:" + strconv.Itoa(listenPort))
 
 	app.Listen("0.0.0.0:" + strconv.Itoa(listenPort))
 }
