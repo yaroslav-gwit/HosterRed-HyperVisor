@@ -100,6 +100,7 @@ func vmTableOutput() {
 			EW:  "",
 			NS:  "",
 		})
+		t.SetRowLines(false)
 	} else {
 		t.SetHeaders("List of VMs")
 		t.SetHeaderColSpans(0, 11)
