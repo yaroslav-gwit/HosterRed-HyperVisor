@@ -88,13 +88,13 @@ func HostMain() {
 		t.SetHeaderColSpans(0, 8)
 		t.AddHeaders(
 			"Hostname",
-			"Live VMs",
+			"Live\nVMs",
 			"System Uptime",
 			"RAM\n(Used/Total)",
-			"SWAP (Used/Total)",
+			"SWAP\n(Used/Total)",
 			"ARC Size",
-			"Zroot Space Free",
-			"Zroot Pool Status",
+			"Zroot\n(Used/Total)",
+			"Zroot\nStatus",
 		)
 
 		t.AddRow(tHostname,
