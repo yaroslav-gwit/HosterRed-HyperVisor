@@ -86,22 +86,6 @@ func vmTableOutput() {
 		table.AlignCenter, // OS Disk Used
 		table.AlignCenter) // Description
 
-	t.SetHeaders("List of VMs")
-	t.SetHeaderColSpans(0, 11)
-
-	t.AddHeaders(
-		"ID",
-		"VM Name",
-		"VM Status",
-		"CPU/RAM",
-		"Main IP",
-		"VNC\nPort",
-		"VNC\nPassword",
-		"OS Type",
-		"VM Uptime",
-		"OS Disk\n(Used/Total)",
-		"VM\nDescription")
-
 	if tableUnixOutputVm {
 		t.SetDividers(table.Dividers{
 			ALL: "",
@@ -117,11 +101,26 @@ func vmTableOutput() {
 			NS:  "",
 		})
 	} else {
+		t.SetHeaders("List of VMs")
+		t.SetHeaderColSpans(0, 11)
+
+		t.AddHeaders(
+			"ID",
+			"VM Name",
+			"VM Status",
+			"CPU/RAM",
+			"Main IP",
+			"VNC\nPort",
+			"VNC\nPassword",
+			"OS Type",
+			"VM Uptime",
+			"OS Disk\n(Used/Total)",
+			"VM\nDescription")
+
 		t.SetLineStyle(table.StyleBrightCyan)
 		t.SetDividers(table.UnicodeRoundedDividers)
+		t.SetHeaderStyle(table.StyleBold)
 	}
-
-	t.SetHeaderStyle(table.StyleBold)
 
 	for _, vmName := range vmInfo {
 		var vmOsDiskFullSize string
