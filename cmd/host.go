@@ -90,8 +90,8 @@ func HostMain() {
 			"Hostname",
 			"Live VMs",
 			"System Uptime",
-			"RAM (Free)",
-			"SWAP (Free)",
+			"RAM\n(Used/Total)",
+			"SWAP (Used/Total)",
 			"ARC Size",
 			"Zroot Space Free",
 			"Zroot Pool Status",
@@ -100,7 +100,7 @@ func HostMain() {
 		t.AddRow(tHostname,
 			tLiveVms,
 			tSystemUptime,
-			tSystemRam.free+"/"+tSystemRam.all,
+			tSystemRam.used+"/"+tSystemRam.all,
 			tFreeSwap+"/"+tAllSwap,
 			tArcSize,
 			tFreeZfsSpace,
@@ -125,6 +125,7 @@ type jsonOutputHostInfo struct {
 
 type ramResponse struct {
 	free string
+	used string
 	all  string
 }
 
@@ -212,12 +213,12 @@ func getHostRam() ramResponse {
 	var finalResultFree = vFreeCountInt * hwPagesizeInt
 	// var finalResultReal = realMemInt * hwPagesizeInt
 	var finalResultReal = realMemInt
-	var finalResultFreeNotBytes = ByteConversion(finalResultFree)
-	var finalResultRealNotBytes = ByteConversion(finalResultReal)
+	var finalResultUsed int = (finalResultReal - finalResultFree)
 
 	var ramResponseVar = ramResponse{}
-	ramResponseVar.free = finalResultFreeNotBytes
-	ramResponseVar.all = finalResultRealNotBytes
+	ramResponseVar.free = ByteConversion(finalResultFree)
+	ramResponseVar.used = ByteConversion(finalResultUsed)
+	ramResponseVar.all = ByteConversion(finalResultReal)
 
 	return ramResponseVar
 }
