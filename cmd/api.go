@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/spf13/cobra"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -22,7 +22,10 @@ var (
 
 func StartApiServer(listenPort int) {
 	app := fiber.New()
-
+	// app.Use(logger.New())
+	app.Use(logger.New(logger.Config{
+		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
+	}))
 	app.Get("/", func(c *fiber.Ctx) error {
 		result := GetAllVms()
 		jsonResult, _ := json.Marshal(result)
