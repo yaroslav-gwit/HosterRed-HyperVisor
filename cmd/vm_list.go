@@ -19,6 +19,7 @@ import (
 var (
 	jsonOutputVm       bool
 	jsonPrettyOutputVm bool
+	tableUnixOutputVm  bool
 
 	vmListCmd = &cobra.Command{
 		Use:   "list",
@@ -73,8 +74,6 @@ func vmTableOutput() {
 	var cpuFinal string
 
 	var t = table.New(os.Stdout)
-	t.SetLineStyle(table.StyleBrightCyan)
-	t.SetDividers(table.UnicodeRoundedDividers)
 	t.SetAlignment(table.AlignCenter, //ID
 		table.AlignLeft,   // VM Name
 		table.AlignCenter, // VM Status
@@ -87,7 +86,7 @@ func vmTableOutput() {
 		table.AlignCenter, // OS Disk Used
 		table.AlignCenter) // Description
 
-	t.SetHeaders("List of VMs\n")
+	t.SetHeaders("List of VMs")
 	t.SetHeaderColSpans(0, 11)
 
 	t.AddHeaders(
@@ -102,6 +101,25 @@ func vmTableOutput() {
 		"VM Uptime",
 		"OS Disk\n(Used/Total)",
 		"VM\nDescription")
+
+	if tableUnixOutputVm {
+		t.SetDividers(table.Dividers{
+			ALL: "",
+			NES: "",
+			NSW: "",
+			NEW: "",
+			ESW: "",
+			NE:  "",
+			NW:  "",
+			SW:  "",
+			ES:  "",
+			EW:  "",
+			NS:  "",
+		})
+	} else {
+		t.SetLineStyle(table.StyleBrightCyan)
+		t.SetDividers(table.UnicodeRoundedDividers)
+	}
 
 	t.SetHeaderStyle(table.StyleBold)
 

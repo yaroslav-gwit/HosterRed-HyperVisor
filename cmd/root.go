@@ -34,6 +34,7 @@ func init() {
 	vmCmd.AddCommand(vmListCmd)
 	vmListCmd.Flags().BoolVarP(&jsonOutputVm, "json", "j", false, "Output as JSON (useful for automation)")
 	vmListCmd.Flags().BoolVarP(&jsonPrettyOutputVm, "json-pretty", "", false, "Pretty JSON Output")
+	vmListCmd.Flags().BoolVarP(&tableUnixOutputVm, "unix-style", "u", false, "Show Unix style table (useful for bash scripting)")
 
 	// API command section
 	rootCmd.AddCommand(apiCmd)
