@@ -116,8 +116,9 @@ type jsonOutputHostInfoStruct struct {
 	Hostname     string `json:"hostname"`
 	LiveVms      string `json:"live_vms"`
 	SystemUptime string `json:"system_uptime"`
-	FreeRAM      string `json:"free_ram"`
-	AllSystemRAM string `json:"all_system_ram"`
+	RamTotal     string `json:"ram_total"`
+	RamFree      string `json:"ram_free"`
+	RamUsed      string `json:"ram_used"`
 	SwapUsed     string `json:"swap_used"`
 	SwapTotal    string `json:"swap_total"`
 	ArcSize      string `json:"zfs_acr_size"`
@@ -153,8 +154,9 @@ func jsonOutputHostInfo() jsonOutputHostInfoStruct {
 	jsonOutputVar.Hostname = tHostname
 	jsonOutputVar.LiveVms = tLiveVms
 	jsonOutputVar.SystemUptime = tSystemUptime
-	jsonOutputVar.FreeRAM = tSystemRam.free
-	jsonOutputVar.AllSystemRAM = tSystemRam.all
+	jsonOutputVar.RamTotal = tSystemRam.all
+	jsonOutputVar.RamFree = tSystemRam.free
+	jsonOutputVar.RamUsed = tSystemRam.used
 	jsonOutputVar.SwapUsed = tSwapUsed
 	jsonOutputVar.SwapTotal = tSwapTotal
 	jsonOutputVar.ArcSize = tArcSize
