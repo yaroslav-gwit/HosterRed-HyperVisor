@@ -37,7 +37,9 @@ func init() {
 
 	// API command section
 	rootCmd.AddCommand(apiCmd)
-	apiCmd.Flags().IntVarP(&port, "port", "p", 3000, "Specify the port to listen on")
+	apiCmd.Flags().IntVarP(&apiServerPort, "port", "p", 3000, "Specify the port to listen on")
+	apiCmd.Flags().StringVarP(&apiServerUser, "user", "u", "admin", "Username for API authentication")
+	apiCmd.Flags().StringVarP(&apiServerUser, "password", "", "123456", "Password for API authentication")
 
 	// Version command section
 	rootCmd.AddCommand(versionCmd)

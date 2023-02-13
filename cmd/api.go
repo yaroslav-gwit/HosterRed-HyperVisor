@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -11,19 +12,21 @@ import (
 )
 
 var (
-	port int
+	apiServerPort     int
+	apiServerUser     string
+	apiServerPassword string
 
 	apiCmd = &cobra.Command{
 		Use:   "api-server",
 		Short: "Start an API server",
 		Long:  `Start an API server on port 3000 (default).`,
 		Run: func(cmd *cobra.Command, args []string) {
-			StartApiServer(port)
+			StartApiServer(apiServerPort, apiServerUser, apiServerPassword)
 		},
 	}
 )
 
-func StartApiServer(listenPort int) {
+func StartApiServer(listenPort int, user string, password string) {
 	app := fiber.New()
 
 	app.Use(logger.New(logger.Config{
@@ -32,8 +35,7 @@ func StartApiServer(listenPort int) {
 
 	app.Use(basicauth.New(basicauth.Config{
 		Users: map[string]string{
-			"john":  "doe",
-			"admin": "123456",
+			user: password,
 		},
 	}))
 
@@ -43,6 +45,9 @@ func StartApiServer(listenPort int) {
 		fiberContext.Status(fiber.StatusOK)
 		return fiberContext.SendString(string(jsonResult))
 	})
+
+	fmt.Println("Use these credentials to authenticate with API:")
+	fmt.Println("Username:", user, ". Password:", password)
 
 	app.Listen("0.0.0.0:" + strconv.Itoa(listenPort))
 }
