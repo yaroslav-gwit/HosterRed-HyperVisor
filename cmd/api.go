@@ -29,6 +29,7 @@ func StartApiServer(listenPort int) {
 	app.Get("/", func(c *fiber.Ctx) error {
 		result := GetAllVms()
 		jsonResult, _ := json.Marshal(result)
+		c.Status(fiber.StatusNotExtended)
 		return c.SendString(string(jsonResult))
 	})
 
