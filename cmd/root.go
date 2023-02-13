@@ -27,7 +27,8 @@ func Execute() {
 func init() {
 	// Host command section
 	rootCmd.AddCommand(hostCmd)
-	hostCmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "Output as JSON (useful for automation)")
+	hostCmd.Flags().BoolVarP(&jsonHostInfoOutput, "json", "j", false, "Output as JSON (useful for automation)")
+	hostCmd.Flags().BoolVarP(&jsonPrettyHostInfoOutput, "json-pretty", "", false, "Pretty JSON Output")
 
 	// VM command section
 	rootCmd.AddCommand(vmCmd)

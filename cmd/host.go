@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -16,7 +17,8 @@ import (
 )
 
 var (
-	jsonOutput bool
+	jsonHostInfoOutput       bool
+	jsonPrettyHostInfoOutput bool
 
 	hostCmd = &cobra.Command{
 		Use:   "host",
@@ -29,45 +31,44 @@ var (
 )
 
 func HostMain() {
-	// USE GOLANG SYNC LIB TO GET ALL THE DATA CONCURRENTLY
-	var tHostname string
-	var tLiveVms string
-	var tSystemUptime string
-	var tSystemRam = ramResponse{}
-	var tFreeSwap string
-	var tAllSwap string
-	var tArcSize string
-	var tFreeZfsSpace string
-	var tZrootStatus string
-
-	var wg = &sync.WaitGroup{}
-	wg.Add(9)
-	go func() { defer wg.Done(); tHostname = GetHostName() }()
-	go func() { defer wg.Done(); tLiveVms = getNumberOfRunningVms() }()
-	go func() { defer wg.Done(); tSystemUptime = getSystemUptime() }()
-	go func() { defer wg.Done(); tSystemRam = getHostRam() }()
-	go func() { defer wg.Done(); tFreeSwap = getFreeSwapSpace() }()
-	go func() { defer wg.Done(); tAllSwap = getAllSwapSpace() }()
-	go func() { defer wg.Done(); tArcSize = getArcSize() }()
-	go func() { defer wg.Done(); tFreeZfsSpace = getFreeZfsSpace() }()
-	go func() { defer wg.Done(); tZrootStatus = getZrootStatus() }()
-	wg.Wait()
-
-	if jsonOutput {
-		var jsonOutputVar = jsonOutputHostInfo{}
-		jsonOutputVar.Hostname = tHostname
-		jsonOutputVar.LiveVms = tLiveVms
-		jsonOutputVar.SystemUptime = tSystemUptime
-		jsonOutputVar.FreeRAM = tSystemRam.free
-		jsonOutputVar.AllSystemRAM = tSystemRam.all
-		jsonOutputVar.FreeSwap = tFreeSwap
-		jsonOutputVar.ArcSize = tArcSize
-		jsonOutputVar.ZrootFree = tFreeZfsSpace
-		jsonOutputVar.ZrootStatus = tZrootStatus
-
-		var jsonData, _ = json.MarshalIndent(jsonOutputVar, "", "   ")
+	if jsonPrettyHostInfoOutput {
+		jsonOutputVar := jsonOutputHostInfo()
+		jsonData, err := json.MarshalIndent(jsonOutputVar, "", "   ")
+		if err != nil {
+			log.Fatal("Function error: HostMain:", err)
+		}
+		fmt.Println(string(jsonData))
+	} else if jsonHostInfoOutput {
+		jsonOutputVar := jsonOutputHostInfo()
+		jsonData, err := json.Marshal(jsonOutputVar)
+		if err != nil {
+			log.Fatal("Function error: HostMain:", err)
+		}
 		fmt.Println(string(jsonData))
 	} else {
+		var tHostname string
+		var tLiveVms string
+		var tSystemUptime string
+		var tSystemRam = ramResponse{}
+		var tSwapUsed string
+		var tAllSwap string
+		var tArcSize string
+		var tFreeZfsSpace string
+		var tZrootStatus string
+
+		var wg = &sync.WaitGroup{}
+		wg.Add(9)
+		go func() { defer wg.Done(); tHostname = GetHostName() }()
+		go func() { defer wg.Done(); tLiveVms = getNumberOfRunningVms() }()
+		go func() { defer wg.Done(); tSystemUptime = getSystemUptime() }()
+		go func() { defer wg.Done(); tSystemRam = getHostRam() }()
+		go func() { defer wg.Done(); tSwapUsed = getFreeSwapSpace() }()
+		go func() { defer wg.Done(); tAllSwap = getAllSwapSpace() }()
+		go func() { defer wg.Done(); tArcSize = getArcSize() }()
+		go func() { defer wg.Done(); tFreeZfsSpace = getFreeZfsSpace() }()
+		go func() { defer wg.Done(); tZrootStatus = getZrootStatus() }()
+		wg.Wait()
+
 		t := table.New(os.Stdout)
 		t.SetLineStyle(table.StyleBrightCyan)
 		t.SetDividers(table.UnicodeRoundedDividers)
@@ -92,7 +93,7 @@ func HostMain() {
 			"System Uptime",
 			"RAM\n(Used/Total)",
 			"SWAP\n(Used/Total)",
-			"ARC\nCache Size",
+			"ZFS ARC\nCache Size",
 			"Zroot\n(Used/Total)",
 			"Zroot\nStatus",
 		)
@@ -101,7 +102,7 @@ func HostMain() {
 			tLiveVms,
 			tSystemUptime,
 			tSystemRam.used+"/"+tSystemRam.all,
-			tFreeSwap+"/"+tAllSwap,
+			tSwapUsed+"/"+tAllSwap,
 			tArcSize,
 			tFreeZfsSpace,
 			tZrootStatus,
@@ -111,16 +112,56 @@ func HostMain() {
 	}
 }
 
-type jsonOutputHostInfo struct {
+type jsonOutputHostInfoStruct struct {
 	Hostname     string `json:"hostname"`
 	LiveVms      string `json:"live_vms"`
 	SystemUptime string `json:"system_uptime"`
 	FreeRAM      string `json:"free_ram"`
 	AllSystemRAM string `json:"all_system_ram"`
-	FreeSwap     string `json:"free_swap"`
+	SwapUsed     string `json:"swap_used"`
+	SwapTotal    string `json:"swap_total"`
 	ArcSize      string `json:"zfs_acr_size"`
 	ZrootFree    string `json:"zroot_free"`
 	ZrootStatus  string `json:"zroot_status"`
+}
+
+func jsonOutputHostInfo() jsonOutputHostInfoStruct {
+	var tHostname string
+	var tLiveVms string
+	var tSystemUptime string
+	var tSystemRam = ramResponse{}
+	var tSwapUsed string
+	var tSwapTotal string
+	var tArcSize string
+	var tFreeZfsSpace string
+	var tZrootStatus string
+
+	var wg = &sync.WaitGroup{}
+	wg.Add(9)
+	go func() { defer wg.Done(); tHostname = GetHostName() }()
+	go func() { defer wg.Done(); tLiveVms = getNumberOfRunningVms() }()
+	go func() { defer wg.Done(); tSystemUptime = getSystemUptime() }()
+	go func() { defer wg.Done(); tSystemRam = getHostRam() }()
+	go func() { defer wg.Done(); tSwapUsed = getFreeSwapSpace() }()
+	go func() { defer wg.Done(); tSwapTotal = getAllSwapSpace() }()
+	go func() { defer wg.Done(); tArcSize = getArcSize() }()
+	go func() { defer wg.Done(); tFreeZfsSpace = getFreeZfsSpace() }()
+	go func() { defer wg.Done(); tZrootStatus = getZrootStatus() }()
+	wg.Wait()
+
+	jsonOutputVar := jsonOutputHostInfoStruct{}
+	jsonOutputVar.Hostname = tHostname
+	jsonOutputVar.LiveVms = tLiveVms
+	jsonOutputVar.SystemUptime = tSystemUptime
+	jsonOutputVar.FreeRAM = tSystemRam.free
+	jsonOutputVar.AllSystemRAM = tSystemRam.all
+	jsonOutputVar.SwapUsed = tSwapUsed
+	jsonOutputVar.SwapTotal = tSwapTotal
+	jsonOutputVar.ArcSize = tArcSize
+	jsonOutputVar.ZrootFree = tFreeZfsSpace
+	jsonOutputVar.ZrootStatus = tZrootStatus
+
+	return jsonOutputVar
 }
 
 type ramResponse struct {
