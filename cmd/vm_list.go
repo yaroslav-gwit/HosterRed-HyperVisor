@@ -87,7 +87,7 @@ func vmTableOutput() {
 		table.AlignCenter, // OS Disk Used
 		table.AlignCenter) // Description
 
-	t.SetHeaders("VMs")
+	t.SetHeaders("List of VMs\n")
 	t.SetHeaderColSpans(0, 11)
 
 	t.AddHeaders(
