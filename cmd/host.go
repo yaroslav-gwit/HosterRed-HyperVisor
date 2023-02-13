@@ -73,7 +73,8 @@ func HostMain() {
 		t.SetDividers(table.UnicodeRoundedDividers)
 		t.SetHeaderStyle(table.StyleBold)
 
-		t.SetAlignment(table.AlignLeft, // Hostname
+		t.SetAlignment(
+			table.AlignLeft,   // Hostname
 			table.AlignCenter, // Live VMs
 			table.AlignCenter, // System Uptime
 			table.AlignCenter, // RAM
@@ -82,7 +83,11 @@ func HostMain() {
 			table.AlignCenter, // Zroot space
 			table.AlignCenter, // Zpool status
 		)
-		t.SetHeaders("Hostname",
+
+		t.SetHeaders("Host information")
+		t.SetHeaderColSpans(0, 8)
+		t.AddHeaders(
+			"Hostname",
 			"Live VMs",
 			"System Uptime",
 			"RAM (Free)",
