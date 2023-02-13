@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/basicauth"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/spf13/cobra"
 )
@@ -27,6 +28,13 @@ func StartApiServer(listenPort int) {
 
 	app.Use(logger.New(logger.Config{
 		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
+	}))
+
+	app.Use(basicauth.New(basicauth.Config{
+		Users: map[string]string{
+			"john":  "doe",
+			"admin": "123456",
+		},
 	}))
 
 	app.Get("/", func(fiberContext *fiber.Ctx) error {
