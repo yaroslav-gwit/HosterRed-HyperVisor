@@ -49,7 +49,8 @@ func StartApiServer(listenPort int, user string, password string) {
 	fmt.Println("")
 	fmt.Println(" Use these credentials to authenticate with the API:")
 	fmt.Println(" Username:", user, "|| Password:", password)
-	fmt.Println(" Address: http://0.0.0.0:" + strconv.Itoa(listenPort))
+	fmt.Println(" Address: http://0.0.0.0:" + strconv.Itoa(listenPort) + "/")
+	fmt.Println("")
 
 	app.Listen("0.0.0.0:" + strconv.Itoa(listenPort))
 }
