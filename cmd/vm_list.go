@@ -54,14 +54,14 @@ func VmListMain() {
 }
 
 func vmJsonOutput() []string {
-	return GetAllVms()
+	return getAllVms()
 }
 
 func vmTableOutput() {
 	wg.Add(2)
 	var vmInfo []string
 	var thisHostName string
-	go func() { defer wg.Done(); vmInfo = GetAllVms() }()
+	go func() { defer wg.Done(); vmInfo = getAllVms() }()
 	go func() { defer wg.Done(); thisHostName = GetHostName() }()
 	wg.Wait()
 
@@ -146,7 +146,7 @@ func vmTableOutput() {
 	t.Render()
 }
 
-func GetAllVms() []string {
+func getAllVms() []string {
 	var zfsDatasets []string
 	var configFileName = "/vm_config.json"
 	zfsDatasets = append(zfsDatasets, "zroot/vm-encrypted")
