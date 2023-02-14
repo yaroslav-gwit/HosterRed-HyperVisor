@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -17,10 +16,10 @@ var (
 		Use:   "info [vm name]",
 		Short: "Print out the VM Info",
 		Long:  `Print out the VM Info.`,
-		Args:  cobra.MinimumNArgs(1),
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(args)
-			// printVmInfo(args[0])
+			// fmt.Println(args)
+			printVmInfo(args[0])
 		},
 	}
 )
