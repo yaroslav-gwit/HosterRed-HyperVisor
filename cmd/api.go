@@ -59,7 +59,7 @@ func StartApiServer(listenPort int, user string, password string) {
 	}
 
 	app.Post("/vm/info", func(fiberContext *fiber.Ctx) error {
-		vm := vmName{}
+		vm := new(vmName)
 		if err := fiberContext.BodyParser(vm); err != nil {
 			return err
 		}
