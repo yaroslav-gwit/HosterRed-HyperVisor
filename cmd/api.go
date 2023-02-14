@@ -56,7 +56,7 @@ func StartApiServer(listenPort int, user string, password string) {
 
 	app.Get("/vm/info", func(fiberContext *fiber.Ctx) error {
 		// result := getVmInfo(fiberContext.Params("name"))
-		result := getVmInfo("vm-name")
+		result := getVmInfo("apiZnaiNashyhCoUk")
 		jsonResult, err := json.Marshal(result)
 		if err != nil {
 			log.Println(err)
