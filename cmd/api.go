@@ -54,9 +54,10 @@ func StartApiServer(listenPort int, user string, password string) {
 		return fiberContext.SendString(string(jsonResult))
 	})
 
-	app.Get("/vm/info", func(fiberContext *fiber.Ctx) error {
-		// result := getVmInfo(fiberContext.Params("name"))
-		result := getVmInfo("apiZnaiNashyhCoUk")
+	app.Get("/vm/info/:name", func(fiberContext *fiber.Ctx) error {
+		fmt.Println(fiberContext.Params("name"))
+		result := getVmInfo(fiberContext.Params("name"))
+		// result := getVmInfo("apiZnaiNashyhCoUk")
 		jsonResult, err := json.Marshal(result)
 		if err != nil {
 			log.Println(err)
