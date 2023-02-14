@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -55,7 +56,10 @@ func StartApiServer(listenPort int, user string, password string) {
 
 	app.Get("/vm/info/:name", func(fiberContext *fiber.Ctx) error {
 		result := getVmInfo(fiberContext.Params("name"))
-		jsonResult, _ := json.Marshal(result)
+		jsonResult, err := json.Marshal(result)
+		if err != nil {
+			log.Println(err)
+		}
 		fiberContext.Status(fiber.StatusOK)
 		return fiberContext.SendString(string(jsonResult))
 	})
