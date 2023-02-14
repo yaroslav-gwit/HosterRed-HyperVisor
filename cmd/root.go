@@ -41,8 +41,8 @@ func init() {
 
 	// VM cmd -> info
 	vmCmd.AddCommand(vmInfoCmd)
-	vmListCmd.Flags().BoolVarP(&jsonVmInfo, "json", "j", false, "Output as JSON (useful for automation)")
-	vmListCmd.Flags().BoolVarP(&jsonPrettyVmInfo, "json-pretty", "", false, "Pretty JSON Output")
+	vmInfoCmd.Flags().BoolVarP(&jsonVmInfo, "json", "j", false, "Output as JSON (useful for automation)")
+	vmInfoCmd.Flags().BoolVarP(&jsonPrettyVmInfo, "json-pretty", "", false, "Pretty JSON Output")
 
 	// API command section
 	rootCmd.AddCommand(apiCmd)
