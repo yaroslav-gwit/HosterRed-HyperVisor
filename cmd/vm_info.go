@@ -10,14 +10,15 @@ import (
 var (
 	jsonVmInfo       bool
 	jsonPrettyVmInfo bool
-	vmInfoVmName     string
+	// vmInfoVmName     string
 
 	vmInfoCmd = &cobra.Command{
-		Use:   "info",
+		Use:   "info [vm name]",
 		Short: "Print out the VM Info",
 		Long:  `Print out the VM Info.`,
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			printVmInfo(vmInfoVmName)
+			printVmInfo(args[0])
 		},
 	}
 )
