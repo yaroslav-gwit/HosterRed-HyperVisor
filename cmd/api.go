@@ -39,22 +39,22 @@ func StartApiServer(listenPort int, user string, password string) {
 		},
 	}))
 
-	app.Get("/vm-list", func(fiberContext *fiber.Ctx) error {
-		result := getAllVms()
-		jsonResult, _ := json.Marshal(result)
-		fiberContext.Status(fiber.StatusOK)
-		return fiberContext.SendString(string(jsonResult))
-	})
-
-	app.Get("/host-info", func(fiberContext *fiber.Ctx) error {
+	app.Get("/host/info", func(fiberContext *fiber.Ctx) error {
 		result := jsonOutputHostInfo()
 		jsonResult, _ := json.Marshal(result)
 		fiberContext.Status(fiber.StatusOK)
 		return fiberContext.SendString(string(jsonResult))
 	})
 
-	app.Get("/vm-info/:vmname", func(fiberContext *fiber.Ctx) error {
-		result := getVmInfo(fiberContext.Params("vmname"))
+	app.Get("/vm/list", func(fiberContext *fiber.Ctx) error {
+		result := getAllVms()
+		jsonResult, _ := json.Marshal(result)
+		fiberContext.Status(fiber.StatusOK)
+		return fiberContext.SendString(string(jsonResult))
+	})
+
+	app.Get("/vm/info/:name", func(fiberContext *fiber.Ctx) error {
+		result := getVmInfo(fiberContext.Params("name"))
 		jsonResult, _ := json.Marshal(result)
 		fiberContext.Status(fiber.StatusOK)
 		return fiberContext.SendString(string(jsonResult))
