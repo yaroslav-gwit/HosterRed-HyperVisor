@@ -32,10 +32,18 @@ func init() {
 
 	// VM command section
 	rootCmd.AddCommand(vmCmd)
+
+	// VM cmd -> list
 	vmCmd.AddCommand(vmListCmd)
 	vmListCmd.Flags().BoolVarP(&jsonOutputVm, "json", "j", false, "Output as JSON (useful for automation)")
 	vmListCmd.Flags().BoolVarP(&jsonPrettyOutputVm, "json-pretty", "", false, "Pretty JSON Output")
 	vmListCmd.Flags().BoolVarP(&tableUnixOutputVm, "unix-style", "u", false, "Show Unix style table (useful for bash scripting)")
+
+	// VM cmd -> info
+	vmCmd.AddCommand(vmInfoCmd)
+	vmListCmd.Flags().BoolVarP(&jsonVmInfo, "json", "j", true, "Output as JSON (useful for automation)")
+	vmListCmd.Flags().BoolVarP(&jsonPrettyVmInfo, "json-pretty", "", false, "Pretty JSON Output")
+	vmListCmd.Flags().StringVarP(&vmInfoVmName, "name", "n", "", "Specify the VM name")
 
 	// API command section
 	rootCmd.AddCommand(apiCmd)

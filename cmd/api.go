@@ -53,6 +53,13 @@ func StartApiServer(listenPort int, user string, password string) {
 		return fiberContext.SendString(string(jsonResult))
 	})
 
+	app.Get("/vm-info/:vm-name", func(fiberContext *fiber.Ctx) error {
+		result := getVmInfo(fiberContext.Params("vm-name"))
+		jsonResult, _ := json.Marshal(result)
+		fiberContext.Status(fiber.StatusOK)
+		return fiberContext.SendString(string(jsonResult))
+	})
+
 	fmt.Println("")
 	fmt.Println(" Use these credentials to authenticate with the API:")
 	fmt.Println(" Username:", user, "|| Password:", password)
