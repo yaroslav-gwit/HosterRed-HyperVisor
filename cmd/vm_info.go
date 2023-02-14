@@ -61,7 +61,7 @@ type vmInfoStruct struct {
 func getVmInfo(vmName string) vmInfoStruct {
 	var vmInfoVar = vmInfoStruct{}
 	vmInfoVar.VmName = vmName
-	wg.Add(1)
+	wg.Add(2)
 	go func() { defer wg.Done(); vmInfoVar.ParentHost = GetHostName() }()
 	go func() { defer wg.Done(); vmInfoVar.VmStatusEncrypted = encryptionCheck(vmName) }()
 	wg.Wait()
