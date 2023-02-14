@@ -32,7 +32,7 @@ func printVmInfo(vmName string) {
 			log.Fatal(err)
 		}
 		println(string(jsonPretty))
-	} else if jsonVmInfo {
+	} else {
 		jsonOutput, err := json.Marshal(vmInfo)
 		if err != nil {
 			log.Fatal(err)
