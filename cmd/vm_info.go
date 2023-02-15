@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slices"
 )
 
 var (
@@ -25,7 +27,10 @@ var (
 )
 
 func printVmInfo(vmName string) {
-	vmInfo := getVmInfo(vmName)
+	vmInfo, err := getVmInfo(vmName)
+	if err != nil {
+		log.Fatal(err)
+	}
 	if jsonPrettyVmInfo {
 		jsonPretty, err := json.MarshalIndent(vmInfo, "", "   ")
 		if err != nil {
@@ -61,9 +66,16 @@ type vmInfoStruct struct {
 	OsDiskUsed         string `json:"os_disk_used,omitempty"`
 }
 
-func getVmInfo(vmName string) vmInfoStruct {
+func getVmInfo(vmName string) (vmInfoStruct, error) {
 	var vmInfoVar = vmInfoStruct{}
 	vmInfoVar.VmName = vmName
+
+	allVms := getAllVms()
+	if slices.Contains(allVms, vmName) {
+		_ = true
+	} else {
+		return vmInfoStruct{}, errors.New("VM is not found in the system")
+	}
 
 	wg.Add(1)
 	go func() { defer wg.Done(); vmInfoVar.ParentHost = GetHostName() }()
@@ -81,5 +93,5 @@ func getVmInfo(vmName string) vmInfoStruct {
 	go func() { defer wg.Done(); vmInfoVar.Uptime = getVmUptimeNew(vmName) }()
 
 	wg.Wait()
-	return vmInfoVar
+	return vmInfoVar, nil
 }
