@@ -92,6 +92,13 @@ func getVmInfo(vmName string) (vmInfoStruct, error) {
 	wg.Add(1)
 	go func() { defer wg.Done(); vmInfoVar.Uptime = getVmUptimeNew(vmName) }()
 
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		vmConfigVar := vmConfig(vmName)
+		vmInfoVar.MainIpAddress = vmConfigVar.Networks[0].IPAddress
+	}()
+
 	wg.Wait()
 	return vmInfoVar, nil
 }
