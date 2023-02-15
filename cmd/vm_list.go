@@ -131,7 +131,7 @@ func vmTableOutput() {
 		var vmUptimeVar string
 		wg.Add(4)
 		go func() { defer wg.Done(); vmOsDiskFullSize = getOsDiskFullSize(vmName) }()
-		go func() { defer wg.Done(); vmOsDiskFree = getOsDiskFree(vmName) }()
+		go func() { defer wg.Done(); vmOsDiskFree = getOsDiskUsed(vmName) }()
 		go func() { defer wg.Done(); vmEncrypted = encryptionCheckString(vmName) }()
 		go func() { defer wg.Done(); vmUptimeVar = getVmUptimeNew(vmName) }()
 		wg.Wait()
@@ -358,7 +358,7 @@ func getOsDiskFullSize(vmName string) string {
 	return osDiskLs
 }
 
-func getOsDiskFree(vmName string) string {
+func getOsDiskUsed(vmName string) string {
 	var filePath = getVmFolder(vmName) + "/disk0.img"
 	var osDiskDu string
 	var osDiskDuArg1 = "du"

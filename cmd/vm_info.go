@@ -56,15 +56,30 @@ type vmInfoStruct struct {
 	VmUptime           string `json:"vm_uptime,omitempty"`
 	VmDescription      string `json:"vm_description,omitempty"`
 	ParentHost         string `json:"parent_host,omitempty"`
+	Uptime             string `json:"uptime,omitempty"`
+	OsDiskTotal        string `json:"os_disk_total,omitempty"`
+	OsDiskUsed         string `json:"os_disk_used,omitempty"`
 }
 
 func getVmInfo(vmName string) vmInfoStruct {
 	var vmInfoVar = vmInfoStruct{}
 	vmInfoVar.VmName = vmName
-	wg.Add(2)
-	go func() { defer wg.Done(); vmInfoVar.ParentHost = GetHostName() }()
-	go func() { defer wg.Done(); vmInfoVar.VmStatusEncrypted = encryptionCheck(vmName) }()
-	wg.Wait()
 
+	wg.Add(1)
+	go func() { defer wg.Done(); vmInfoVar.ParentHost = GetHostName() }()
+
+	wg.Add(1)
+	go func() { defer wg.Done(); vmInfoVar.VmStatusEncrypted = encryptionCheck(vmName) }()
+
+	wg.Add(1)
+	go func() { defer wg.Done(); vmInfoVar.OsDiskTotal = getOsDiskFullSize(vmName) }()
+
+	wg.Add(1)
+	go func() { defer wg.Done(); vmInfoVar.OsDiskUsed = getOsDiskUsed(vmName) }()
+
+	wg.Add(1)
+	go func() { defer wg.Done(); vmInfoVar.Uptime = getVmUptimeNew(vmName) }()
+
+	wg.Wait()
 	return vmInfoVar
 }
