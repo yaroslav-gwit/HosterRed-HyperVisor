@@ -66,7 +66,7 @@ func StartApiServer(listenPort int, user string, password string) {
 		result, err := getVmInfo(vm.Name)
 		if err != nil {
 			fiberContext.Status(fiber.StatusBadRequest)
-			return fiberContext.SendString(`"message": ` + err.Error())
+			return fiberContext.SendString(`{ "message": "` + err.Error() + `" }`)
 		}
 		jsonResult, err := json.Marshal(result)
 		if err != nil {
