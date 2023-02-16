@@ -118,6 +118,16 @@ func generateBhyveStartCommand(vmName string) string {
 	bhyveFinalCommand = bhyveFinalCommand + cpuAndRam
 	fmt.Println(bhyveFinalCommand)
 
+	bhyvePci = bhyvePci + 1
+	vncCommand := " -s " + strconv.Itoa(bhyvePci) + ":" + strconv.Itoa(bhyvePci2) + ",fbuf,tcp=0.0.0.0:" + vmConfigVar.VncPort + ",w=1280,h=1024,password=" + vmConfigVar.VncPassword
+	bhyveFinalCommand = bhyveFinalCommand + vncCommand
+	fmt.Println(bhyveFinalCommand)
+
+	// bhyvePci = bhyvePci + 1
+	// var loaderCommand string
+	// if vmConfigVar.Loader == "bios" {
+	// 	loaderCommand = " -s " + strconv.Itoa(bhyvePci)
+	// }
 	return ""
 }
 
