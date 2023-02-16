@@ -48,9 +48,9 @@ func printVmInfo(vmName string) {
 type vmInfoStruct struct {
 	VmName             string `json:"vm_name,omitempty"`
 	MainIpAddress      string `json:"main_ip_address,omitempty"`
-	VmStatusLive       bool   `json:"vm_status_live,omitempty"`
-	VmStatusEncrypted  bool   `json:"vm_status_encrypted,omitempty"`
-	VmStatusProduction bool   `json:"vm_status_production,omitempty"`
+	VmStatusLive       bool   `json:"vm_status_live"`
+	VmStatusEncrypted  bool   `json:"vm_status_encrypted"`
+	VmStatusProduction bool   `json:"vm_status_production"`
 	VmStatusBackup     bool   `json:"vm_status_backup"`
 	CpuSockets         int    `json:"cpu_sockets,omitempty"`
 	CpuCores           int    `json:"cpu_cores,omitempty"`
@@ -108,6 +108,13 @@ func getVmInfo(vmName string) (vmInfoStruct, error) {
 			log.Fatal(err)
 		}
 		vmInfoVar.CpuCores = cpuCores
+		vmInfoVar.RamAmount = vmConfigVar.Memory
+		vncPort, err := strconv.Atoi(vmConfigVar.VncPort)
+		if err != nil {
+			log.Fatal(err)
+		}
+		vmInfoVar.VncPort = vncPort
+		vmInfoVar.VncPassword = vmConfigVar.VncPassword
 	}()
 
 	wg.Add(1)
