@@ -25,7 +25,10 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			// cmd.Help()
 			// fmt.Println(args[0])
-			vmStart(args[0])
+			err := vmStart(args[0])
+			if err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 )
