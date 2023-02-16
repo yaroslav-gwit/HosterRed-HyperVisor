@@ -13,7 +13,6 @@ import (
 var (
 	jsonVmInfo       bool
 	jsonPrettyVmInfo bool
-	// vmInfoVmName     string
 
 	vmInfoCmd = &cobra.Command{
 		Use:   "info [vm name]",
@@ -21,7 +20,6 @@ var (
 		Long:  `Print out the VM Info.`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// fmt.Println(args)
 			printVmInfo(args[0])
 		},
 	}
@@ -53,6 +51,7 @@ type vmInfoStruct struct {
 	VmStatusLive       bool   `json:"vm_status_live,omitempty"`
 	VmStatusEncrypted  bool   `json:"vm_status_encrypted,omitempty"`
 	VmStatusProduction bool   `json:"vm_status_production,omitempty"`
+	VmStatusBackup     bool   `json:"vm_status_backup,omitempty"`
 	CpuSockets         int    `json:"cpu_sockets,omitempty"`
 	CpuCores           int    `json:"cpu_cores,omitempty"`
 	RamAmount          string `json:"ram_amount,omitempty"`
@@ -91,6 +90,12 @@ func getVmInfo(vmName string) (vmInfoStruct, error) {
 			vmInfoVar.VmStatusProduction = true
 		} else {
 			vmInfoVar.VmStatusProduction = false
+		}
+
+		if vmConfigVar.ParentHost == vmInfoVar.ParentHost {
+			vmInfoVar.VmStatusBackup = false
+		} else {
+			vmInfoVar.VmStatusBackup = true
 		}
 
 		cpuSockets, err := strconv.Atoi(vmConfigVar.CPUSockets)
