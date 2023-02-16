@@ -88,7 +88,7 @@ func generateBhyveStartCommand(vmName string) string {
 	}
 
 	bhyveFinalCommand = bhyveFinalCommand + networkFinal
-	fmt.Println(bhyveFinalCommand)
+	// fmt.Println(bhyveFinalCommand)
 
 	bhyvePci := 3
 	var diskFinal string
@@ -112,16 +112,16 @@ func generateBhyveStartCommand(vmName string) string {
 	}
 
 	bhyveFinalCommand = bhyveFinalCommand + diskFinal
-	fmt.Println(bhyveFinalCommand)
+	// fmt.Println(bhyveFinalCommand)
 
 	cpuAndRam := " -c sockets=" + vmConfigVar.CPUSockets + ",cores=" + vmConfigVar.CPUCores + " -m " + vmConfigVar.Memory
 	bhyveFinalCommand = bhyveFinalCommand + cpuAndRam
-	fmt.Println(bhyveFinalCommand)
+	// fmt.Println(bhyveFinalCommand)
 
 	bhyvePci = bhyvePci + 1
 	vncCommand := " -s " + strconv.Itoa(bhyvePci) + ":" + strconv.Itoa(bhyvePci2) + ",fbuf,tcp=0.0.0.0:" + vmConfigVar.VncPort + ",w=1280,h=1024,password=" + vmConfigVar.VncPassword
 	bhyveFinalCommand = bhyveFinalCommand + vncCommand
-	fmt.Println(bhyveFinalCommand)
+	// fmt.Println(bhyveFinalCommand)
 
 	bhyvePci = bhyvePci + 1
 	var loaderCommand string
