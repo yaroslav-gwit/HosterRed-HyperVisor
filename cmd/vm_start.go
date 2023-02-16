@@ -18,7 +18,7 @@ import (
 
 var (
 	vmStartCmd = &cobra.Command{
-		Use:   "start [VM name]",
+		Use:   "start [vmName]",
 		Short: "Start a particular VM using it's name",
 		Long:  `Start a particular VM using it's name`,
 		Args:  cobra.ExactArgs(1),
@@ -43,7 +43,31 @@ func vmStart(vmName string) error {
 }
 
 func generateBhyveStartCommand(vmName string) string {
-	// Find existing TAP adaptors
+	vmConfigVar := vmConfig(vmName)
+
+	var availableTaps []string
+	for _, v := range vmConfigVar.Networks {
+		availableTap := findAvailableTapInterface()
+		availableTaps = append(availableTaps, availableTap)
+		fmt.Println("Next available tap int:", availableTap)
+
+		createTapInterface := "ifconfig tap" + availableTap + " create"
+		fmt.Println(createTapInterface)
+
+		bridgeTapInterface := "ifconfig vm-" + v.NetworkBridge + "addm tap" + availableTap
+		fmt.Println(bridgeTapInterface)
+
+		upBridgeInterface := "ifconfig vm-" + v.NetworkBridge + " up"
+		fmt.Println(upBridgeInterface)
+
+		setTapDescription := "ifconfig " + availableTap + " description " + "\"" + availableTap + " " + vmName + " interface_" + v.NetworkBridge + "\""
+		fmt.Println(setTapDescription)
+	}
+
+	return ""
+}
+
+func findAvailableTapInterface() string {
 	cmd := exec.Command("ifconfig")
 	stdout, stderr := cmd.Output()
 	if stderr != nil {
@@ -52,9 +76,8 @@ func generateBhyveStartCommand(vmName string) string {
 
 	reMatchTap, _ := regexp.Compile(`^tap`)
 
-	var trimmedTap string
 	var tapList []int
-	nextFreeTap := 0
+	var trimmedTap string
 	for _, v := range strings.Split(string(stdout), "\n") {
 		trimmedTap = strings.Trim(v, "")
 		if reMatchTap.MatchString(trimmedTap) {
@@ -71,18 +94,14 @@ func generateBhyveStartCommand(vmName string) string {
 		}
 	}
 
+	nextFreeTap := 0
 	for {
 		if slices.Contains(tapList, nextFreeTap) {
 			nextFreeTap = nextFreeTap + 1
 		} else {
-			break
+			return "tap" + strconv.Itoa(nextFreeTap)
 		}
 	}
-	for _, v := range tapList {
-		fmt.Println(v)
-	}
-	fmt.Println("Next available tap int:", nextFreeTap)
-	return ""
 }
 
 func test() {
