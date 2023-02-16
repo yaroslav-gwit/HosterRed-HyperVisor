@@ -51,7 +51,7 @@ type vmInfoStruct struct {
 	VmStatusLive       bool   `json:"vm_status_live,omitempty"`
 	VmStatusEncrypted  bool   `json:"vm_status_encrypted,omitempty"`
 	VmStatusProduction bool   `json:"vm_status_production,omitempty"`
-	VmStatusBackup     bool   `json:"vm_status_backup,omitempty"`
+	VmStatusBackup     bool   `json:"vm_status_backup"`
 	CpuSockets         int    `json:"cpu_sockets,omitempty"`
 	CpuCores           int    `json:"cpu_cores,omitempty"`
 	RamAmount          string `json:"ram_amount,omitempty"`
