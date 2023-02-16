@@ -58,6 +58,7 @@ type vmInfoStruct struct {
 	VncPort            int    `json:"vnc_port,omitempty"`
 	VncPassword        string `json:"vnc_password,omitempty"`
 	OsType             string `json:"os_type,omitempty"`
+	OsComment          string `json:"os_comment,omitempty"`
 	VmUptime           string `json:"vm_uptime,omitempty"`
 	VmDescription      string `json:"vm_description,omitempty"`
 	ParentHost         string `json:"parent_host,omitempty"`
@@ -115,7 +116,8 @@ func getVmInfo(vmName string) (vmInfoStruct, error) {
 		}
 		vmInfoVar.VncPort = vncPort
 		vmInfoVar.VncPassword = vmConfigVar.VncPassword
-		vmInfoVar.OsType = vmConfigVar.OsComment
+		vmInfoVar.OsType = vmConfigVar.OsType
+		vmInfoVar.OsComment = vmConfigVar.OsComment
 		vmInfoVar.VmDescription = vmConfigVar.Description
 	}()
 
