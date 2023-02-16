@@ -57,9 +57,9 @@ func generateBhyveStartCommand(vmName string) string {
 	for _, v := range strings.Split(string(stdout), "\n") {
 		trimmedTap = strings.Trim(v, "")
 		if reMatchTap.MatchString(trimmedTap) {
-			for _, i := range strings.Split(trimmedTap, ":") {
-				if reMatchTap.MatchString(i) {
-					fmt.Println(i)
+			for _, vv := range strings.Split(trimmedTap, ":") {
+				if reMatchTap.MatchString(vv) {
+					fmt.Println(vv)
 				}
 			}
 		}
