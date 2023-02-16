@@ -115,6 +115,8 @@ func getVmInfo(vmName string) (vmInfoStruct, error) {
 		}
 		vmInfoVar.VncPort = vncPort
 		vmInfoVar.VncPassword = vmConfigVar.VncPassword
+		vmInfoVar.OsType = vmConfigVar.OsComment
+		vmInfoVar.VmDescription = vmConfigVar.Description
 	}()
 
 	wg.Add(1)
