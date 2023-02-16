@@ -114,6 +114,10 @@ func generateBhyveStartCommand(vmName string) string {
 	bhyveFinalCommand = bhyveFinalCommand + diskFinal
 	fmt.Println(bhyveFinalCommand)
 
+	cpuAndRam := " -c sockets=" + vmConfigVar.CPUSockets + ",cores=" + vmConfigVar.CPUCores + " -m " + vmConfigVar.Memory
+	bhyveFinalCommand = bhyveFinalCommand + cpuAndRam
+	fmt.Println(bhyveFinalCommand)
+
 	return ""
 }
 
