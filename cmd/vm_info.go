@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
@@ -68,7 +69,6 @@ type vmInfoStruct struct {
 
 func getVmInfo(vmName string) (vmInfoStruct, error) {
 	var vmInfoVar = vmInfoStruct{}
-	vmInfoVar.VmName = vmName
 
 	allVms := getAllVms()
 	if slices.Contains(allVms, vmName) {
@@ -77,11 +77,40 @@ func getVmInfo(vmName string) (vmInfoStruct, error) {
 		return vmInfoStruct{}, errors.New("VM is not found in the system")
 	}
 
+	vmInfoVar.VmName = vmName
 	wg.Add(1)
 	go func() { defer wg.Done(); vmInfoVar.ParentHost = GetHostName() }()
 
 	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		vmConfigVar := vmConfig(vmName)
+		vmInfoVar.MainIpAddress = vmConfigVar.Networks[0].IPAddress
+
+		if vmConfigVar.LiveStatus == "production" || vmConfigVar.LiveStatus == "prod" {
+			vmInfoVar.VmStatusProduction = true
+		} else {
+			vmInfoVar.VmStatusProduction = false
+		}
+
+		cpuSockets, err := strconv.Atoi(vmConfigVar.CPUSockets)
+		if err != nil {
+			log.Fatal(err)
+		}
+		vmInfoVar.CpuSockets = cpuSockets
+
+		cpuCores, err := strconv.Atoi(vmConfigVar.CPUCores)
+		if err != nil {
+			log.Fatal(err)
+		}
+		vmInfoVar.CpuCores = cpuCores
+	}()
+
+	wg.Add(1)
 	go func() { defer wg.Done(); vmInfoVar.VmStatusEncrypted = encryptionCheck(vmName) }()
+
+	wg.Add(1)
+	go func() { defer wg.Done(); vmInfoVar.VmStatusLive = vmLiveCheck(vmName) }()
 
 	wg.Add(1)
 	go func() { defer wg.Done(); vmInfoVar.OsDiskTotal = getOsDiskFullSize(vmName) }()
@@ -91,13 +120,6 @@ func getVmInfo(vmName string) (vmInfoStruct, error) {
 
 	wg.Add(1)
 	go func() { defer wg.Done(); vmInfoVar.Uptime = getVmUptimeNew(vmName) }()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		vmConfigVar := vmConfig(vmName)
-		vmInfoVar.MainIpAddress = vmConfigVar.Networks[0].IPAddress
-	}()
 
 	wg.Wait()
 	return vmInfoVar, nil
