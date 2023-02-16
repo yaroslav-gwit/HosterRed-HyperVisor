@@ -54,7 +54,7 @@ func generateBhyveStartCommand(vmName string) string {
 
 	var trimmedTap string
 	var tapList []int
-	// nextFreeTap := 0
+	nextFreeTap := 0
 	for _, v := range strings.Split(string(stdout), "\n") {
 		trimmedTap = strings.Trim(v, "")
 		if reMatchTap.MatchString(trimmedTap) {
@@ -71,10 +71,17 @@ func generateBhyveStartCommand(vmName string) string {
 		}
 	}
 
+	for {
+		if slices.Contains(tapList, nextFreeTap) {
+			nextFreeTap = nextFreeTap + 1
+		} else {
+			break
+		}
+	}
 	for _, v := range tapList {
 		fmt.Println(v)
 	}
-
+	fmt.Println("Next available tap int:", nextFreeTap)
 	return ""
 }
 
