@@ -71,9 +71,10 @@ func generateBhyveStartCommand(vmName string) string {
 	bhyvePci2 := 0
 
 	var networkFinal string
+	var networkAdaptorType string
 	if len(vmConfigVar.Networks) > 1 {
 		for i, v := range vmConfigVar.Networks {
-			networkAdaptorType := "," + v.NetworkAdaptorType + ","
+			networkAdaptorType = "," + v.NetworkAdaptorType + ","
 			if i == 0 {
 				networkFinal = "-s " + strconv.Itoa(bhyvePci1) + ":" + strconv.Itoa(bhyvePci2) + networkAdaptorType + availableTaps[i] + ",mac=" + v.NetworkMac
 			} else {
@@ -81,6 +82,9 @@ func generateBhyveStartCommand(vmName string) string {
 				networkFinal = networkFinal + " -s " + strconv.Itoa(bhyvePci1) + ":" + strconv.Itoa(bhyvePci2) + networkAdaptorType + availableTaps[i] + ",mac=" + v.NetworkMac
 			}
 		}
+	} else {
+		networkAdaptorType = "," + vmConfigVar.Networks[0].NetworkAdaptorType + ","
+		networkFinal = "-s " + strconv.Itoa(bhyvePci1) + ":" + strconv.Itoa(bhyvePci2) + networkAdaptorType + availableTaps[0] + ",mac=" + vmConfigVar.Networks[0].NetworkMac
 	}
 
 	bhyveFinalCommand = bhyveFinalCommand + networkFinal
