@@ -66,6 +66,26 @@ func generateBhyveStartCommand(vmName string) string {
 		fmt.Println(setTapDescription)
 	}
 
+	bhyveFinalCommand := "bhyve -HAw -s 0:0,hostbridge -s 31,lpc "
+	bhyvePci1 := 2
+	bhyvePci2 := 0
+
+	var networkFinal string
+	if len(vmConfigVar.Networks) > 1 {
+		for i, v := range vmConfigVar.Networks {
+			networkAdaptorType := "," + v.NetworkAdaptorType + ","
+			if i == 0 {
+				networkFinal = "-s " + strconv.Itoa(bhyvePci1) + ":" + strconv.Itoa(bhyvePci2) + networkAdaptorType + availableTaps[i] + ",mac=" + v.NetworkMac
+			} else {
+				bhyvePci2 = bhyvePci2 + 1
+				networkFinal = networkFinal + " -s " + strconv.Itoa(bhyvePci1) + ":" + strconv.Itoa(bhyvePci2) + networkAdaptorType + availableTaps[i] + ",mac=" + v.NetworkMac
+			}
+		}
+	}
+
+	bhyveFinalCommand = bhyveFinalCommand + networkFinal
+	fmt.Println(bhyveFinalCommand)
+
 	return ""
 }
 
