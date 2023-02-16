@@ -109,6 +109,7 @@ func generateBhyveStartCommand(vmName string) string {
 	}
 
 	bhyveFinalCommand = bhyveFinalCommand + diskFinal
+	fmt.Println(bhyveFinalCommand)
 
 	return ""
 }
