@@ -44,6 +44,9 @@ func init() {
 	vmInfoCmd.Flags().BoolVarP(&jsonVmInfo, "json", "j", false, "Output as JSON (useful for automation)")
 	vmInfoCmd.Flags().BoolVarP(&jsonPrettyVmInfo, "json-pretty", "", false, "Pretty JSON Output")
 
+	// VM cmd -> start
+	vmCmd.AddCommand(vmStartCmd)
+
 	// API command section
 	rootCmd.AddCommand(apiCmd)
 	apiCmd.Flags().IntVarP(&apiServerPort, "port", "p", 3000, "Specify the port to listen on")
@@ -58,6 +61,6 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number of HosterCore",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("HosterRed v0.1, Golang version")
+		fmt.Println("HosterCore v0.1, version based on Golang")
 	},
 }
