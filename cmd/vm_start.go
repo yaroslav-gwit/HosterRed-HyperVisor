@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"syscall"
 
@@ -48,8 +49,14 @@ func generateBhyveStartCommand(vmName string) string {
 		log.Fatal("ifconfig exited with an error " + stderr.Error())
 	}
 
+	reMatchTap, _ := regexp.Compile(`^tap`)
+
+	var trimmedTap string
 	for i, v := range strings.Split(string(stdout), "\n") {
-		fmt.Println(i, v)
+		trimmedTap = strings.Trim(v, "")
+		if reMatchTap.MatchString(trimmedTap) {
+			fmt.Println(i, trimmedTap)
+		}
 	}
 
 	return ""
