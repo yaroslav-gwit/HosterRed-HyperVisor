@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/spf13/cobra"
 )
 
@@ -27,12 +28,11 @@ var (
 	}
 )
 
-func StartApiServer(listenPort int, user string, password string) {
+func StartApiServer(port int, user string, password string) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true, Prefork: false})
-
+	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
-		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
-	}))
+		Format: "[${locals:requestid} - ${ip}]:${port} ${status} - ${method} ${path} - Error: ${error}\n"}))
 
 	app.Use(basicauth.New(basicauth.Config{
 		Users: map[string]string{
@@ -79,8 +79,8 @@ func StartApiServer(listenPort int, user string, password string) {
 	fmt.Println("")
 	fmt.Println(" Use these credentials to authenticate with the API:")
 	fmt.Println(" Username:", user, "|| Password:", password)
-	fmt.Println(" Address: http://0.0.0.0:" + strconv.Itoa(listenPort) + "/")
+	fmt.Println(" Address: http://0.0.0.0:" + strconv.Itoa(port) + "/")
 	fmt.Println("")
 
-	app.Listen("0.0.0.0:" + strconv.Itoa(listenPort))
+	app.Listen("0.0.0.0:" + strconv.Itoa(port))
 }
