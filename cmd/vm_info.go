@@ -77,8 +77,7 @@ func getVmInfo(vmName string) (vmInfoStruct, error) {
 	}
 
 	vmInfoVar.VmName = vmName
-	wg.Add(1)
-	go func() { defer wg.Done(); vmInfoVar.ParentHost = GetHostName() }()
+	vmInfoVar.ParentHost = GetHostName()
 
 	wg.Add(1)
 	go func() {
