@@ -53,16 +53,16 @@ func generateBhyveStartCommand(vmName string) string {
 		availableTaps = append(availableTaps, availableTap)
 		fmt.Println("Next available tap int:", availableTap)
 
-		createTapInterface := "ifconfig tap" + availableTap + " create"
+		createTapInterface := "ifconfig " + availableTap + " create"
 		fmt.Println(createTapInterface)
 
-		bridgeTapInterface := "ifconfig vm-" + v.NetworkBridge + "addm tap" + availableTap
+		bridgeTapInterface := "ifconfig vm-" + v.NetworkBridge + " addm " + availableTap
 		fmt.Println(bridgeTapInterface)
 
 		upBridgeInterface := "ifconfig vm-" + v.NetworkBridge + " up"
 		fmt.Println(upBridgeInterface)
 
-		setTapDescription := "ifconfig " + availableTap + " description " + "\"" + availableTap + " " + vmName + " interface_" + v.NetworkBridge + "\""
+		setTapDescription := "ifconfig " + availableTap + " description " + "\"" + availableTap + " " + vmName + " interface " + v.NetworkBridge + "\""
 		fmt.Println(setTapDescription)
 	}
 
