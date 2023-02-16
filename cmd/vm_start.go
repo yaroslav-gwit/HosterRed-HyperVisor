@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -52,7 +53,7 @@ func generateBhyveStartCommand(vmName string) string {
 	reMatchTap, _ := regexp.Compile(`^tap`)
 
 	var trimmedTap string
-	// var tapList []string
+	var tapList []int
 	// nextFreeTap := 0
 	for _, v := range strings.Split(string(stdout), "\n") {
 		trimmedTap = strings.Trim(v, "")
@@ -60,10 +61,18 @@ func generateBhyveStartCommand(vmName string) string {
 			for _, vv := range strings.Split(trimmedTap, ":") {
 				if reMatchTap.MatchString(vv) {
 					vv = strings.Replace(vv, "tap", "", 1)
-					fmt.Println(vv)
+					vvInt, err := strconv.Atoi(vv)
+					if err != nil {
+						log.Fatal("Could not convert tap int: " + err.Error())
+					}
+					tapList = append(tapList, vvInt)
 				}
 			}
 		}
+	}
+
+	for _, v := range tapList {
+		fmt.Println(v)
 	}
 
 	return ""
