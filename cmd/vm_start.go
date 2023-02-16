@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
 
 	"github.com/spf13/cobra"
@@ -36,6 +37,21 @@ func vmStart(vmName string) error {
 	}
 
 	return nil
+}
+
+func generateBhyveStartCommand(vmName string) string {
+	// Find existing TAP adaptors
+	cmd := exec.Command("ifconfig")
+	stdout, stderr := cmd.Output()
+	if stderr != nil {
+		log.Fatal("ifconfig exited with an error " + stderr.Error())
+	}
+
+	for i, v := range strings.Split(string(stdout), "\n") {
+		fmt.Println(i, v)
+	}
+
+	return ""
 }
 
 func test() {
@@ -85,15 +101,4 @@ func test() {
 			fmt.Println("Process exited")
 		}
 	}
-}
-
-func generateBhyveStartCommand(vmName string) string {
-	cmd := exec.Command("ifconfig")
-	stdout, stderr := cmd.Output()
-	if stderr != nil {
-		log.Fatal("ifconfig exited with an error " + stderr.Error())
-	}
-
-	fmt.Println(string(stdout))
-	return ""
 }
