@@ -93,19 +93,22 @@ func generateBhyveStartCommand(vmName string) string {
 	bhyvePci := 3
 	var diskFinal string
 	var genericDiskText string
+	var diskImageLocation string
 	if len(vmConfigVar.Disks) > 1 {
 		for i, v := range vmConfigVar.Disks {
+			diskImageLocation = getVmFolder(vmName) + "/" + v.DiskImage
 			genericDiskText = ":0," + v.DiskType + ","
 			if i == 0 {
-				diskFinal = " -s " + strconv.Itoa(bhyvePci) + genericDiskText + v.DiskLocation
+				diskFinal = " -s " + strconv.Itoa(bhyvePci) + genericDiskText + diskImageLocation
 			} else {
 				bhyvePci = bhyvePci + 1
-				diskFinal = diskFinal + " -s " + strconv.Itoa(bhyvePci) + genericDiskText + v.DiskLocation
+				diskFinal = diskFinal + " -s " + strconv.Itoa(bhyvePci) + genericDiskText + diskImageLocation
 			}
 		}
 	} else {
+		diskImageLocation = getVmFolder(vmName) + "/" + vmConfigVar.Disks[0].DiskImage
 		genericDiskText = ":0," + vmConfigVar.Disks[0].DiskType + ","
-		diskFinal = " -s " + strconv.Itoa(bhyvePci) + genericDiskText + vmConfigVar.Disks[0].DiskLocation
+		diskFinal = " -s " + strconv.Itoa(bhyvePci) + genericDiskText + diskImageLocation
 	}
 
 	bhyveFinalCommand = bhyveFinalCommand + diskFinal
