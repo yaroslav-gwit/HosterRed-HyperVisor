@@ -128,7 +128,7 @@ func generateBhyveStartCommand(vmName string) string {
 	if vmConfigVar.Loader == "bios" {
 		loaderCommand = " -s " + strconv.Itoa(bhyvePci) + ":" + strconv.Itoa(bhyvePci2) + ",xhci,tablet -l com1,/dev/nmdm-" + vmName + "-1A -l bootrom,/usr/local/share/uefi-firmware/BHYVE_UEFI_CSM.fd -u " + vmName
 	} else if vmConfigVar.Loader == "uefi" {
-		loaderCommand = " -s " + strconv.Itoa(bhyvePci) + ",xhci,tablet -l com1,/dev/nmdm-" + vmName + "-1A -l bootrom,/usr/local/share/uefi-firmware/BHYVE_UEFI.fd -u " + vmName
+		loaderCommand = " -s " + strconv.Itoa(bhyvePci) + ":" + strconv.Itoa(bhyvePci2) + ",xhci,tablet -l com1,/dev/nmdm-" + vmName + "-1A -l bootrom,/usr/local/share/uefi-firmware/BHYVE_UEFI.fd -u " + vmName
 	} else {
 		log.Fatal("Please make sure your loader is set to 'bios' or 'uefi'")
 	}
