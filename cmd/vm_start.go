@@ -95,7 +95,7 @@ func generateBhyveStartCommand(vmName string) string {
 		setTapDescription1 := "ifconfig"
 		setTapDescription2 := availableTap
 		setTapDescription3 := "description"
-		setTapDescription4 := "\"" + availableTap + " " + vmName + " interface -> " + v.NetworkBridge + "\""
+		setTapDescription4 := "\\\"" + availableTap + " " + vmName + " interface -> " + v.NetworkBridge + "\\\""
 		fmt.Println(" ", setTapDescription1, setTapDescription2, setTapDescription3, setTapDescription4)
 		exec.Command(setTapDescription1, setTapDescription2, setTapDescription3, setTapDescription4).Run()
 	}
