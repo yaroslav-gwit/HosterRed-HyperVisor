@@ -56,7 +56,7 @@ func vmStart(vmName string) error {
 		go func() {
 			err := cmd.Wait()
 			if err != nil {
-				log.Fatal(err)
+				log.Println(err)
 			}
 		}()
 	} else {
