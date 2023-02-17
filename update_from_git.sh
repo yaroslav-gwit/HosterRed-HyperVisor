@@ -7,6 +7,7 @@ echo ""
 
 echo "Pulling updates from Git..."
 git pull
+echo ""
 
 echo "Building the hoster module..."
 go build
