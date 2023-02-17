@@ -57,19 +57,23 @@ func generateBhyveStartCommand(vmName string) string {
 
 		createTapInterface := "ifconfig " + availableTap + " create"
 		fmt.Println(createTapInterface)
-		exec.Command(createTapInterface).Run()
+		parts := strings.Fields(createTapInterface)
+		exec.Command(parts[0], parts[1:]...).Run()
 
 		bridgeTapInterface := "ifconfig vm-" + v.NetworkBridge + " addm " + availableTap
 		fmt.Println(bridgeTapInterface)
-		exec.Command(bridgeTapInterface).Run()
+		parts = strings.Fields(bridgeTapInterface)
+		exec.Command(parts[0], parts[1:]...).Run()
 
 		upBridgeInterface := "ifconfig vm-" + v.NetworkBridge + " up"
 		fmt.Println(upBridgeInterface)
-		exec.Command(upBridgeInterface).Run()
+		parts = strings.Fields(upBridgeInterface)
+		exec.Command(parts[0], parts[1:]...).Run()
 
 		setTapDescription := "ifconfig " + availableTap + " description " + "\"" + availableTap + " " + vmName + " interface " + v.NetworkBridge + "\""
 		fmt.Println(setTapDescription)
-		exec.Command(setTapDescription).Run()
+		parts = strings.Fields(setTapDescription)
+		exec.Command(parts[0], parts[1:]...).Run()
 	}
 
 	bhyveFinalCommand := "bhyve -HAw -s 0:0,hostbridge -s 31,lpc "
@@ -183,8 +187,9 @@ func findAvailableTapInterface() string {
 }
 
 func vmProcessSupervisor(command string) {
+	parts := strings.Fields(command)
 	for {
-		cmd := exec.Command(command)
+		cmd := exec.Command(parts[0], parts[1:]...)
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
 			log.Fatalf("Failed to create stdout pipe: %v", err)
