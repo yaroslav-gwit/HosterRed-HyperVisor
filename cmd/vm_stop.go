@@ -166,13 +166,14 @@ func bhyvectlDestroy(vmName string) {
 	cmd := exec.Command(lsCommand1, lsCommand2)
 	stdout, stderr := cmd.Output()
 	if stderr != nil {
-		log.Fatal("pgrep exited with an error " + stderr.Error())
+		log.Fatal("ls -1 exited with an error " + stderr.Error())
 	}
 
 	matchVM, _ := regexp.Compile(`^` + vmName + `$`)
 	for _, v := range strings.Split(string(stdout), "\n") {
 		v = strings.TrimSpace(v)
 		if matchVM.MatchString(v) {
+			fmt.Println("Destroying a VM using bhyvectl: " + vmName)
 			bhyvectlCommand1 := "bhyvectl"
 			bhyvectlCommand2 := "--destroy"
 			bhyvectlCommand3 := "--vm="
