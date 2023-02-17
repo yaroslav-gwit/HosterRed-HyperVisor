@@ -38,7 +38,7 @@ func vmStart(vmName string) error {
 	allVms := getAllVms()
 	if slices.Contains(allVms, vmName) {
 		bhyveCommand := generateBhyveStartCommand(vmName)
-		vmProcessSupervisor(bhyveCommand)
+		go vmProcessSupervisor(bhyveCommand)
 	} else {
 		return errors.New("VM is not found in the system")
 	}
