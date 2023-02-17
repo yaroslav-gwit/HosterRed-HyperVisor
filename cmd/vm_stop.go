@@ -159,6 +159,7 @@ func networkCleanup(vmName string) {
 
 func bhyvectlDestroy(vmName string) {
 	fmt.Println("Cleaning up Bhyve resources")
+	time.Sleep(time.Second * 2)
 	lsCommand1 := "ls"
 	lsCommand2 := "-1"
 	lsCommand3 := "/dev/vmm/"
