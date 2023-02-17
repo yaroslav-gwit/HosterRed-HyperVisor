@@ -34,34 +34,36 @@ var (
 
 func vmStart(vmName string) error {
 	allVms := getAllVms()
-	if slices.Contains(allVms, vmName) {
-		// Generate bhyve start command
-		bhyveCommand := generateBhyveStartCommand(vmName)
-		// Set env vars to send to "vm_supervisor"
-		os.Setenv("VM_START", bhyveCommand)
-		os.Setenv("VM_NAME", vmName)
-		os.Setenv("LOG_FILE", getVmFolder(vmName)+"/vm_supervisor.log")
-		// Get location of the "hoster" executable, as "vm_supervisor" executable is in the same directory
-		execPath, err := os.Executable()
-		if err != nil {
-			log.Fatal(err)
-		}
-		execFile := path.Dir(execPath) + "/vm_supervisor_service"
-		// Start VM supervisor process
-		cmd := exec.Command("nohup", execFile, "for", vmName, "&")
-		err = cmd.Start()
-		if err != nil {
-			log.Fatal(err)
-		}
-		go func() {
-			err := cmd.Wait()
-			if err != nil {
-				log.Println(err)
-			}
-		}()
-	} else {
-		return errors.New("VM is not found in the system")
+	if !slices.Contains(allVms, vmName) {
+		return errors.New("VM is not found on this system")
+	} else if vmLiveCheck(vmName) {
+		return errors.New("VM is already up-and-running")
 	}
+
+	// Generate bhyve start command
+	bhyveCommand := generateBhyveStartCommand(vmName)
+	// Set env vars to send to "vm_supervisor"
+	os.Setenv("VM_START", bhyveCommand)
+	os.Setenv("VM_NAME", vmName)
+	os.Setenv("LOG_FILE", getVmFolder(vmName)+"/vm_supervisor.log")
+	// Get location of the "hoster" executable, as "vm_supervisor" executable is in the same directory
+	execPath, err := os.Executable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	execFile := path.Dir(execPath) + "/vm_supervisor_service"
+	// Start VM supervisor process
+	cmd := exec.Command("nohup", execFile, "for", vmName, "&")
+	err = cmd.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
+	go func() {
+		err := cmd.Wait()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 
 	return nil
 }
