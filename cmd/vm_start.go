@@ -1,17 +1,15 @@
 package cmd
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
-	"io"
 	"log"
+	"os"
 	"os/exec"
+	"path"
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
@@ -38,7 +36,13 @@ func vmStart(vmName string) error {
 	allVms := getAllVms()
 	if slices.Contains(allVms, vmName) {
 		bhyveCommand := generateBhyveStartCommand(vmName)
-		go vmProcessSupervisor(bhyveCommand)
+		os.Setenv("VM_START", bhyveCommand)
+		execPath, err := os.Executable()
+		if err != nil {
+			log.Fatal(err)
+		}
+		execFile := path.Dir(execPath) + "/vm_supervisor"
+		exec.Command("nohup", execFile, "&").Run()
 	} else {
 		return errors.New("VM is not found in the system")
 	}
@@ -184,80 +188,4 @@ func findAvailableTapInterface() string {
 			return "tap" + strconv.Itoa(nextFreeTap)
 		}
 	}
-}
-
-func vmProcessSupervisor(command string) {
-	parts := strings.Fields(command)
-	for {
-		cmd := exec.Command(parts[0], parts[1:]...)
-		stdout, err := cmd.StdoutPipe()
-		if err != nil {
-			log.Fatalf("Failed to create stdout pipe: %v", err)
-		}
-		stderr, err := cmd.StderrPipe()
-		if err != nil {
-			log.Fatalf("Failed to create stderr pipe: %v", err)
-		}
-
-		var wg sync.WaitGroup
-		wg.Add(2)
-
-		stdoutReader := bufio.NewReader(stdout)
-		go func() {
-			defer wg.Done()
-			readAndLogOutput(stdoutReader, "stdout")
-		}()
-
-		stderrReader := bufio.NewReader(stderr)
-		go func() {
-			defer wg.Done()
-			readAndLogOutput(stderrReader, "stderr")
-		}()
-
-		done := make(chan error)
-		startCommand(cmd, done)
-
-		wg.Wait()
-
-		if err := <-done; err != nil {
-			log.Printf("Command failed: %v", err)
-			if exitError, ok := err.(*exec.ExitError); ok {
-				if status, ok := exitError.Sys().(interface{ ExitStatus() int }); ok {
-					exitCode := status.ExitStatus()
-					if exitCode != 100 {
-						log.Printf("Command returned non-zero exit code: %d, restarting...", exitCode)
-						continue
-					}
-				}
-			}
-			log.Fatal("Failed to get exit code")
-		}
-
-		time.Sleep(time.Second)
-	}
-}
-
-func readAndLogOutput(reader *bufio.Reader, name string) {
-	for {
-		line, err := reader.ReadString('\n')
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Fatalf("Failed to read %s: %v", name, err)
-		}
-		line = strings.TrimSpace(line)
-		if line != "" {
-			log.Printf("[%s] %s\n", name, line)
-		}
-	}
-}
-
-func startCommand(cmd *exec.Cmd, done chan error) {
-	if err := cmd.Start(); err != nil {
-		log.Fatalf("Failed to start command: %v", err)
-	}
-	go func() {
-		done <- cmd.Wait()
-	}()
 }
