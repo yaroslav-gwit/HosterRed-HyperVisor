@@ -62,17 +62,11 @@ func stopBhyveProcess(vmName string) {
 	}
 
 	processId := ""
-	reMatchVm, _ := regexp.Compile(`.*bhyve:.*`)
+	reMatchVm, _ := regexp.Compile(`.*bhyve:\s` + vmName)
 	for _, v := range strings.Split(string(stdout), "\n") {
-		if len(v) > 0 {
-			if reMatchVm.MatchString(v) {
-				for _, vv := range strings.Split(v, " ") {
-					if strings.TrimSpace(vv) == vmName {
-						processId = strings.TrimSpace(strings.Split(v, " ")[0])
-						fmt.Println(processId)
-					}
-				}
-			}
+		if reMatchVm.MatchString(v) {
+			processId = strings.TrimSpace(strings.Split(v, " ")[0])
+			fmt.Println(processId)
 		}
 	}
 }
@@ -87,6 +81,8 @@ func vmSupervisorCleanup(vmName string) {
 
 	iteration := 0
 	for {
+		time.Sleep(time.Second * 2)
+
 		processId = ""
 		cmd := exec.Command(prepCmd1, prepCmd2, prepCmd3)
 		stdout, stderr := cmd.Output()
@@ -110,7 +106,6 @@ func vmSupervisorCleanup(vmName string) {
 			break
 		}
 
-		time.Sleep(time.Second * 2)
 		iteration = iteration + 1
 		if iteration > 9 {
 			fmt.Println(processId)
