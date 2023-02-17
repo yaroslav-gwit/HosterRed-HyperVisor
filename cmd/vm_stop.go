@@ -90,6 +90,8 @@ func networkCleanup(vmName string) {
 	for _, v := range strings.Split(string(stdout), "\n") {
 		if reMatchDescription.MatchString(v) && reMatchVm.MatchString(v) {
 			tap := rePickTap.FindString(v)
+			tap = strings.TrimSpace(tap)
+			tap = strings.ReplaceAll(tap, "\"", "")
 			fmt.Println(strings.TrimSpace(tap))
 		}
 	}
