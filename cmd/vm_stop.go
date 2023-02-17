@@ -87,6 +87,7 @@ func vmSupervisorCleanup(vmName string) {
 
 	iteration := 0
 	for {
+		processId = ""
 		cmd := exec.Command(prepCmd1, prepCmd2, prepCmd3)
 		stdout, stderr := cmd.Output()
 		if stderr != nil {
@@ -104,7 +105,13 @@ func vmSupervisorCleanup(vmName string) {
 			}
 		}
 
+		if len(processId) < 1 {
+			fmt.Println(processId)
+			break
+		}
+
 		time.Sleep(time.Second * 2)
+		iteration = iteration + 1
 		if iteration > 9 {
 			fmt.Println(processId)
 			break
