@@ -85,7 +85,7 @@ func networkCleanup(vmName string) {
 	reMatchDescription, _ := regexp.Compile(`.*description:.*`)
 	for _, v := range strings.Split(string(stdout), "\n") {
 		if reMatchDescription.MatchString(v) {
-			fmt.Println(v)
+			fmt.Println(strings.TrimSpace(v))
 		}
 	}
 }
