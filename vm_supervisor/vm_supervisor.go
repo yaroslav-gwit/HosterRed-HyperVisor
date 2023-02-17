@@ -39,6 +39,7 @@ func main() {
 	// Start the process
 	parts := strings.Fields(vmStartCommand)
 	for {
+		log.Println("[stdout] Starting the VM as a child process")
 		cmd := exec.Command(parts[0], parts[1:]...)
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
@@ -70,17 +71,18 @@ func main() {
 		wg.Wait()
 
 		if err := <-done; err != nil {
-			log.Printf("VM has been shut down: %v", err)
+			log.Printf("[stdout] VM has been shut down: %v", err)
 			if exitError, ok := err.(*exec.ExitError); ok {
 				if status, ok := exitError.Sys().(interface{ ExitStatus() int }); ok {
 					exitCode := status.ExitStatus()
 					if exitCode != 1 {
-						log.Printf("Command returned non-zero exit code: %d, restarting...", exitCode)
+						log.Printf("[stderr] VM returned non-zero exit code: %d, restarting...", exitCode)
+						time.Sleep(time.Second)
 						continue
 					}
 				}
 			}
-			log.Println("Shutting down the VM supervisor process")
+			log.Println("[stdout] Shutting down the VM supervisor process")
 			os.Exit(0)
 		}
 
