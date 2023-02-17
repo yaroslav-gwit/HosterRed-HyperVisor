@@ -59,14 +59,13 @@ func vmStop(vmName string) error {
 	for _, v := range strings.Split(string(stdout), "\n") {
 		if len(v) > 0 {
 			if reMatchVm.MatchString(v) {
-				processId = strings.Split(v, " ")[0]
 				for _, vv := range strings.Split(v, " ") {
 					if strings.TrimSpace(vv) == vmName {
+						processId = strings.TrimSpace(strings.Split(v, " ")[0])
 						fmt.Println(processId)
 						fmt.Println(v)
 					}
 				}
-				// break
 			}
 		}
 	}
