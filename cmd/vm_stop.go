@@ -53,9 +53,9 @@ func vmStop(vmName string) error {
 			log.Fatal("ifconfig exited with an error " + stderr.Error())
 		}
 	}
-	reMatchVm, _ := regexp.Compile(`.*bhyve:.*`)
 
-	var processId string
+	processId := ""
+	reMatchVm, _ := regexp.Compile(`.*bhyve:.*`)
 	for _, v := range strings.Split(string(stdout), "\n") {
 		if len(v) > 0 {
 			if reMatchVm.MatchString(v) {
@@ -70,43 +70,22 @@ func vmStop(vmName string) error {
 		}
 	}
 
+	networkCleanup(vmName)
+
 	return nil
 }
 
-// func findVmTapInterfaces() []string {
-// 	cmd := exec.Command("ifconfig")
-// 	stdout, stderr := cmd.Output()
-// 	if stderr != nil {
-// 		log.Fatal("ifconfig exited with an error " + stderr.Error())
-// 	}
-
-// 	reMatchTap, _ := regexp.Compile(`^tap`)
-
-// 	var tapList []int
-// 	var trimmedTap string
-// 	for _, v := range strings.Split(string(stdout), "\n") {
-// 		trimmedTap = strings.Trim(v, "")
-// 		if reMatchTap.MatchString(trimmedTap) {
-// 			for _, vv := range strings.Split(trimmedTap, ":") {
-// 				if reMatchTap.MatchString(vv) {
-// 					vv = strings.Replace(vv, "tap", "", 1)
-// 					vvInt, err := strconv.Atoi(vv)
-// 					if err != nil {
-// 						log.Fatal("Could not convert tap int: " + err.Error())
-// 					}
-// 					tapList = append(tapList, vvInt)
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	nextFreeTap := 0
-// 	for {
-// 		if slices.Contains(tapList, nextFreeTap) {
-// 			nextFreeTap = nextFreeTap + 1
-// 		} else {
-// 			return "tap" + strconv.Itoa(nextFreeTap)
-// 		}
-// 	}
-// 	return
-// }
+func networkCleanup(vmName string) {
+	fmt.Println("Starting network cleanup")
+	cmd := exec.Command("ifconfig")
+	stdout, stderr := cmd.Output()
+	if stderr != nil {
+		log.Fatal("ifconfig exited with an error " + stderr.Error())
+	}
+	reMatchDescription, _ := regexp.Compile(`.*description:.*`)
+	for _, v := range strings.Split(string(stdout), "\n") {
+		if reMatchDescription.MatchString(v) {
+			fmt.Println(v)
+		}
+	}
+}
