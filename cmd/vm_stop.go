@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -51,11 +53,15 @@ func vmStop(vmName string) error {
 			log.Fatal("ifconfig exited with an error " + stderr.Error())
 		}
 	}
-	// 	reMatchTap, _ := regexp.Compile(`^tap`)
+	reMatchVm, _ := regexp.Compile(`.*bhyve:.*`)
 
-	for i, v := range strings.Split(string(stdout), "\n") {
+	var processId string
+	for _, v := range strings.Split(string(stdout), "\n") {
 		if len(v) > 0 {
-			log.Println(i, v)
+			if reMatchVm.MatchString(v) {
+				processId = strings.Split(v, " ")[0]
+			}
+			fmt.Println(processId)
 		}
 	}
 
