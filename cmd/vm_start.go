@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"log"
-	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
-	"syscall"
+	"sync"
+	"time"
 
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
@@ -36,7 +37,8 @@ var (
 func vmStart(vmName string) error {
 	allVms := getAllVms()
 	if slices.Contains(allVms, vmName) {
-		generateBhyveStartCommand(vmName)
+		bhyveCommand := generateBhyveStartCommand(vmName)
+		vmProcessSupervisor(bhyveCommand)
 	} else {
 		return errors.New("VM is not found in the system")
 	}
@@ -51,19 +53,23 @@ func generateBhyveStartCommand(vmName string) string {
 	for _, v := range vmConfigVar.Networks {
 		availableTap := findAvailableTapInterface()
 		availableTaps = append(availableTaps, availableTap)
-		fmt.Println("Next available tap int:", availableTap)
+		// fmt.Println("Next available tap int:", availableTap)
 
 		createTapInterface := "ifconfig " + availableTap + " create"
 		fmt.Println(createTapInterface)
+		exec.Command(createTapInterface).Run()
 
 		bridgeTapInterface := "ifconfig vm-" + v.NetworkBridge + " addm " + availableTap
 		fmt.Println(bridgeTapInterface)
+		exec.Command(bridgeTapInterface).Run()
 
 		upBridgeInterface := "ifconfig vm-" + v.NetworkBridge + " up"
 		fmt.Println(upBridgeInterface)
+		exec.Command(upBridgeInterface).Run()
 
 		setTapDescription := "ifconfig " + availableTap + " description " + "\"" + availableTap + " " + vmName + " interface " + v.NetworkBridge + "\""
 		fmt.Println(setTapDescription)
+		exec.Command(setTapDescription).Run()
 	}
 
 	bhyveFinalCommand := "bhyve -HAw -s 0:0,hostbridge -s 31,lpc "
@@ -134,9 +140,9 @@ func generateBhyveStartCommand(vmName string) string {
 	}
 
 	bhyveFinalCommand = bhyveFinalCommand + loaderCommand
-	fmt.Println(bhyveFinalCommand)
+	fmt.Println("Will execute this bhyve command: " + bhyveFinalCommand)
 
-	return ""
+	return bhyveFinalCommand
 }
 
 func findAvailableTapInterface() string {
@@ -176,51 +182,77 @@ func findAvailableTapInterface() string {
 	}
 }
 
-func test() {
+func vmProcessSupervisor(command string) {
 	for {
-		cmd := exec.Command("your-command")
-		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-
-		// Create pipes for stdout and stderr
+		cmd := exec.Command(command)
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
-			fmt.Printf("Error creating stdout pipe: %s\n", err)
-			os.Exit(1)
+			log.Fatalf("Failed to create stdout pipe: %v", err)
 		}
 		stderr, err := cmd.StderrPipe()
 		if err != nil {
-			fmt.Printf("Error creating stderr pipe: %s\n", err)
-			os.Exit(1)
+			log.Fatalf("Failed to create stderr pipe: %v", err)
 		}
 
-		// Start the child process
-		err = cmd.Start()
-		if err != nil {
-			fmt.Printf("Error starting command: %s\n", err)
-			os.Exit(1)
+		var wg sync.WaitGroup
+		wg.Add(2)
+
+		stdoutReader := bufio.NewReader(stdout)
+		go func() {
+			defer wg.Done()
+			readAndLogOutput(stdoutReader, "stdout")
+		}()
+
+		stderrReader := bufio.NewReader(stderr)
+		go func() {
+			defer wg.Done()
+			readAndLogOutput(stderrReader, "stderr")
+		}()
+
+		done := make(chan error)
+		startCommand(cmd, done)
+
+		wg.Wait()
+
+		if err := <-done; err != nil {
+			log.Printf("Command failed: %v", err)
+			if exitError, ok := err.(*exec.ExitError); ok {
+				if status, ok := exitError.Sys().(interface{ ExitStatus() int }); ok {
+					exitCode := status.ExitStatus()
+					if exitCode != 100 {
+						log.Printf("Command returned non-zero exit code: %d, restarting...", exitCode)
+						continue
+					}
+				}
+			}
+			log.Fatal("Failed to get exit code")
 		}
 
-		// Read from stdout and stderr
-		stdoutScanner := bufio.NewScanner(stdout)
-		stderrScanner := bufio.NewScanner(stderr)
-		go func() {
-			for stdoutScanner.Scan() {
-				fmt.Println(stdoutScanner.Text())
-			}
-		}()
-		go func() {
-			for stderrScanner.Scan() {
-				fmt.Println(stderrScanner.Text())
-			}
-		}()
+		time.Sleep(time.Second)
+	}
+}
 
-		// Wait for the child process to exit
-		err = cmd.Wait()
+func readAndLogOutput(reader *bufio.Reader, name string) {
+	for {
+		line, err := reader.ReadString('\n')
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
-			fmt.Printf("Error waiting for command: %s\n", err)
-			os.Exit(1)
-		} else {
-			fmt.Println("Process exited")
+			log.Fatalf("Failed to read %s: %v", name, err)
+		}
+		line = strings.TrimSpace(line)
+		if line != "" {
+			log.Printf("[%s] %s\n", name, line)
 		}
 	}
+}
+
+func startCommand(cmd *exec.Cmd, done chan error) {
+	if err := cmd.Start(); err != nil {
+		log.Fatalf("Failed to start command: %v", err)
+	}
+	go func() {
+		done <- cmd.Wait()
+	}()
 }
