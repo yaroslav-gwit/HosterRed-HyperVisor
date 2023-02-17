@@ -79,6 +79,7 @@ func stopBhyveProcess(vmName string) {
 
 func vmSupervisorCleanup(vmName string) {
 	fmt.Println("Starting vm supervisor cleanup")
+	stopBhyveProcess(vmName)
 	reMatchVm, _ := regexp.Compile(`for\s` + vmName + `\s&`)
 	processId := ""
 
