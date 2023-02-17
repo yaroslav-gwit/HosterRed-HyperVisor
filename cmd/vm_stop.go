@@ -41,7 +41,7 @@ func vmStop(vmName string) error {
 
 	prepCmd1 := "pgrep"
 	prepCmd2 := "-lf"
-	prepCmd3 := "\\\"bhyve:\\\""
+	prepCmd3 := " \"bhyve:\""
 	cmd := exec.Command(prepCmd1, prepCmd2, prepCmd3)
 	stdout, stderr := cmd.Output()
 	if stderr != nil {
