@@ -35,13 +35,19 @@ var (
 func vmStart(vmName string) error {
 	allVms := getAllVms()
 	if slices.Contains(allVms, vmName) {
+		// Generate bhyve start command
 		bhyveCommand := generateBhyveStartCommand(vmName)
+		// Set env vars to send to "vm_supervisor"
 		os.Setenv("VM_START", bhyveCommand)
+		os.Setenv("VM_NAME", vmName)
+		os.Setenv("LOG_FILE", getVmFolder(vmName)+"/vm_supervisor.log")
+		// Get location of the "hoster" executable, because "vm_supervisor" executable is also in there
 		execPath, err := os.Executable()
 		if err != nil {
 			log.Fatal(err)
 		}
 		execFile := path.Dir(execPath) + "/vm_supervisor_service"
+		// Start VM supervisor process
 		exec.Command("nohup", execFile, "&").Start()
 	} else {
 		return errors.New("VM is not found in the system")
@@ -57,25 +63,25 @@ func generateBhyveStartCommand(vmName string) string {
 	for _, v := range vmConfigVar.Networks {
 		availableTap := findAvailableTapInterface()
 		availableTaps = append(availableTaps, availableTap)
-		// fmt.Println("Next available tap int:", availableTap)
+		fmt.Println("Creating the TAP interface:", availableTap)
 
 		createTapInterface := "ifconfig " + availableTap + " create"
-		fmt.Println(createTapInterface)
+		fmt.Println(" " + createTapInterface)
 		parts := strings.Fields(createTapInterface)
 		exec.Command(parts[0], parts[1:]...).Run()
 
 		bridgeTapInterface := "ifconfig vm-" + v.NetworkBridge + " addm " + availableTap
-		fmt.Println(bridgeTapInterface)
+		fmt.Println(" " + bridgeTapInterface)
 		parts = strings.Fields(bridgeTapInterface)
 		exec.Command(parts[0], parts[1:]...).Run()
 
 		upBridgeInterface := "ifconfig vm-" + v.NetworkBridge + " up"
-		fmt.Println(upBridgeInterface)
+		fmt.Println(" " + upBridgeInterface)
 		parts = strings.Fields(upBridgeInterface)
 		exec.Command(parts[0], parts[1:]...).Run()
 
 		setTapDescription := "ifconfig " + availableTap + " description " + "\"" + availableTap + " " + vmName + " interface " + v.NetworkBridge + "\""
-		fmt.Println(setTapDescription)
+		fmt.Println(" " + setTapDescription)
 		parts = strings.Fields(setTapDescription)
 		exec.Command(parts[0], parts[1:]...).Run()
 	}
@@ -148,7 +154,7 @@ func generateBhyveStartCommand(vmName string) string {
 	}
 
 	bhyveFinalCommand = bhyveFinalCommand + loaderCommand
-	fmt.Println("Will execute this bhyve command: " + bhyveFinalCommand)
+	fmt.Println("Generated bhyve command (for troubleshooting): " + bhyveFinalCommand)
 
 	return bhyveFinalCommand
 }

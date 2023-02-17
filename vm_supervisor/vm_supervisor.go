@@ -12,8 +12,25 @@ import (
 )
 
 func main() {
-	myVar := os.Getenv("VM_START")
-	parts := strings.Fields(myVar)
+	// Get env vars passed from "hoster vm start"
+	vmStartCommand := os.Getenv("VM_START")
+	vmName := os.Getenv("VM_NAME")
+	logFileLocation := os.Getenv("LOG_FILE")
+
+	// Set the process name
+	procName := "vm supervisor: " + vmName
+	os.Args[0] = procName
+
+	// Create or open the log file for writing
+	logFile, err := os.OpenFile(logFileLocation, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0640)
+	if err != nil {
+		log.Fatal("Unable to open log file: " + err.Error())
+	}
+	// Redirect the output of log.Fatal to the log file
+	log.SetOutput(logFile)
+
+	// Start the process
+	parts := strings.Fields(vmStartCommand)
 	for {
 		cmd := exec.Command(parts[0], parts[1:]...)
 		stdout, err := cmd.StdoutPipe()
@@ -50,7 +67,7 @@ func main() {
 			if exitError, ok := err.(*exec.ExitError); ok {
 				if status, ok := exitError.Sys().(interface{ ExitStatus() int }); ok {
 					exitCode := status.ExitStatus()
-					if exitCode != 100 {
+					if exitCode != 1 {
 						log.Printf("Command returned non-zero exit code: %d, restarting...", exitCode)
 						continue
 					}
