@@ -82,11 +82,15 @@ func networkCleanup(vmName string) {
 	if stderr != nil {
 		log.Fatal("ifconfig exited with an error " + stderr.Error())
 	}
+
+	// var tapsToDestroy []string
 	reMatchDescription, _ := regexp.Compile(`.*description:.*`)
 	reMatchVm, _ := regexp.Compile(`\s+` + vmName + `\s+`)
+	rePickTap, _ := regexp.Compile(`[\s|"]tap\d+`)
 	for _, v := range strings.Split(string(stdout), "\n") {
 		if reMatchDescription.MatchString(v) && reMatchVm.MatchString(v) {
-			fmt.Println(strings.TrimSpace(v))
+			tap := rePickTap.FindString(v)
+			fmt.Println(strings.TrimSpace(tap))
 		}
 	}
 }
