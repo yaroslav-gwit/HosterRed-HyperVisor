@@ -62,7 +62,7 @@ func vmStop(vmName string) error {
 				processId = strings.Split(v, " ")[0]
 				fmt.Println(processId)
 				fmt.Println(v)
-				break
+				// break
 			}
 		}
 	}
