@@ -38,6 +38,7 @@ func vmStop(vmName string) error {
 
 	stopBhyveProcess(vmName)
 	vmSupervisorCleanup(vmName)
+	stopBhyveProcess(vmName)
 	networkCleanup(vmName)
 	bhyvectlDestroy(vmName)
 
@@ -55,7 +56,7 @@ func stopBhyveProcess(vmName string) {
 		if cmd.ProcessState.ExitCode() == 1 {
 			_ = 0
 		} else {
-			log.Fatal("pgrep exited with an error " + stderr.Error())
+			log.Println("pgrep exited with an error " + stderr.Error())
 		}
 	}
 
@@ -71,7 +72,7 @@ func stopBhyveProcess(vmName string) {
 	cmd = exec.Command(stopCommand1, stopCommand2, processId)
 	stderr = cmd.Run()
 	if stderr != nil {
-		log.Fatal("kill was not successful " + stderr.Error())
+		log.Println("kill was not successful " + stderr.Error())
 	}
 
 	fmt.Println("Done stopping the VM")
@@ -79,7 +80,6 @@ func stopBhyveProcess(vmName string) {
 
 func vmSupervisorCleanup(vmName string) {
 	fmt.Println("Starting vm supervisor cleanup")
-	stopBhyveProcess(vmName)
 	reMatchVm, _ := regexp.Compile(`for\s` + vmName + `\s&`)
 	processId := ""
 
@@ -98,7 +98,7 @@ func vmSupervisorCleanup(vmName string) {
 			if cmd.ProcessState.ExitCode() == 1 {
 				_ = 0
 			} else {
-				log.Fatal("pgrep exited with an error " + stderr.Error())
+				log.Println("pgrep exited with an error " + stderr.Error())
 			}
 		}
 
@@ -121,7 +121,7 @@ func vmSupervisorCleanup(vmName string) {
 			cmd := exec.Command(stopCommand1, stopCommand2, processId)
 			stderr := cmd.Run()
 			if stderr != nil {
-				log.Fatal("kill was not successful " + stderr.Error())
+				log.Println("kill was not successful " + stderr.Error())
 			}
 			fmt.Println("Forcefully killing the vm_supervisor, due to operation timeout " + processId)
 		}
@@ -134,7 +134,7 @@ func networkCleanup(vmName string) {
 	cmd := exec.Command("ifconfig")
 	stdout, stderr := cmd.Output()
 	if stderr != nil {
-		log.Fatal("ifconfig exited with an error " + stderr.Error())
+		log.Println("ifconfig exited with an error " + stderr.Error())
 	}
 
 	reMatchDescription, _ := regexp.Compile(`.*description:.*`)
@@ -151,7 +151,7 @@ func networkCleanup(vmName string) {
 			cmd := exec.Command(ifconfigDestroyCmd1, tap, ifconfigDestroyCmd3)
 			stderr := cmd.Run()
 			if stderr != nil {
-				log.Fatal("ifconfig destroy was not successful " + stderr.Error())
+				log.Println("ifconfig destroy was not successful " + stderr.Error())
 			}
 		}
 	}
@@ -178,7 +178,7 @@ func bhyvectlDestroy(vmName string) {
 			cmd := exec.Command(bhyvectlCommand1, bhyvectlCommand2, bhyvectlCommand3)
 			stderr := cmd.Run()
 			if stderr != nil {
-				log.Fatal("bhyvectl exited with an error " + stderr.Error())
+				log.Println("bhyvectl exited with an error " + stderr.Error())
 			}
 		}
 	}
