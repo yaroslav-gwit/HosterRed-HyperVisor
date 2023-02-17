@@ -123,7 +123,6 @@ func vmSupervisorCleanup(vmName string) {
 				log.Fatal("kill was not successful " + stderr.Error())
 			}
 			fmt.Println("Forcefully killing the vm_supervisor, due to operation timeout " + processId)
-			break
 		}
 	}
 	fmt.Println("Done cleaning up after vm supervisor")
@@ -163,11 +162,9 @@ func bhyvectlDestroy(vmName string) {
 	time.Sleep(time.Second * 2)
 	lsCommand1 := "ls"
 	lsCommand2 := "-1"
-	cmd := exec.Command(lsCommand1, lsCommand2)
-	stdout, stderr := cmd.Output()
-	if stderr != nil {
-		log.Fatal("ls -1 exited with an error " + stderr.Error())
-	}
+	lsCommand3 := "/dev/vmm/"
+	cmd := exec.Command(lsCommand1, lsCommand2, lsCommand3)
+	stdout, _ := cmd.Output()
 
 	matchVM, _ := regexp.Compile(`^` + vmName + `$`)
 	for _, v := range strings.Split(string(stdout), "\n") {
