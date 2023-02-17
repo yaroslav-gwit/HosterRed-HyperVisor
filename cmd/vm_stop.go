@@ -56,6 +56,9 @@ func vmStop(vmName string) error {
 	for i, v := range strings.Split(string(stdout), "\n") {
 		log.Println(i, v)
 	}
+	for i, v := range strings.Split(string(stderr.Error()), "\n") {
+		log.Println(i, v)
+	}
 
 	return nil
 }
