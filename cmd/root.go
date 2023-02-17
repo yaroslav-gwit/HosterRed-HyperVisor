@@ -47,8 +47,14 @@ func init() {
 	// VM cmd -> start
 	vmCmd.AddCommand(vmStartCmd)
 
+	// VM cmd -> start all
+	vmCmd.AddCommand(vmStartAllCmd)
+
 	// VM cmd -> stop
 	vmCmd.AddCommand(vmStopCmd)
+
+	// VM cmd -> stop all
+	vmCmd.AddCommand(vmStopAllCmd)
 
 	// API command section
 	rootCmd.AddCommand(apiCmd)

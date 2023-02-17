@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"sync"
 	"time"
@@ -15,10 +16,10 @@ func main() {
 	// Get env vars passed from "hoster vm start"
 	vmStartCommand := os.Getenv("VM_START")
 	logFileLocation := os.Getenv("LOG_FILE")
+	vmName := os.Getenv("VM_NAME")
 
 	// DOESN'T WORK ON FREEBSD?
 	// Set the process name
-	// vmName := os.Getenv("VM_NAME")
 	// procName := "vm supervisor: " + vmName
 	// argv0str := (*reflect.StringHeader)(unsafe.Pointer(&os.Args[0]))
 	// argv0 := (*[1 << 30]byte)(unsafe.Pointer(argv0str.Data))[:argv0str.Len]
@@ -83,6 +84,21 @@ func main() {
 				}
 			}
 			log.Println("[stdout] Shutting down the VM supervisor process")
+
+			// VM Resource Cleanup section
+			//
+			// Get location of the "hoster" executable
+			execPath, err := os.Executable()
+			if err != nil {
+				log.Fatal(err)
+			}
+			execFile := path.Dir(execPath) + "/hoster"
+			// Start VM cleanup using "hoster vm stop"
+			cmd := exec.Command(execFile, "vm", "stop", vmName)
+			err = cmd.Run()
+			if err != nil {
+				log.Fatal(err)
+			}
 			os.Exit(0)
 		}
 
