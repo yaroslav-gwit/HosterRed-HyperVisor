@@ -160,6 +160,7 @@ func networkCleanup(vmName string) {
 
 func bhyvectlDestroy(vmName string) {
 	fmt.Println("Cleaning up Bhyve resources")
+	time.Sleep(time.Second * 2)
 	lsCommand1 := "ls"
 	lsCommand2 := "-1"
 	cmd := exec.Command(lsCommand1, lsCommand2)
@@ -170,6 +171,7 @@ func bhyvectlDestroy(vmName string) {
 
 	matchVM, _ := regexp.Compile(`^` + vmName + `$`)
 	for _, v := range strings.Split(string(stdout), "\n") {
+		v = strings.TrimSpace(v)
 		if matchVM.MatchString(v) {
 			bhyvectlCommand1 := "bhyvectl"
 			bhyvectlCommand2 := "--destroy"
