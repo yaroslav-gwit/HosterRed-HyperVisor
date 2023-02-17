@@ -43,11 +43,11 @@ func main() {
 		cmd := exec.Command(parts[0], parts[1:]...)
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
-			log.Fatalf("Failed to create stdout pipe: %v", err)
+			log.Fatalf("[stderr] Failed to create stdout pipe: %v", err)
 		}
 		stderr, err := cmd.StderrPipe()
 		if err != nil {
-			log.Fatalf("Failed to create stderr pipe: %v", err)
+			log.Fatalf("[stderr] Failed to create stderr pipe: %v", err)
 		}
 
 		var wg sync.WaitGroup

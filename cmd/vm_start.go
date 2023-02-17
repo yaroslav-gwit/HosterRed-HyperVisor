@@ -41,7 +41,7 @@ func vmStart(vmName string) error {
 		os.Setenv("VM_START", bhyveCommand)
 		os.Setenv("VM_NAME", vmName)
 		os.Setenv("LOG_FILE", getVmFolder(vmName)+"/vm_supervisor.log")
-		// Get location of the "hoster" executable, because "vm_supervisor" executable is also in there
+		// Get location of the "hoster" executable, as "vm_supervisor" executable is in the same directory
 		execPath, err := os.Executable()
 		if err != nil {
 			log.Fatal(err)
