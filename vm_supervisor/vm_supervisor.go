@@ -6,9 +6,11 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"reflect"
 	"strings"
 	"sync"
 	"time"
+	"unsafe"
 )
 
 func main() {
@@ -19,7 +21,13 @@ func main() {
 
 	// Set the process name
 	procName := "vm supervisor: " + vmName
-	os.Args[0] = procName
+	argv0str := (*reflect.StringHeader)(unsafe.Pointer(&os.Args[0]))
+	argv0 := (*[1 << 30]byte)(unsafe.Pointer(argv0str.Data))[:argv0str.Len]
+
+	n := copy(argv0, procName)
+	if n < len(argv0) {
+		argv0[n] = 0
+	}
 
 	// Create or open the log file for writing
 	logFile, err := os.OpenFile(logFileLocation, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0640)
