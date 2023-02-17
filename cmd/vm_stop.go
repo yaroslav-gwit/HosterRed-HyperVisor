@@ -31,8 +31,8 @@ func vmStop(vmName string) error {
 	allVms := getAllVms()
 	if !slices.Contains(allVms, vmName) {
 		return errors.New("VM is not found on this system")
-	} else if vmLiveCheck(vmName) {
-		return errors.New("VM is already up-and-running")
+	} else if !vmLiveCheck(vmName) {
+		return errors.New("VM is already stopped")
 	}
 
 	// stopCommand1 := "kill"
