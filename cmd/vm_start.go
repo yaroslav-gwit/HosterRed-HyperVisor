@@ -42,7 +42,7 @@ func vmStart(vmName string) error {
 			log.Fatal(err)
 		}
 		execFile := path.Dir(execPath) + "/vm_supervisor_service"
-		exec.Command("nohup", execFile, "&").Run()
+		exec.Command("nohup", execFile, "&").Start()
 	} else {
 		return errors.New("VM is not found in the system")
 	}
