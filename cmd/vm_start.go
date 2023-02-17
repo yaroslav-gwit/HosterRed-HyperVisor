@@ -48,7 +48,7 @@ func vmStart(vmName string) error {
 		}
 		execFile := path.Dir(execPath) + "/vm_supervisor_service"
 		// Start VM supervisor process
-		exec.Command("nohup", execFile, "&").Start()
+		exec.Command("nohup", execFile, "for", vmName, "&").Start()
 	} else {
 		return errors.New("VM is not found in the system")
 	}
@@ -80,10 +80,12 @@ func generateBhyveStartCommand(vmName string) string {
 		parts = strings.Fields(upBridgeInterface)
 		exec.Command(parts[0], parts[1:]...).Run()
 
-		setTapDescription := "ifconfig " + availableTap + " description " + "\"" + availableTap + " " + vmName + " interface " + v.NetworkBridge + "\""
-		fmt.Println(" " + setTapDescription)
-		parts = strings.Fields(setTapDescription)
-		exec.Command(parts[0], parts[1:]...).Run()
+		setTapDescription1 := "ifconfig"
+		setTapDescription2 := availableTap
+		setTapDescription3 := "description"
+		setTapDescription4 := "\"" + availableTap + " " + vmName + " interface " + v.NetworkBridge + "\""
+		fmt.Println(" ", setTapDescription1, setTapDescription2, setTapDescription3, setTapDescription4)
+		exec.Command(setTapDescription1, setTapDescription2, setTapDescription3, setTapDescription4).Run()
 	}
 
 	bhyveFinalCommand := "bhyve -HAw -s 0:0,hostbridge -s 31,lpc "
