@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
@@ -84,24 +85,31 @@ func vmSupervisorCleanup(vmName string) {
 	prepCmd2 := "-lf"
 	prepCmd3 := vmName
 
-	cmd := exec.Command(prepCmd1, prepCmd2, prepCmd3)
-	stdout, stderr := cmd.Output()
-	if stderr != nil {
-		if cmd.ProcessState.ExitCode() == 1 {
-			_ = 0
-		} else {
-			log.Fatal("pgrep exited with an error " + stderr.Error())
+	iteration := 0
+	for {
+		cmd := exec.Command(prepCmd1, prepCmd2, prepCmd3)
+		stdout, stderr := cmd.Output()
+		if stderr != nil {
+			if cmd.ProcessState.ExitCode() == 1 {
+				_ = 0
+			} else {
+				log.Fatal("pgrep exited with an error " + stderr.Error())
+			}
+		}
+
+		for _, v := range strings.Split(string(stdout), "\n") {
+			v = strings.TrimSpace(v)
+			if reMatchVm.MatchString(v) {
+				processId = strings.Split(v, " ")[0]
+			}
+		}
+
+		time.Sleep(time.Second * 2)
+		if iteration > 9 {
+			fmt.Println(processId)
+			break
 		}
 	}
-
-	for _, v := range strings.Split(string(stdout), "\n") {
-		v = strings.TrimSpace(v)
-		if reMatchVm.MatchString(v) {
-			processId = strings.Split(v, " ")[0]
-		}
-	}
-
-	fmt.Println(processId)
 }
 
 func networkCleanup(vmName string) {
