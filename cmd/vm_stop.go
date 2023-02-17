@@ -174,8 +174,8 @@ func bhyvectlDestroy(vmName string) {
 			fmt.Println("Destroying a VM using bhyvectl: " + vmName)
 			bhyvectlCommand1 := "bhyvectl"
 			bhyvectlCommand2 := "--destroy"
-			bhyvectlCommand3 := "--vm="
-			cmd := exec.Command(bhyvectlCommand1, bhyvectlCommand2, bhyvectlCommand3, vmName)
+			bhyvectlCommand3 := "--vm=" + vmName
+			cmd := exec.Command(bhyvectlCommand1, bhyvectlCommand2, bhyvectlCommand3)
 			stderr := cmd.Run()
 			if stderr != nil {
 				log.Fatal("bhyvectl exited with an error " + stderr.Error())
