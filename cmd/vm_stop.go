@@ -66,9 +66,16 @@ func stopBhyveProcess(vmName string) {
 	for _, v := range strings.Split(string(stdout), "\n") {
 		if reMatchVm.MatchString(v) {
 			processId = strings.TrimSpace(strings.Split(v, " ")[0])
-			fmt.Println(processId)
 		}
 	}
+	stopCommand1 := "kill"
+	stopCommand2 := "-SIGTERM"
+	cmd = exec.Command(stopCommand1, stopCommand2, processId)
+	stderr = cmd.Run()
+	if stderr != nil {
+		log.Fatal("kill was not successful " + stderr.Error())
+	}
+	fmt.Println("kill -SIGKILL " + processId)
 }
 
 func vmSupervisorCleanup(vmName string) {
@@ -102,13 +109,20 @@ func vmSupervisorCleanup(vmName string) {
 		}
 
 		if len(processId) < 1 {
-			fmt.Println(processId)
+			fmt.Println("Process is gonzo")
 			break
 		}
 
 		iteration = iteration + 1
-		if iteration > 9 {
-			fmt.Println(processId)
+		if iteration > 3 {
+			stopCommand1 := "kill"
+			stopCommand2 := "-SIGKILL"
+			cmd := exec.Command(stopCommand1, stopCommand2, processId)
+			stderr := cmd.Run()
+			if stderr != nil {
+				log.Fatal("kill was not successful " + stderr.Error())
+			}
+			fmt.Println("kill -SIGKILL " + processId)
 			break
 		}
 	}
@@ -130,7 +144,7 @@ func networkCleanup(vmName string) {
 			tap := rePickTap.FindString(v)
 			tap = strings.TrimSpace(tap)
 			tap = strings.ReplaceAll(tap, "\"", "")
-			fmt.Println(strings.TrimSpace(tap))
+			fmt.Println("ifconfig " + tap + " destroy")
 		}
 	}
 }
