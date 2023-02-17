@@ -36,18 +36,16 @@ func vmStop(vmName string) error {
 		return errors.New("VM is already stopped")
 	}
 
-	// stopCommand1 := "kill"
-	// stopCommand2 := "-SIGTERM"
-	// stopCommand3 := "74972"
-
 	stopBhyveProcess(vmName)
 	vmSupervisorCleanup(vmName)
 	networkCleanup(vmName)
+	bhyvectlDestroy(vmName)
 
 	return nil
 }
 
 func stopBhyveProcess(vmName string) {
+	fmt.Println("Stopping the VM")
 	prepCmd1 := "pgrep"
 	prepCmd2 := "-lf"
 	prepCmd3 := vmName
@@ -75,10 +73,12 @@ func stopBhyveProcess(vmName string) {
 	if stderr != nil {
 		log.Fatal("kill was not successful " + stderr.Error())
 	}
-	fmt.Println("kill -SIGKILL " + processId)
+
+	fmt.Println("Done stopping the VM")
 }
 
 func vmSupervisorCleanup(vmName string) {
+	fmt.Println("Starting vm supervisor cleanup")
 	reMatchVm, _ := regexp.Compile(`for\s` + vmName + `\s&`)
 	processId := ""
 
@@ -122,10 +122,11 @@ func vmSupervisorCleanup(vmName string) {
 			if stderr != nil {
 				log.Fatal("kill was not successful " + stderr.Error())
 			}
-			fmt.Println("kill -SIGKILL " + processId)
+			fmt.Println("Forcefully killing the vm_supervisor, due to operation timeout " + processId)
 			break
 		}
 	}
+	fmt.Println("Done cleaning up after vm supervisor")
 }
 
 func networkCleanup(vmName string) {
@@ -144,7 +145,41 @@ func networkCleanup(vmName string) {
 			tap := rePickTap.FindString(v)
 			tap = strings.TrimSpace(tap)
 			tap = strings.ReplaceAll(tap, "\"", "")
-			fmt.Println("ifconfig " + tap + " destroy")
+			fmt.Println("Destroying " + tap)
+			ifconfigDestroyCmd1 := "ifconfig"
+			ifconfigDestroyCmd3 := "destroy"
+			cmd := exec.Command(ifconfigDestroyCmd1, tap, ifconfigDestroyCmd3)
+			stderr := cmd.Run()
+			if stderr != nil {
+				log.Fatal("ifconfig destroy was not successful " + stderr.Error())
+			}
 		}
 	}
+	fmt.Println("Done cleaning up TAP network interfaces")
+}
+
+func bhyvectlDestroy(vmName string) {
+	fmt.Println("Cleaning up Bhyve resources")
+	lsCommand1 := "ls"
+	lsCommand2 := "-1"
+	cmd := exec.Command(lsCommand1, lsCommand2)
+	stdout, stderr := cmd.Output()
+	if stderr != nil {
+		log.Fatal("pgrep exited with an error " + stderr.Error())
+	}
+
+	matchVM, _ := regexp.Compile(`^` + vmName + `$`)
+	for _, v := range strings.Split(string(stdout), "\n") {
+		if matchVM.MatchString(v) {
+			bhyvectlCommand1 := "bhyvectl"
+			bhyvectlCommand2 := "--destroy"
+			bhyvectlCommand3 := "--vm="
+			cmd := exec.Command(bhyvectlCommand1, bhyvectlCommand2, bhyvectlCommand3, vmName)
+			stderr := cmd.Run()
+			if stderr != nil {
+				log.Fatal("bhyvectl exited with an error " + stderr.Error())
+			}
+		}
+	}
+	fmt.Println("Done cleaning up Bhyve resources")
 }
