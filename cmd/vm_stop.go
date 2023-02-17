@@ -54,10 +54,9 @@ func vmStop(vmName string) error {
 	// 	reMatchTap, _ := regexp.Compile(`^tap`)
 
 	for i, v := range strings.Split(string(stdout), "\n") {
-		log.Println(i, v)
-	}
-	for i, v := range strings.Split(string(stderr.Error()), "\n") {
-		log.Println(i, v)
+		if len(v) > 0 {
+			log.Println(i, v)
+		}
 	}
 
 	return nil
