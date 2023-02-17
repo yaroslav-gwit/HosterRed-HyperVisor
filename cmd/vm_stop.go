@@ -77,7 +77,7 @@ func stopBhyveProcess(vmName string) {
 }
 
 func vmSupervisorCleanup(vmName string) {
-	reMatchVm, _ := regexp.Compile(`\s` + vmName + `$`)
+	reMatchVm, _ := regexp.Compile(`for\s` + vmName + `\s&`)
 	processId := ""
 
 	prepCmd1 := "pgrep"
