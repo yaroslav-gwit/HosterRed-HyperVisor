@@ -45,7 +45,11 @@ func vmStop(vmName string) error {
 	cmd := exec.Command(prepCmd1, prepCmd2, prepCmd3)
 	stdout, stderr := cmd.Output()
 	if stderr != nil {
-		log.Fatal("ifconfig exited with an error " + stderr.Error())
+		if cmd.ProcessState.ExitCode() == 1 {
+			_ = 0
+		} else {
+			log.Fatal("ifconfig exited with an error " + stderr.Error())
+		}
 	}
 	// 	reMatchTap, _ := regexp.Compile(`^tap`)
 
