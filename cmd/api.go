@@ -161,4 +161,7 @@ func StartApiServer(port int, user string, password string) {
 
 	// Wait for the context to be cancelled
 	<-ctx.Done()
+
+	// Exit 0 to signal that all good
+	os.Exit(0)
 }
