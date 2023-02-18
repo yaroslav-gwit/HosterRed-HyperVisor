@@ -1,13 +1,16 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path"
 	"strconv"
+	"syscall"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
@@ -143,6 +146,19 @@ func StartApiServer(port int, user string, password string) {
 	fmt.Println(" Username:", user, "|| Password:", password)
 	fmt.Println(" Address: http://0.0.0.0:" + strconv.Itoa(port) + "/")
 	fmt.Println("")
+
+	// Create a context that is cancelled when a SIGINT or SIGTERM signal is received
+	ctx, cancel := context.WithCancel(context.Background())
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-c
+		log.Println("Received signal, shutting down...")
+		cancel()
+	}()
+
+	// Wait for the context to be cancelled
+	<-ctx.Done()
 
 	app.Listen("0.0.0.0:" + strconv.Itoa(port))
 }
