@@ -52,12 +52,14 @@ func getVmDataset(vmName string) (string, error) {
 	}
 
 	reVmMatch := regexp.MustCompile(`.*/` + vmName + `\s`)
+	reDsSplit := regexp.MustCompile(`\s+`)
 
 	var result string
 	for _, v := range strings.Split(string(stdout), "\n") {
 		v = strings.TrimSpace(v)
 		if reVmMatch.MatchString(v) {
-			result = strings.Split(v, " ")[0]
+			result = reDsSplit.Split(v, 1)[0]
+			break
 		}
 	}
 
