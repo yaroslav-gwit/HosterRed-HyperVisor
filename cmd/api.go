@@ -141,23 +141,30 @@ func StartApiServer(port int, user string, password string) {
 		return fiberContext.SendString(`{ "message": "process started" }`)
 	})
 
+	go func() {
+		ch := make(chan os.Signal, 1)
+		signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
+		<-ch
+
+		// Gracefully shut down the server
+		log.Println("Shutting down server...")
+		err := app.Shutdown()
+		if err != nil {
+			log.Printf("Error shutting down server: %s\n", err)
+		}
+	}()
+
 	fmt.Println("")
 	fmt.Println(" Use these credentials to authenticate with the API:")
 	fmt.Println(" Username:", user, "|| Password:", password)
 	fmt.Println(" Address: http://0.0.0.0:" + strconv.Itoa(port) + "/")
 	fmt.Println("")
 
-	// Set up signal handling
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+	err := app.Listen("0.0.0.0:" + strconv.Itoa(port))
+	if err != nil {
+		log.Fatalf("Error starting server: %s\n", err)
+	}
 
-	app.Listen("0.0.0.0:" + strconv.Itoa(port))
-
-	// Wait for a signal
-	sig := <-c
-	log.Printf("Received signal %s, forwarding to child process group...\n", sig)
-
-	log.Println("Shutting down server...")
-	app.Shutdown()
+	// app.Listen("0.0.0.0:" + strconv.Itoa(port))
 	os.Exit(0)
 }
