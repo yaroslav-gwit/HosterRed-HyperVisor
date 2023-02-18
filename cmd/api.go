@@ -163,12 +163,10 @@ func StartApiServer(port int, user string, password string) {
 		<-ch
 
 		// Gracefully shut down the server
-		log.Println("\nAttempting to shutdown the API Server gracefully...")
+		log.Println("Shutting down the API Server gracefully...")
 		err := app.Shutdown()
 		if err != nil {
 			log.Printf("Error shutting down server: %s\n", err)
-		} else {
-			log.Println("\nThe API Server is now off")
 		}
 	}()
 
