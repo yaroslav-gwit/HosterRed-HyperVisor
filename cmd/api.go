@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -35,16 +34,6 @@ var (
 )
 
 func StartApiServer(port int, user string, password string) {
-	// Create a context that is cancelled when a SIGINT or SIGTERM signal is received
-	ctx, cancel := context.WithCancel(context.Background())
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-c
-		log.Println("Received signal, shutting down...")
-		cancel()
-	}()
-
 	app := fiber.New(fiber.Config{DisableStartupMessage: true, Prefork: false})
 	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
@@ -115,6 +104,7 @@ func StartApiServer(port int, user string, password string) {
 		execFile := path.Dir(execPath) + "/hoster"
 		// Execute start all from the terminal using nohup
 		cmd := exec.Command("nohup", execFile, "vm", "start-all", "&")
+		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 		err = cmd.Start()
 		if err != nil {
 			return fiberContext.SendString(`{ "message": "failed to start the process"}`)
@@ -157,11 +147,17 @@ func StartApiServer(port int, user string, password string) {
 	fmt.Println(" Address: http://0.0.0.0:" + strconv.Itoa(port) + "/")
 	fmt.Println("")
 
+	// Set up signal handling
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+
 	app.Listen("0.0.0.0:" + strconv.Itoa(port))
 
-	// Wait for the context to be cancelled
-	<-ctx.Done()
+	// Wait for a signal
+	sig := <-c
+	log.Printf("Received signal %s, forwarding to child process group...\n", sig)
 
-	// Exit 0 to signal that all good
+	log.Println("Shutting down server...")
+	app.Shutdown()
 	os.Exit(0)
 }
