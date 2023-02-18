@@ -86,11 +86,26 @@ func StartApiServer(port int, user string, password string) {
 		if err := fiberContext.BodyParser(vm); err != nil {
 			return err
 		}
-		err := vmStart(vm.Name)
+		// Using NOHUP option in order to avoid killing the VMs process when API server stops
+		execPath, err := os.Executable()
 		if err != nil {
-			fiberContext.Status(fiber.StatusBadRequest)
-			return fiberContext.SendString(`{ "message": "` + err.Error() + `" }`)
+			return fiberContext.SendString(`{ "message": "failed to start the process"}`)
 		}
+		execFile := path.Dir(execPath) + "/hoster"
+		// Execute start all from the terminal using nohup
+		cmd := exec.Command("nohup", execFile, "vm", "start", vm.Name, "&")
+		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+		err = cmd.Start()
+		if err != nil {
+			return fiberContext.SendString(`{ "message": "failed to start the process"}`)
+		}
+		go func() {
+			err := cmd.Wait()
+			if err != nil {
+				log.Println(err)
+			}
+		}()
+
 		fiberContext.Status(fiber.StatusOK)
 		return fiberContext.SendString(`{ "message": "success" }`)
 	})
@@ -141,16 +156,19 @@ func StartApiServer(port int, user string, password string) {
 		return fiberContext.SendString(`{ "message": "process started" }`)
 	})
 
+	// This is required to make the VMs started using NOHUP to continue running normally
 	go func() {
 		ch := make(chan os.Signal, 1)
 		signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 		<-ch
 
 		// Gracefully shut down the server
-		log.Println("Shutting down server...")
+		log.Println("\nAttempting to shutdown the API Server gracefully...")
 		err := app.Shutdown()
 		if err != nil {
 			log.Printf("Error shutting down server: %s\n", err)
+		} else {
+			log.Println("\nThe API Server is now off")
 		}
 	}()
 
