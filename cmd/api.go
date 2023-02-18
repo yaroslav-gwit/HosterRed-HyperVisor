@@ -105,8 +105,13 @@ func StartApiServer(port int, user string, password string) {
 		err = cmd.Start()
 		if err != nil {
 			return fiberContext.SendString(`{ "message": "failed to start the process"}`)
-
 		}
+		go func() {
+			err := cmd.Wait()
+			if err != nil {
+				log.Println(err)
+			}
+		}()
 
 		fiberContext.Status(fiber.StatusOK)
 		return fiberContext.SendString(`{ "message": "process started" }`)
