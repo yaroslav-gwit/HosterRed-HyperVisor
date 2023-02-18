@@ -26,16 +26,26 @@ var (
 	}
 )
 
+// Snapshot a given VM. Returns an error, if something wrong happened in the process.
 func vmZfsSnapshot(vmName string) error {
-	fmt.Println("ZSF Snapshot")
 	vmDataset, err := getVmDataset(vmName)
-	fmt.Println(vmDataset)
 	if err != nil {
-		log.Println("zfs list exited with an error " + err.Error())
+		return errors.New("getVmDataset(vmName): " + err.Error())
+	}
+	fmt.Println("Working with this VM dataset: " + vmDataset)
+	vmSnapshotList, err := getVmSnapshots(vmDataset)
+	if err != nil {
+		return errors.New("getVmSnapshots(vmDataset) exited with an error: " + err.Error())
+	}
+	fmt.Println("VM snapshot list:")
+	for _, v := range vmSnapshotList {
+		fmt.Println(v)
 	}
 	return nil
 }
 
+// Runs `zfs list` command to return an active VM dataset.
+// Useful for taking snapshots, cloning and destroying the VMs.
 func getVmDataset(vmName string) (string, error) {
 	zfsListCmd1 := "zfs"
 	zfsListCmd2 := "list"
@@ -47,7 +57,7 @@ func getVmDataset(vmName string) (string, error) {
 		if cmd.ProcessState.ExitCode() == 1 {
 			_ = 0
 		} else {
-			return "", errors.New("zfs list exited with an error " + stderr.Error())
+			return "", errors.New("zfs list exited with an error: " + stderr.Error())
 		}
 	}
 
@@ -68,4 +78,32 @@ func getVmDataset(vmName string) (string, error) {
 	}
 
 	return result, nil
+}
+
+// Returns the current list of VM snapshots
+func getVmSnapshots(vmDataset string) ([]string, error) {
+	var listOfSnaps []string
+	zfsListCmd1 := "zfs"
+	zfsListCmd2 := "list"
+	zfsListCmd3 := "-t"
+	zfsListCmd4 := "snapshot"
+	zfsListCmd5 := "-Hp"
+
+	cmd := exec.Command(zfsListCmd1, zfsListCmd2, zfsListCmd3, zfsListCmd4, zfsListCmd5)
+	stdout, stderr := cmd.Output()
+	if stderr != nil {
+		if cmd.ProcessState.ExitCode() == 1 {
+			_ = 0
+		} else {
+			return listOfSnaps, errors.New("zfs list exited with an error: " + stderr.Error())
+		}
+	}
+
+	reDsSplit := regexp.MustCompile(`\s+`)
+	for _, v := range strings.Split(string(stdout), "\n") {
+		v = strings.TrimSpace(v)
+		listOfSnaps = append(listOfSnaps, reDsSplit.Split(v, -1)[0])
+	}
+
+	return listOfSnaps, nil
 }
