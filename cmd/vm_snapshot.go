@@ -58,7 +58,7 @@ func getVmDataset(vmName string) (string, error) {
 	for _, v := range strings.Split(string(stdout), "\n") {
 		v = strings.TrimSpace(v)
 		if reVmMatch.MatchString(v) {
-			result = reDsSplit.Split(v, 1)[0]
+			result = reDsSplit.Split(v, -1)[0]
 			break
 		}
 	}
