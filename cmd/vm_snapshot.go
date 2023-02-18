@@ -7,11 +7,16 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slices"
 )
 
 var (
+	snapshotType    string
+	snapshotsToKeep int
+
 	vmZfsSnapshotCmd = &cobra.Command{
 		Use:   "snapshot [vmName]",
 		Short: "Snapshot running or offline VM",
@@ -28,11 +33,17 @@ var (
 
 // Snapshot a given VM. Returns an error, if something wrong happened in the process.
 func vmZfsSnapshot(vmName string) error {
+	possibleSnapshotTypes := []string{"hourly, daily, weekly, monthly, yearly, custom"}
+	if !slices.Contains(possibleSnapshotTypes, snapshotType) {
+		return errors.New("this snapshot type is not supported by our system")
+	}
+
 	vmDataset, err := getVmDataset(vmName)
 	if err != nil {
 		return errors.New("getVmDataset(vmName): " + err.Error())
 	}
 	fmt.Println("Working with this VM dataset: " + vmDataset)
+
 	vmSnapshotList, err := getVmSnapshots(vmDataset)
 	if err != nil {
 		return errors.New("getVmSnapshots(vmDataset) exited with an error: " + err.Error())
@@ -40,6 +51,11 @@ func vmZfsSnapshot(vmName string) error {
 	fmt.Println("VM snapshot list:")
 	for _, v := range vmSnapshotList {
 		fmt.Println(v)
+	}
+
+	err = takeNewSnapshot(vmDataset, snapshotType)
+	if err != nil {
+		return errors.New("takeNewSnapshot() exited with an error: " + err.Error())
 	}
 	return nil
 }
@@ -54,11 +70,7 @@ func getVmDataset(vmName string) (string, error) {
 	cmd := exec.Command(zfsListCmd1, zfsListCmd2, zfsListCmd3)
 	stdout, stderr := cmd.Output()
 	if stderr != nil {
-		if cmd.ProcessState.ExitCode() == 1 {
-			_ = 0
-		} else {
-			return "", errors.New("zfs list exited with an error: " + stderr.Error())
-		}
+		return "", errors.New("zfs list exited with an error: " + stderr.Error())
 	}
 
 	reVmMatch := regexp.MustCompile(`.*/` + vmName + `\s`)
@@ -92,11 +104,7 @@ func getVmSnapshots(vmDataset string) ([]string, error) {
 	cmd := exec.Command(zfsListCmd1, zfsListCmd2, zfsListCmd3, zfsListCmd4, zfsListCmd5, vmDataset)
 	stdout, stderr := cmd.Output()
 	if stderr != nil {
-		if cmd.ProcessState.ExitCode() == 1 {
-			_ = 0
-		} else {
-			return listOfSnaps, errors.New("zfs list exited with an error: " + stderr.Error())
-		}
+		return listOfSnaps, errors.New("zfs list exited with an error: " + stderr.Error())
 	}
 
 	reDsSplit := regexp.MustCompile(`\s+`)
@@ -106,4 +114,19 @@ func getVmSnapshots(vmDataset string) ([]string, error) {
 	}
 
 	return listOfSnaps, nil
+}
+
+func takeNewSnapshot(vmDataset string, snapshotType string) error {
+	zfsSnapCmd1 := "zfs"
+	zfsSnapCmd2 := "snapshot"
+
+	now := time.Now()
+	timeNow := now.Format("2006-01-02_15-04-05")
+	cmd := exec.Command(zfsSnapCmd1, zfsSnapCmd2, vmDataset+"@"+snapshotType+"_"+timeNow)
+	err := cmd.Run()
+	if err != nil {
+		return errors.New("zfs snapshot exited with an error: " + err.Error())
+	}
+
+	return nil
 }
