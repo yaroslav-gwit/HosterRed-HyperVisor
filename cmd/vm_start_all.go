@@ -24,8 +24,8 @@ func vmStartAll() {
 		if vmConfigVar.ParentHost != GetHostName() {
 			continue
 		} else if vmConfigVar.LiveStatus == "production" || vmConfigVar.LiveStatus == "prod" {
-			vmStart(vm)
 			time.Sleep(time.Second * time.Duration(sleepTime))
+			vmStart(vm)
 			if sleepTime < 30 {
 				sleepTime = sleepTime + 1
 			}

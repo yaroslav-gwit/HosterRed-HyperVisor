@@ -91,7 +91,10 @@ func StartApiServer(port int, user string, password string) {
 	})
 
 	app.Post("/vm/start-all", func(fiberContext *fiber.Ctx) error {
-		go vmStartAll()
+		wg.Add(1)
+		go func() { defer wg.Done(); vmStartAll() }()
+		wg.Wait()
+		log.Printf("vmStartAll finished running")
 		fiberContext.Status(fiber.StatusOK)
 		return fiberContext.SendString(`{ "message": "process started" }`)
 	})
@@ -111,7 +114,10 @@ func StartApiServer(port int, user string, password string) {
 	})
 
 	app.Post("/vm/stop-all", func(fiberContext *fiber.Ctx) error {
-		go vmStopAll()
+		wg.Add(1)
+		go func() { defer wg.Done(); vmStopAll() }()
+		wg.Wait()
+		log.Printf("vmStopAll finished running")
 		fiberContext.Status(fiber.StatusOK)
 		return fiberContext.SendString(`{ "message": "process started" }`)
 	})
