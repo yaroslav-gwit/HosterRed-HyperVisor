@@ -93,7 +93,7 @@ func StartApiServer(port int, user string, password string) {
 		}
 		execFile := path.Dir(execPath) + "/hoster"
 		// Execute start all from the terminal using nohup
-		cmd := exec.Command("nohup", execFile, "vm", "start", vm.Name, "&")
+		cmd := exec.Command("nohup", execFile, "vm", "start", vm.Name)
 		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 		err = cmd.Start()
 		if err != nil {
@@ -102,7 +102,7 @@ func StartApiServer(port int, user string, password string) {
 		go func() {
 			err := cmd.Wait()
 			if err != nil {
-				log.Println(err)
+				log.Println(err.Error())
 			}
 		}()
 
