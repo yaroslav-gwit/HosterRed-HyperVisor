@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os/exec"
@@ -12,7 +13,7 @@ import (
 
 var (
 	vmZfsSnapshotCmd = &cobra.Command{
-		Use:   "snapshot",
+		Use:   "snapshot [vmName]",
 		Short: "Snapshot running or offline VM",
 		Long:  `Snapshot running or offline VM`,
 		Args:  cobra.ExactArgs(1),
@@ -27,7 +28,11 @@ var (
 
 func vmZfsSnapshot(vmName string) error {
 	fmt.Println("ZSF Snapshot")
-	fmt.Println(getVmDataset(vmName))
+	vmDataset, err := getVmDataset(vmName)
+	fmt.Println(vmDataset)
+	if err != nil {
+		log.Println("zfs list exited with an error " + err.Error())
+	}
 	return nil
 }
 
@@ -42,7 +47,7 @@ func getVmDataset(vmName string) (string, error) {
 		if cmd.ProcessState.ExitCode() == 1 {
 			_ = 0
 		} else {
-			log.Println("zfs list exited with an error " + stderr.Error())
+			return "", errors.New("zfs list exited with an error " + stderr.Error())
 		}
 	}
 
@@ -54,6 +59,10 @@ func getVmDataset(vmName string) (string, error) {
 		if reVmMatch.MatchString(v) {
 			result = strings.Split(v, " ")[0]
 		}
+	}
+
+	if len(result) < 1 {
+		return "", errors.New("can't find the dataset for this VM, sorry")
 	}
 
 	return result, nil
