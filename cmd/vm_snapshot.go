@@ -35,7 +35,7 @@ var (
 func vmZfsSnapshot(vmName string) error {
 	possibleSnapshotTypes := []string{"hourly, daily, weekly, monthly, yearly, custom"}
 	if !slices.Contains(possibleSnapshotTypes, snapshotType) {
-		return errors.New("this snapshot type is not supported by our system")
+		return errors.New("this snapshot type `" + snapshotType + "` is not supported by our system")
 	}
 
 	vmDataset, err := getVmDataset(vmName)
