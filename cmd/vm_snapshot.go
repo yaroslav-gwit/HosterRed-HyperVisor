@@ -89,7 +89,7 @@ func getVmSnapshots(vmDataset string) ([]string, error) {
 	zfsListCmd4 := "snapshot"
 	zfsListCmd5 := "-Hp"
 
-	cmd := exec.Command(zfsListCmd1, zfsListCmd2, zfsListCmd3, zfsListCmd4, zfsListCmd5)
+	cmd := exec.Command(zfsListCmd1, zfsListCmd2, zfsListCmd3, zfsListCmd4, zfsListCmd5, vmDataset)
 	stdout, stderr := cmd.Output()
 	if stderr != nil {
 		if cmd.ProcessState.ExitCode() == 1 {
