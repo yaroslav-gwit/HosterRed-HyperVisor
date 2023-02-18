@@ -97,14 +97,15 @@ func StartApiServer(port int, user string, password string) {
 		// Using NOHUP option in order to avoid killing all VMs when API server stops
 		execPath, err := os.Executable()
 		if err != nil {
-			log.Fatal(err)
+			return fiberContext.SendString(`{ "message": "failed to start the process"}`)
 		}
 		execFile := path.Dir(execPath) + "/hoster"
 		// Execute start all from the terminal using nohup
 		cmd := exec.Command("nohup", execFile, "vm", "start-all", "&")
-		err = cmd.Run()
+		err = cmd.Start()
 		if err != nil {
-			log.Fatal(err)
+			return fiberContext.SendString(`{ "message": "failed to start the process"}`)
+
 		}
 
 		fiberContext.Status(fiber.StatusOK)
