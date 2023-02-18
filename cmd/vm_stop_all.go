@@ -19,8 +19,10 @@ var (
 
 func vmStopAll() {
 	sleepTime := 3
-	for _, vm := range getAllVms() {
-		time.Sleep(time.Second * time.Duration(sleepTime))
+	for i, vm := range getAllVms() {
+		if i != 0 {
+			time.Sleep(time.Second * time.Duration(sleepTime))
+		}
 		vmStop(vm)
 	}
 }

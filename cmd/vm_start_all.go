@@ -19,12 +19,14 @@ var (
 
 func vmStartAll() {
 	sleepTime := 5
-	for _, vm := range getAllVms() {
+	for i, vm := range getAllVms() {
 		vmConfigVar := vmConfig(vm)
 		if vmConfigVar.ParentHost != GetHostName() {
 			continue
 		} else if vmConfigVar.LiveStatus == "production" || vmConfigVar.LiveStatus == "prod" {
-			time.Sleep(time.Second * time.Duration(sleepTime))
+			if i != 0 {
+				time.Sleep(time.Second * time.Duration(sleepTime))
+			}
 			vmStart(vm)
 			if sleepTime < 30 {
 				sleepTime = sleepTime + 1
