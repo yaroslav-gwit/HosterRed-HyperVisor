@@ -35,6 +35,16 @@ var (
 )
 
 func StartApiServer(port int, user string, password string) {
+	// Create a context that is cancelled when a SIGINT or SIGTERM signal is received
+	ctx, cancel := context.WithCancel(context.Background())
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-c
+		log.Println("Received signal, shutting down...")
+		cancel()
+	}()
+
 	app := fiber.New(fiber.Config{DisableStartupMessage: true, Prefork: false})
 	app.Use(requestid.New())
 	app.Use(logger.New(logger.Config{
@@ -147,18 +157,8 @@ func StartApiServer(port int, user string, password string) {
 	fmt.Println(" Address: http://0.0.0.0:" + strconv.Itoa(port) + "/")
 	fmt.Println("")
 
-	// Create a context that is cancelled when a SIGINT or SIGTERM signal is received
-	ctx, cancel := context.WithCancel(context.Background())
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-c
-		log.Println("Received signal, shutting down...")
-		cancel()
-	}()
+	app.Listen("0.0.0.0:" + strconv.Itoa(port))
 
 	// Wait for the context to be cancelled
 	<-ctx.Done()
-
-	app.Listen("0.0.0.0:" + strconv.Itoa(port))
 }
