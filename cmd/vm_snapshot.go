@@ -128,5 +128,7 @@ func takeNewSnapshot(vmDataset string, snapshotType string) error {
 		return errors.New("zfs snapshot exited with an error: " + err.Error())
 	}
 
+	fmt.Println("Took a new snapshot: " + zfsSnapCmd1 + zfsSnapCmd2 + vmDataset + "@" + snapshotType + "_" + timeNow)
+
 	return nil
 }
