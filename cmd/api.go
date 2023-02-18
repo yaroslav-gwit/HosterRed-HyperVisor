@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
+	"os/exec"
+	"path"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -91,8 +94,19 @@ func StartApiServer(port int, user string, password string) {
 	})
 
 	app.Post("/vm/start-all", func(fiberContext *fiber.Ctx) error {
-		go vmStartAll()
-		// log.Printf("vmStartAll finished running")
+		// Using NOHUP option in order to avoid killing all VMs when API server stops
+		execPath, err := os.Executable()
+		if err != nil {
+			log.Fatal(err)
+		}
+		execFile := path.Dir(execPath) + "/hoster"
+		// Execute start all from the terminal using nohup
+		cmd := exec.Command("nohup", execFile, "vm", "start-all", "&")
+		err = cmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		fiberContext.Status(fiber.StatusOK)
 		return fiberContext.SendString(`{ "message": "process started" }`)
 	})
