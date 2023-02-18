@@ -11,7 +11,6 @@ var (
 		Use:   "stop-all",
 		Short: "Stop all VMs deployed on this system",
 		Long:  `Stop all VMs deployed on this system`,
-		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			vmStopAll()
 		},

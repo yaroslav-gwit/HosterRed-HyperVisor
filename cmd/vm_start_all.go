@@ -11,7 +11,6 @@ var (
 		Use:   "start-all",
 		Short: "Start all VMs deployed on this system",
 		Long:  `Start all VMs deployed on this system`,
-		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			vmStartAll()
 		},
