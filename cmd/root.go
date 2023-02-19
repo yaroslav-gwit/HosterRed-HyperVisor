@@ -72,6 +72,11 @@ func init() {
 	// VM cmd -> manually edit config
 	vmCmd.AddCommand(vmEditConfigCmd)
 
+	// VM cmd -> manually edit config
+	vmCmd.AddCommand(vmDistExpandCmd)
+	vmDistExpandCmd.Flags().StringVarP(&diskImage, "image", "i", "disk0.img", "Disk image name, which should be expanded")
+	vmDistExpandCmd.Flags().IntVarP(&expansionSize, "size", "s", 10, "How much size to add, in Gb")
+
 	// API command section
 	rootCmd.AddCommand(apiCmd)
 	apiCmd.Flags().IntVarP(&apiServerPort, "port", "p", 3000, "Specify the port to listen on")
