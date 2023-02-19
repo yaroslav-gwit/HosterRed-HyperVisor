@@ -61,6 +61,11 @@ func init() {
 	vmZfsSnapshotCmd.Flags().StringVarP(&snapshotType, "stype", "t", "custom", "Snapshot type")
 	vmZfsSnapshotCmd.Flags().IntVarP(&snapshotsToKeep, "keep", "k", 5, "Number of snapshots to keep for this specific snapshot type")
 
+	// VM cmd -> snapshot all
+	vmCmd.AddCommand(vmZfsSnapshotAllCmd)
+	vmZfsSnapshotCmd.Flags().StringVarP(&snapshotAllType, "stype", "t", "custom", "Snapshot type")
+	vmZfsSnapshotCmd.Flags().IntVarP(&snapshotsAllToKeep, "keep", "k", 5, "Number of snapshots to keep for this specific snapshot type")
+
 	// API command section
 	rootCmd.AddCommand(apiCmd)
 	apiCmd.Flags().IntVarP(&apiServerPort, "port", "p", 3000, "Specify the port to listen on")
