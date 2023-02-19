@@ -156,6 +156,41 @@ func StartApiServer(port int, user string, password string) {
 		return fiberContext.SendString(`{ "message": "process started" }`)
 	})
 
+	type vmSnap struct {
+		VmName          string `json:"vm_name" xml:"name" form:"name"`
+		SnapshotType    string `json:"s_type" xml:"s_type" form:"s_type"`
+		SnapshotsToKeep int    `json:"s_to_keep" xml:"s_to_keep" form:"s_to_keep"`
+	}
+	app.Post("/vm/snapshot", func(fiberContext *fiber.Ctx) error {
+		vmSnapVar := new(vmSnap)
+		if err := fiberContext.BodyParser(vmSnapVar); err != nil {
+			return err
+		}
+		go vmZfsSnapshot(vmSnapVar.VmName, vmSnapVar.SnapshotType, vmSnapVar.SnapshotsToKeep)
+		fiberContext.Status(fiber.StatusOK)
+		return fiberContext.SendString(`{ "message": "process started" }`)
+	})
+
+	type vmAllSnap struct {
+		SnapshotType    string `json:"s_type" xml:"s_type" form:"s_type"`
+		SnapshotsToKeep int    `json:"s_to_keep" xml:"s_to_keep" form:"s_to_keep"`
+	}
+	app.Post("/vm/snapshot-all", func(fiberContext *fiber.Ctx) error {
+		vmSnapVar := new(vmAllSnap)
+		if err := fiberContext.BodyParser(vmSnapVar); err != nil {
+			return err
+		}
+		go func() {
+			for _, vm := range getAllVms() {
+				if vmLiveCheck(vm) {
+					vmZfsSnapshot(vm, vmSnapVar.SnapshotType, vmSnapVar.SnapshotsToKeep)
+				}
+			}
+		}()
+		fiberContext.Status(fiber.StatusOK)
+		return fiberContext.SendString(`{ "message": "process started" }`)
+	})
+
 	// This is required to make the VMs started using NOHUP to continue running normally
 	go func() {
 		ch := make(chan os.Signal, 1)
