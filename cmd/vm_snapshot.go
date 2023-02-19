@@ -57,6 +57,19 @@ func vmZfsSnapshot(vmName string) error {
 	if err != nil {
 		return errors.New("takeNewSnapshot() exited with an error: " + err.Error())
 	}
+
+	snapsToKeep, snapsToDelete, err := cleanupOldSnapshots(vmSnapshotList, snapshotsToKeep)
+	if err != nil {
+		return errors.New("cleanupOldSnapshots() exited with an error: " + err.Error())
+	}
+
+	for _, v := range snapsToKeep {
+		fmt.Println(v)
+	}
+	for _, v := range snapsToDelete {
+		fmt.Println(v)
+	}
+
 	return nil
 }
 
@@ -127,8 +140,27 @@ func takeNewSnapshot(vmDataset string, snapshotType string) error {
 	if err != nil {
 		return errors.New("zfs snapshot exited with an error: " + err.Error())
 	}
-
-	fmt.Println("Took a new snapshot: " + zfsSnapCmd1 + zfsSnapCmd2 + vmDataset + "@" + snapshotType + "_" + timeNow)
+	fmt.Println("Took a new snapshot: "+zfsSnapCmd1, zfsSnapCmd2, vmDataset+"@"+snapshotType+"_"+timeNow)
 
 	return nil
+}
+
+func cleanupOldSnapshots(vmSnapshots []string, snapshotsToKeep int) ([]string, []string, error) {
+	var snapsToKeep []string
+	var snapsToDelete []string
+
+	if len(vmSnapshots) > snapshotsToKeep {
+		for i, v := range vmSnapshots {
+			if i != len(vmSnapshots)-(snapshotsToKeep+1) {
+				snapsToDelete = append(snapsToDelete, v)
+			}
+		}
+		for _, v := range vmSnapshots {
+			if !slices.Contains(snapsToDelete, v) {
+				snapsToKeep = append(snapsToKeep, v)
+			}
+		}
+	}
+
+	return snapsToKeep, snapsToDelete, nil
 }
