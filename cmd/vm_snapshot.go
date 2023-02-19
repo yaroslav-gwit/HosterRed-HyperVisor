@@ -132,6 +132,7 @@ func getVmSnapshots(vmDataset string) ([]string, error) {
 	return listOfSnaps, nil
 }
 
+// Make a new VM snapshot and set a date for it
 func takeNewSnapshot(vmDataset string, snapshotType string) error {
 	zfsSnapCmd1 := "zfs"
 	zfsSnapCmd2 := "snapshot"
