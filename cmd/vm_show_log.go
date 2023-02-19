@@ -21,13 +21,13 @@ var (
 
 func viewLog(vmName string) {
 	vmFolder := getVmFolder(vmName)
-	tailCmd := exec.Command("micro", vmFolder+"/vm_supervisor.log")
+	// tailCmd := exec.Command("micro", vmFolder+"/vm_supervisor.log")
 	// cmd := exec.Command("bash", "-i")
+	tailCmd := exec.Command("tail", "-n", "35", "-f", vmFolder+"/vm_supervisor.log")
 	tailCmd.Stdin = os.Stdin
 	tailCmd.Stdout = os.Stdout
 	tailCmd.Stderr = os.Stderr
 	tailCmd.Run()
-	// tailCmd := exec.Command("tail", "-n", "35", "-f", vmFolder+"/vm_supervisor.log")
 
 	// Start the command with a new pseudo-terminal
 	// ptmx, err := pty.Start(tailCmd)
