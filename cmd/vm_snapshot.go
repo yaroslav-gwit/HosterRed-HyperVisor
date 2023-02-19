@@ -63,9 +63,12 @@ func vmZfsSnapshot(vmName string) error {
 		return errors.New("cleanupOldSnapshots() exited with an error: " + err.Error())
 	}
 
+	fmt.Println("snapsToKeep")
 	for _, v := range snapsToKeep {
 		fmt.Println(v)
 	}
+
+	fmt.Println("snapsToDelete")
 	for _, v := range snapsToDelete {
 		fmt.Println(v)
 	}
