@@ -191,6 +191,27 @@ func StartApiServer(port int, user string, password string) {
 		return fiberContext.SendString(`{ "message": "process started" }`)
 	})
 
+	type diskExpand struct {
+		VmName        string `json:"name" xml:"name" form:"name"`
+		DiskImage     string `json:"disk_image" xml:"disk_image" form:"disk_image"`
+		ExpansionSize int    `json:"expansion_size" xml:"expansion_size" form:"expansion_size"`
+	}
+	app.Post("/vm/disk-expand", func(fiberContext *fiber.Ctx) error {
+		diskExpandVar := new(diskExpand)
+		if err := fiberContext.BodyParser(diskExpandVar); err != nil {
+			return err
+		}
+
+		err := diskExpandOffline(diskExpandVar.VmName, diskExpandVar.DiskImage, diskExpandVar.ExpansionSize)
+		if err != nil {
+			fiberContext.Status(fiber.StatusOK)
+			return fiberContext.SendString(`{ "error": "` + err.Error() + `" }`)
+		}
+
+		fiberContext.Status(fiber.StatusOK)
+		return fiberContext.SendString(`{ "message": "success" }`)
+	})
+
 	// This is required to make the VMs started using NOHUP to continue running normally
 	go func() {
 		ch := make(chan os.Signal, 1)

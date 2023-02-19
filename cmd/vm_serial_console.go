@@ -15,8 +15,8 @@ import (
 var (
 	vmSerialConsoleCmd = &cobra.Command{
 		Use:   "serial-console [vmName]",
-		Short: "Edit VM's config manually using your favorite text editor",
-		Long:  `Edit VM's config manually using your favorite text editor`,
+		Short: "Connect to VM's serial console",
+		Long:  `Connect to VM's serial console (useful for connectivity troubleshooting)`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := connectToSerialConsole(args[0])
