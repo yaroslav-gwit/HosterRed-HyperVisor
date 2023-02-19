@@ -83,11 +83,14 @@ func main() {
 					}
 				}
 			}
-			log.Println("[stdout] Shutting down the VM supervisor process")
 
+			log.Println("[stdout] Performing network cleanup")
 			cmd.NetworkCleanup(vmName)
+
+			log.Println("[stdout] Performing Bhyve cleanup")
 			cmd.BhyvectlDestroy(vmName)
 
+			log.Println("[stdout] Shutting down the VM supervisor process")
 			os.Exit(0)
 		}
 
