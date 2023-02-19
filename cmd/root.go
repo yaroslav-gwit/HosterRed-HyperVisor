@@ -69,6 +69,9 @@ func init() {
 	// VM cmd -> show log
 	vmCmd.AddCommand(vmShowLogCmd)
 
+	// VM cmd -> manually edit config
+	vmCmd.AddCommand(vmEditConfigCmd)
+
 	// API command section
 	rootCmd.AddCommand(apiCmd)
 	apiCmd.Flags().IntVarP(&apiServerPort, "port", "p", 3000, "Specify the port to listen on")
