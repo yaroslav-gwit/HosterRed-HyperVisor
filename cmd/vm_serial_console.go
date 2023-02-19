@@ -60,7 +60,7 @@ func connectToSerialConsole(vmName string) error {
 }
 
 func newTmuxSession(vmName string) error {
-	tmuxCreate := exec.Command("tmux", "new-session", "-s", vmName, "\\\"cu -l /dev/nmdm-"+vmName+"-1B\\\"")
+	tmuxCreate := exec.Command("tmux", "new-session", "-s", vmName, "\"cu -l /dev/nmdm-"+vmName+"-1B\"")
 	println("tmux", "new-session", "-s", vmName, "\\\"cu -l /dev/nmdm-"+vmName+"-1B\\\"")
 	tmuxCreate.Stdin = os.Stdin
 	tmuxCreate.Stdout = os.Stdout
