@@ -44,6 +44,9 @@ func connectToSerialConsole(vmName string) error {
 				return errors.New("can't open VM console: " + err.Error())
 			}
 			return nil
+		} else {
+			newTmuxSession(vmName)
+			return nil
 		}
 	}
 
