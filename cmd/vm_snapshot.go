@@ -180,7 +180,7 @@ func cleanupOldSnapshots(vmSnapshots []string, snapshotsToKeep int) (cleanupOldS
 		if stderr != nil {
 			return cleanupOldSnapshotsStruct{}, errors.New("zfs snapshot exited with an error: " + stderr.Error())
 		}
-		fmt.Println("Removing snapshot:", destrSnapCmd1, destrSnapCmd2, destrSnapCmd3, v)
+		fmt.Println("Removing an old snapshot:", destrSnapCmd1, destrSnapCmd2, destrSnapCmd3, v)
 		fmt.Println(string(stdout))
 	}
 
