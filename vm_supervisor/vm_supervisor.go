@@ -85,7 +85,6 @@ func main() {
 			}
 			log.Println("[stdout] Shutting down the VM supervisor process")
 
-			cmd.StopBhyveProcess(vmName)
 			cmd.NetworkCleanup(vmName)
 			cmd.BhyvectlDestroy(vmName)
 
