@@ -58,18 +58,18 @@ func vmZfsSnapshot(vmName string) error {
 		return errors.New("takeNewSnapshot() exited with an error: " + err.Error())
 	}
 
-	snapsToKeep, snapsToDelete, err := cleanupOldSnapshots(vmSnapshotList, snapshotsToKeep)
+	snapshotCleanup, err := cleanupOldSnapshots(vmSnapshotList, snapshotsToKeep)
 	if err != nil {
 		return errors.New("cleanupOldSnapshots() exited with an error: " + err.Error())
 	}
 
 	fmt.Println("snapsToKeep")
-	for _, v := range snapsToKeep {
+	for _, v := range snapshotCleanup.snapsToKeep {
 		fmt.Println(v)
 	}
 
 	fmt.Println("snapsToDelete")
-	for _, v := range snapsToDelete {
+	for _, v := range snapshotCleanup.snapsToDelete {
 		fmt.Println(v)
 	}
 
@@ -148,22 +148,41 @@ func takeNewSnapshot(vmDataset string, snapshotType string) error {
 	return nil
 }
 
-func cleanupOldSnapshots(vmSnapshots []string, snapshotsToKeep int) ([]string, []string, error) {
-	var snapsToKeep []string
-	var snapsToDelete []string
+type cleanupOldSnapshotsStruct struct {
+	snapsToKeep   []string
+	snapsToDelete []string
+}
+
+// Cleans up old snapshots, that are out of `snapshotsToKeep` boundaries.
+// Returns `snapsToKeep` list, `snapsToDelete` and an error if applicable.
+func cleanupOldSnapshots(vmSnapshots []string, snapshotsToKeep int) (cleanupOldSnapshotsStruct, error) {
+	result := cleanupOldSnapshotsStruct{}
 
 	if len(vmSnapshots) > snapshotsToKeep {
 		for i, v := range vmSnapshots {
 			if i < len(vmSnapshots)-(snapshotsToKeep+1) {
-				snapsToDelete = append(snapsToDelete, v)
+				result.snapsToDelete = append(result.snapsToDelete, v)
 			}
 		}
 		for _, v := range vmSnapshots {
-			if !slices.Contains(snapsToDelete, v) {
-				snapsToKeep = append(snapsToKeep, v)
+			if !slices.Contains(result.snapsToDelete, v) {
+				result.snapsToKeep = append(result.snapsToKeep, v)
 			}
 		}
 	}
 
-	return snapsToKeep, snapsToDelete, nil
+	destrSnapCmd1 := "zfs"
+	destrSnapCmd2 := "destroy"
+	destrSnapCmd3 := "-v"
+	for _, v := range result.snapsToDelete {
+		cmd := exec.Command(destrSnapCmd1, destrSnapCmd2, destrSnapCmd3, v)
+		stdout, stderr := cmd.Output()
+		if stderr != nil {
+			return cleanupOldSnapshotsStruct{}, errors.New("zfs snapshot exited with an error: " + stderr.Error())
+		}
+		fmt.Println("Removing snapshot:", destrSnapCmd1, destrSnapCmd2, destrSnapCmd3, v)
+		fmt.Println(string(stdout))
+	}
+
+	return result, nil
 }
