@@ -43,6 +43,7 @@ func connectToSerialConsole(vmName string) error {
 			if err != nil {
 				return errors.New("can't open VM console: " + err.Error())
 			}
+			return nil
 		}
 	}
 
