@@ -50,6 +50,7 @@ func connectToSerialConsole(vmName string) error {
 	for _, v := range strings.Split(string(stdout), "\n") {
 		if reTmuxSessionMatch.MatchString(v) {
 			attachToTmuxSession(vmName)
+			break
 		} else {
 			newTmuxSession(vmName)
 		}
@@ -72,7 +73,7 @@ func newTmuxSession(vmName string) error {
 }
 
 func attachToTmuxSession(vmName string) error {
-	tmuxAttach := exec.Command("tmux", "a", "-t", "\""+vmName+"\"")
+	tmuxAttach := exec.Command("tmux", "a", "-t", vmName)
 	tmuxAttach.Stdin = os.Stdin
 	tmuxAttach.Stdout = os.Stdout
 	tmuxAttach.Stderr = os.Stderr
