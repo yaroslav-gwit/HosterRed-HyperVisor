@@ -51,16 +51,12 @@ func connectToSerialConsole(vmName string) error {
 	for _, v := range strings.Split(string(stdout), "\n") {
 		v = strings.TrimSpace(v)
 		if reTmuxSessionMatch.MatchString(v) {
-			println("matched" + v)
-			// attachToTmuxSession(vmName)
-			return nil
-		} else {
-			println("did not match" + v)
-			// newTmuxSession(vmName)
+			attachToTmuxSession(vmName)
 			return nil
 		}
 	}
 
+	newTmuxSession(vmName)
 	return nil
 }
 
