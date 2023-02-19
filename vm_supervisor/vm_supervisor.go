@@ -2,11 +2,11 @@ package main
 
 import (
 	"bufio"
+	"hoster/cmd"
 	"io"
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"strings"
 	"sync"
 	"time"
@@ -41,12 +41,12 @@ func main() {
 	parts := strings.Fields(vmStartCommand)
 	for {
 		log.Println("[stdout] Starting the VM as a child process")
-		cmd := exec.Command(parts[0], parts[1:]...)
-		stdout, err := cmd.StdoutPipe()
+		hupCmd := exec.Command(parts[0], parts[1:]...)
+		stdout, err := hupCmd.StdoutPipe()
 		if err != nil {
 			log.Fatalf("[stderr] Failed to create stdout pipe: %v", err)
 		}
-		stderr, err := cmd.StderrPipe()
+		stderr, err := hupCmd.StderrPipe()
 		if err != nil {
 			log.Fatalf("[stderr] Failed to create stderr pipe: %v", err)
 		}
@@ -67,7 +67,7 @@ func main() {
 		}()
 
 		done := make(chan error)
-		startCommand(cmd, done)
+		startCommand(hupCmd, done)
 
 		wg.Wait()
 
@@ -85,20 +85,10 @@ func main() {
 			}
 			log.Println("[stdout] Shutting down the VM supervisor process")
 
-			// VM Resource Cleanup section
-			//
-			// Get location of the "hoster" executable
-			execPath, err := os.Executable()
-			if err != nil {
-				log.Fatal(err)
-			}
-			execFile := path.Dir(execPath) + "/hoster"
-			// Start VM cleanup using "hoster vm stop"
-			cmd := exec.Command(execFile, "vm", "stop", vmName)
-			err = cmd.Run()
-			if err != nil {
-				log.Fatal(err)
-			}
+			cmd.StopBhyveProcess(vmName)
+			cmd.NetworkCleanup(vmName)
+			cmd.BhyvectlDestroy(vmName)
+
 			os.Exit(0)
 		}
 

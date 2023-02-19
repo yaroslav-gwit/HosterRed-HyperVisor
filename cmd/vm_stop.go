@@ -36,16 +36,16 @@ func vmStop(vmName string) error {
 		return errors.New("VM is already stopped")
 	}
 
-	stopBhyveProcess(vmName)
+	StopBhyveProcess(vmName)
 	vmSupervisorCleanup(vmName)
-	stopBhyveProcess(vmName)
-	networkCleanup(vmName)
-	bhyvectlDestroy(vmName)
+	StopBhyveProcess(vmName)
+	NetworkCleanup(vmName)
+	BhyvectlDestroy(vmName)
 
 	return nil
 }
 
-func stopBhyveProcess(vmName string) {
+func StopBhyveProcess(vmName string) {
 	fmt.Println("Stopping the VM")
 	prepCmd1 := "pgrep"
 	prepCmd2 := "-lf"
@@ -129,7 +129,7 @@ func vmSupervisorCleanup(vmName string) {
 	fmt.Println("Done cleaning up after vm supervisor")
 }
 
-func networkCleanup(vmName string) {
+func NetworkCleanup(vmName string) {
 	fmt.Println("Starting network cleanup")
 	cmd := exec.Command("ifconfig")
 	stdout, stderr := cmd.Output()
@@ -158,7 +158,7 @@ func networkCleanup(vmName string) {
 	fmt.Println("Done cleaning up TAP network interfaces")
 }
 
-func bhyvectlDestroy(vmName string) {
+func BhyvectlDestroy(vmName string) {
 	fmt.Println("Cleaning up Bhyve resources")
 	time.Sleep(time.Second * 2)
 	lsCommand1 := "ls"
