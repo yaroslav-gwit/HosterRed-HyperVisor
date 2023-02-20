@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"html/template"
 	"log"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -96,7 +98,7 @@ type dnsInfoStruct struct {
 }
 
 func generateNewDnsConfig() error {
-	fmt.Println("DNS Config was generated")
+	fmt.Println("New DNS config file generated")
 	var vmDnsInfo []dnsInfoStruct
 
 	for _, v := range getAllVms() {
@@ -116,8 +118,32 @@ func generateNewDnsConfig() error {
 	if err := tmpl.Execute(&output, vmDnsInfo); err != nil {
 		return errors.New("could not reload the unbound service: " + err.Error())
 	}
+	// fmt.Println(output.String())
 
-	fmt.Println(output.String())
+	// Open a new file for writing
+	unboundConfigFile, err := os.Create("/var/unbound/unbound.conf")
+	if err != nil {
+		panic(err)
+	}
+	defer unboundConfigFile.Close()
+
+	// Create a new writer
+	writer := bufio.NewWriter(unboundConfigFile)
+
+	// Write a string to the file
+	str := output.String()
+	_, err = writer.WriteString(str)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+
+	// Flush the writer to ensure all data has been written to the file
+	err = writer.Flush()
+	if err != nil {
+		return errors.New(err.Error())
+	}
+
+	fmt.Println("Unbound service config file written successfully!")
 
 	return nil
 }
