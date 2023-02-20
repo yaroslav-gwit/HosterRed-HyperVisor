@@ -41,7 +41,7 @@ server:
 	access-control: 172.16.0.0/12 allow
 	access-control: 192.168.0.0/16 allow
 	
-	{{range .vmDnsInfo}}
+	{{range .}}
 	local-zone: "{{.VmName}}" redirect
 	local-data: "{{.VmName}} A {{.IpAddress}}"
 	{{end}}
