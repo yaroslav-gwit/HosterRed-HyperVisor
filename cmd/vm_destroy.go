@@ -42,8 +42,8 @@ server:
 	access-control: 192.168.0.0/16 allow
 	
 	{{range .vmDnsInfo}}
-	local-zone: "{{.vmName}}" redirect
-	local-data: "{{.vmName}} A {{.ipAddress}}"
+	local-zone: "{{.VmName}}" redirect
+	local-data: "{{.VmName}} A {{.IpAddress}}"
 	{{end}}
 include: /var/unbound/forward.conf
 include: /var/unbound/lan-zones.conf
