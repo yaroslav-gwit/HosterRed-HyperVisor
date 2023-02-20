@@ -52,8 +52,8 @@ include: /var/unbound/conf.d/*.conf
 `
 
 type dnsInfoStruct struct {
-	vmName    string
-	ipAddress string
+	VmName    string
+	IpAddress string
 }
 
 func generateNewDnsConfig() {
@@ -63,8 +63,8 @@ func generateNewDnsConfig() {
 	for _, v := range getAllVms() {
 		tempConfig := vmConfig(v)
 		tempDnsInfo := dnsInfoStruct{}
-		tempDnsInfo.ipAddress = tempConfig.Networks[0].IPAddress
-		tempDnsInfo.vmName = v
+		tempDnsInfo.IpAddress = tempConfig.Networks[0].IPAddress
+		tempDnsInfo.VmName = v
 		vmDnsInfo = append(vmDnsInfo, tempDnsInfo)
 	}
 
