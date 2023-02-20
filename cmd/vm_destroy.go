@@ -39,6 +39,7 @@ var (
 
 func vmDestroy(vmName string) error {
 	vmDataset, err := getVmDataset(vmName)
+	fmt.Println("Working this this VM dataset: " + vmDataset)
 	if err != nil {
 		return errors.New("could not find the VM dataset: " + err.Error())
 	}
@@ -51,6 +52,7 @@ func vmDestroy(vmName string) error {
 	}
 
 	vmDatasetParent := reSplit.Split(string(stdout), -1)[1]
+	fmt.Println("Removing parent VM dataset: " + vmDatasetParent)
 	err = exec.Command("zfs", "destroy", "-r", vmDataset).Run()
 	if stderr != nil {
 		return errors.New("could not execute zfs destroy: " + err.Error())
@@ -143,7 +145,7 @@ func generateNewDnsConfig() error {
 		return errors.New(err.Error())
 	}
 
-	fmt.Println("Unbound service config file written successfully!")
+	fmt.Println("Unbound service config file has been written successfully")
 
 	return nil
 }
