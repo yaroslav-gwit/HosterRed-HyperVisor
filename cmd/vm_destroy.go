@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -35,6 +36,28 @@ var (
 )
 
 func vmDestroy(vmName string) error {
+	vmDataset, err := getVmDataset(vmName)
+	if err != nil {
+		return errors.New("could not find the VM dataset: " + err.Error())
+	}
+
+	findZfsParentCmd := exec.Command("zfs", "list", "-Ho", "name,origin", vmDataset)
+	reSplit := regexp.MustCompile(`\s+`)
+	stdout, stderr := findZfsParentCmd.Output()
+	if stderr != nil {
+		return errors.New("could not execute zfs list: " + err.Error())
+	}
+
+	vmDatasetParent := reSplit.Split(string(stdout), -1)[1]
+	err = exec.Command("zfs", "destroy", "-r", vmDataset).Run()
+	if stderr != nil {
+		return errors.New("could not execute zfs destroy: " + err.Error())
+	}
+	err = exec.Command("zfs", "destroy", vmDatasetParent).Run()
+	if stderr != nil {
+		return errors.New("could not execute zfs destroy: " + err.Error())
+	}
+
 	return nil
 }
 

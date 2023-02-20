@@ -62,16 +62,16 @@ func StartApiServer(port int, user string, password string) {
 	type vmName struct {
 		Name string `json:"name" xml:"name" form:"name"`
 	}
-
 	app.Post("/vm/info", func(fiberContext *fiber.Ctx) error {
 		vm := new(vmName)
 		if err := fiberContext.BodyParser(vm); err != nil {
-			return err
+			fiberContext.Status(fiber.StatusUnprocessableEntity)
+			return fiberContext.JSON(fiber.Map{"error": err.Error()})
 		}
 		result, err := getVmInfo(vm.Name)
 		if err != nil {
-			fiberContext.Status(fiber.StatusBadRequest)
-			return fiberContext.SendString(`{ "message": "` + err.Error() + `" }`)
+			fiberContext.Status(fiber.StatusInternalServerError)
+			return fiberContext.JSON(fiber.Map{"error": err.Error()})
 		}
 		jsonResult, err := json.Marshal(result)
 		if err != nil {
@@ -84,11 +84,13 @@ func StartApiServer(port int, user string, password string) {
 	app.Post("/vm/start", func(fiberContext *fiber.Ctx) error {
 		vm := new(vmName)
 		if err := fiberContext.BodyParser(vm); err != nil {
-			return err
+			fiberContext.Status(fiber.StatusUnprocessableEntity)
+			return fiberContext.JSON(fiber.Map{"error": err.Error()})
 		}
 		// Using NOHUP option in order to avoid killing the VMs process when API server stops
 		execPath, err := os.Executable()
 		if err != nil {
+			fiberContext.Status(fiber.StatusInternalServerError)
 			return fiberContext.SendString(`{ "message": "failed to start the process"}`)
 		}
 		execFile := path.Dir(execPath) + "/hoster"
@@ -97,7 +99,8 @@ func StartApiServer(port int, user string, password string) {
 		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 		err = cmd.Start()
 		if err != nil {
-			return fiberContext.SendString(`{ "message": "failed to start the process"}`)
+			fiberContext.Status(fiber.StatusInternalServerError)
+			return fiberContext.JSON(fiber.Map{"message": "failed to start the process"})
 		}
 		go func() {
 			err := cmd.Wait()
@@ -107,7 +110,7 @@ func StartApiServer(port int, user string, password string) {
 		}()
 
 		fiberContext.Status(fiber.StatusOK)
-		return fiberContext.SendString(`{ "message": "success" }`)
+		return fiberContext.JSON(fiber.Map{"message": "success"})
 	})
 
 	app.Post("/vm/start-all", func(fiberContext *fiber.Ctx) error {
@@ -122,7 +125,8 @@ func StartApiServer(port int, user string, password string) {
 		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 		err = cmd.Start()
 		if err != nil {
-			return fiberContext.SendString(`{ "message": "failed to start the process"}`)
+			fiberContext.Status(fiber.StatusInternalServerError)
+			return fiberContext.JSON(fiber.Map{"message": "failed to start the process"})
 		}
 		go func() {
 			err := cmd.Wait()
@@ -132,28 +136,29 @@ func StartApiServer(port int, user string, password string) {
 		}()
 
 		fiberContext.Status(fiber.StatusOK)
-		return fiberContext.SendString(`{ "message": "process started" }`)
+		return fiberContext.JSON(fiber.Map{"message": "process started"})
 	})
 
 	app.Post("/vm/stop", func(fiberContext *fiber.Ctx) error {
 		vm := new(vmName)
 		if err := fiberContext.BodyParser(vm); err != nil {
-			return err
+			fiberContext.Status(fiber.StatusUnprocessableEntity)
+			return fiberContext.JSON(fiber.Map{"error": err.Error()})
 		}
 		err := vmStop(vm.Name)
 		if err != nil {
 			fiberContext.Status(fiber.StatusBadRequest)
-			return fiberContext.SendString(`{ "message": "` + err.Error() + `" }`)
+			return fiberContext.JSON(fiber.Map{"error": err.Error()})
+
 		}
 		fiberContext.Status(fiber.StatusOK)
-		return fiberContext.SendString(`{ "message": "success" }`)
+		return fiberContext.JSON(fiber.Map{"message": "success"})
 	})
 
 	app.Post("/vm/stop-all", func(fiberContext *fiber.Ctx) error {
 		go vmStopAll()
-		// log.Printf("vmStopAll finished running")
 		fiberContext.Status(fiber.StatusOK)
-		return fiberContext.SendString(`{ "message": "process started" }`)
+		return fiberContext.JSON(fiber.Map{"message": "process started"})
 	})
 
 	type vmSnap struct {
@@ -164,11 +169,12 @@ func StartApiServer(port int, user string, password string) {
 	app.Post("/vm/snapshot", func(fiberContext *fiber.Ctx) error {
 		vmSnapVar := new(vmSnap)
 		if err := fiberContext.BodyParser(vmSnapVar); err != nil {
-			return err
+			fiberContext.Status(fiber.StatusUnprocessableEntity)
+			return fiberContext.JSON(fiber.Map{"error": err.Error()})
 		}
 		go vmZfsSnapshot(vmSnapVar.VmName, vmSnapVar.SnapshotType, vmSnapVar.SnapshotsToKeep)
 		fiberContext.Status(fiber.StatusOK)
-		return fiberContext.SendString(`{ "message": "process started" }`)
+		return fiberContext.JSON(fiber.Map{"message": "process started"})
 	})
 
 	type vmAllSnap struct {
@@ -178,7 +184,8 @@ func StartApiServer(port int, user string, password string) {
 	app.Post("/vm/snapshot-all", func(fiberContext *fiber.Ctx) error {
 		vmSnapVar := new(vmAllSnap)
 		if err := fiberContext.BodyParser(vmSnapVar); err != nil {
-			return err
+			fiberContext.Status(fiber.StatusUnprocessableEntity)
+			return fiberContext.JSON(fiber.Map{"error": err.Error()})
 		}
 		go func() {
 			for _, vm := range getAllVms() {
@@ -188,7 +195,7 @@ func StartApiServer(port int, user string, password string) {
 			}
 		}()
 		fiberContext.Status(fiber.StatusOK)
-		return fiberContext.SendString(`{ "message": "process started" }`)
+		return fiberContext.JSON(fiber.Map{"message": "process started"})
 	})
 
 	type diskExpand struct {
@@ -199,17 +206,19 @@ func StartApiServer(port int, user string, password string) {
 	app.Post("/vm/disk-expand", func(fiberContext *fiber.Ctx) error {
 		diskExpandVar := new(diskExpand)
 		if err := fiberContext.BodyParser(diskExpandVar); err != nil {
-			return err
+			fiberContext.Status(fiber.StatusUnprocessableEntity)
+			return fiberContext.JSON(fiber.Map{"error": err.Error()})
 		}
 
 		err := diskExpandOffline(diskExpandVar.VmName, diskExpandVar.DiskImage, diskExpandVar.ExpansionSize)
 		if err != nil {
-			fiberContext.Status(fiber.StatusOK)
-			return fiberContext.SendString(`{ "error": "` + err.Error() + `" }`)
+			fiberContext.Status(fiber.StatusInternalServerError)
+			return fiberContext.JSON(fiber.Map{"error": err.Error()})
 		}
 
 		fiberContext.Status(fiber.StatusOK)
-		return fiberContext.SendString(`{ "message": "success" }`)
+		return fiberContext.JSON(fiber.Map{"message": "success"})
+
 	})
 
 	// This is required to make the VMs started using NOHUP to continue running normally
