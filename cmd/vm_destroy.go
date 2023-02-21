@@ -39,7 +39,7 @@ var (
 
 func vmDestroy(vmName string) error {
 	vmDataset, err := getVmDataset(vmName)
-	fmt.Println("Working this this VM dataset: " + vmDataset)
+	fmt.Println("Will be removing this VM dataset: " + vmDataset)
 	if err != nil {
 		return errors.New("could not find the VM dataset: " + err.Error())
 	}

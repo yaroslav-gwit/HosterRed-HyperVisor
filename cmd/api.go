@@ -81,6 +81,33 @@ func StartApiServer(port int, user string, password string) {
 		return fiberContext.SendString(string(jsonResult))
 	})
 
+	app.Post("/vm/destroy", func(fiberContext *fiber.Ctx) error {
+		vm := new(vmName)
+		if err := fiberContext.BodyParser(vm); err != nil {
+			fiberContext.Status(fiber.StatusUnprocessableEntity)
+			return fiberContext.JSON(fiber.Map{"error": err.Error()})
+		}
+
+		err := vmDestroy(vm.Name)
+		if err != nil {
+			fiberContext.Status(fiber.StatusInternalServerError)
+			return fiberContext.JSON(fiber.Map{"error": err.Error()})
+		}
+		err = generateNewDnsConfig()
+		if err != nil {
+			fiberContext.Status(fiber.StatusInternalServerError)
+			return fiberContext.JSON(fiber.Map{"error": err.Error()})
+		}
+		err = reloadDnsService()
+		if err != nil {
+			fiberContext.Status(fiber.StatusInternalServerError)
+			return fiberContext.JSON(fiber.Map{"error": err.Error()})
+		}
+
+		fiberContext.Status(fiber.StatusOK)
+		return fiberContext.JSON(fiber.Map{"message": "success"})
+	})
+
 	app.Post("/vm/start", func(fiberContext *fiber.Ctx) error {
 		vm := new(vmName)
 		if err := fiberContext.BodyParser(vm); err != nil {

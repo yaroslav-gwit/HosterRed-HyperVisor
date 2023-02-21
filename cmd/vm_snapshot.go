@@ -19,8 +19,8 @@ var (
 
 	vmZfsSnapshotCmd = &cobra.Command{
 		Use:   "snapshot [vmName]",
-		Short: "Snapshot running or offline VM",
-		Long:  `Snapshot running or offline VM`,
+		Short: "Snapshot VM (using ZFS snapshot)",
+		Long:  `Snapshot VM (using ZFS snapshot)`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := vmZfsSnapshot(args[0], snapshotType, snapshotsToKeep)
