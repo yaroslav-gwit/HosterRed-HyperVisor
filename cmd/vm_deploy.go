@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net"
+	"os"
+	"path"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -17,10 +21,10 @@ var (
 		Use:   "deploy",
 		Short: "Deploy the VM, using a pre-defined template",
 		Long:  `Deploy the VM, using a pre-defined template`,
-		Args:  cobra.ExactArgs(3),
+		// Args:  cobra.ExactArgs(3),
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(args[0])
-			ip, err := generateNewIp(args[0], args[1], args[2])
+			ip, err := generateNewIp()
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -139,15 +143,24 @@ const vmConfigFileTemlate = `
 }
 `
 
-func generateNewIp(subnet string, rangeStart string, rangeEnd string) (string, error) {
+func generateNewIp() (string, error) {
 	var existingIps []string
 	for _, v := range getAllVms() {
 		tempConfig := vmConfig(v)
 		existingIps = append(existingIps, tempConfig.Networks[0].IPAddress)
 	}
 
+	networks, err := networkInfo()
+	if err != nil {
+		return "", errors.New(err.Error())
+	}
+
+	subnet := networks[0].Subnet
+	rangeStart := networks[0].RangeStart
+	rangeEnd := networks[0].RangeEnd
+
 	var randomIp string
-	var err error
+	// var err error
 	randomIp, err = generateUniqueRandomIp(subnet)
 	if err != nil {
 		return "", errors.New("could not generate a random IP address: " + err.Error())
@@ -162,7 +175,7 @@ func generateNewIp(subnet string, rangeStart string, rangeEnd string) (string, e
 			}
 			iteration = iteration + 1
 			if iteration > 400 {
-				return "", errors.New("ran out of IP addresses")
+				return "", errors.New("ran out of IP available addresses within this range")
 			}
 		} else {
 			break
@@ -179,7 +192,7 @@ func generateUniqueRandomIp(subnet string) (string, error) {
 	// Parse the subnet IP and mask
 	ip, ipNet, err := net.ParseCIDR(subnet)
 	if err != nil {
-		panic(err)
+		return "", errors.New(err.Error())
 	}
 
 	// Calculate the size of the address space within the subnet
@@ -229,4 +242,39 @@ func bytesInRange(ip, start, end []byte) bool {
 		}
 	}
 	return true
+}
+
+type NetworkInfoSt struct {
+	Name            string `json:"network_name"`
+	Gateway         string `json:"network_gateway"`
+	Subnet          string `json:"network_subnet"`
+	RangeStart      string `json:"network_range_start"`
+	RangeEnd        string `json:"network_range_end"`
+	BridgeInterface string `json:"bridge_interface"`
+	ApplyBridgeAddr bool   `json:"apply_bridge_address"`
+	Comment         string `json:"comment"`
+}
+
+func networkInfo() ([]NetworkInfoSt, error) {
+	// JSON config file location
+	execPath, err := os.Executable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	networkConfigFile := path.Dir(execPath) + "/config_files/network_config.json"
+
+	// Read the JSON file
+	data, err := ioutil.ReadFile(networkConfigFile)
+	if err != nil {
+		return []NetworkInfoSt{}, err
+	}
+
+	// Unmarshal the JSON data into a slice of Network structs
+	var networks []NetworkInfoSt
+	err = json.Unmarshal(data, &networks)
+	if err != nil {
+		panic(err)
+	}
+
+	return []NetworkInfoSt{}, nil
 }
