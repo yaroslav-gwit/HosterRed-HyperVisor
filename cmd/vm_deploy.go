@@ -162,5 +162,6 @@ func generateIp(subnet string) (string, error) {
 
 	// Print the generated address
 	// fmt.Println(addr)
-	return string(addr), nil
+	stringAddress := fmt.Sprintf("%v", addr)
+	return stringAddress, nil
 }
