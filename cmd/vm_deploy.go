@@ -221,10 +221,10 @@ func ipIsWinthinRange(ipAddress string, subnet string, rangeStart string, rangeE
 
 func bytesInRange(ip, start, end []byte) bool {
 	for i := 0; i < len(ip); i++ {
-		if ip[i] < start[i] || ip[i] > end[i] {
-			return false
-		} else if start[i] > end[i] {
+		if start[i] > end[i] {
 			log.Fatal("Make sure range start is lower than range end!")
+		} else if ip[i] < start[i] || ip[i] > end[i] {
+			return false
 		}
 	}
 	return true
