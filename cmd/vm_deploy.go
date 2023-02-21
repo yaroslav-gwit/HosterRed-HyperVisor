@@ -29,6 +29,12 @@ var (
 				log.Fatal(err)
 			}
 			fmt.Println(ip)
+
+			mac, err := generateRandomMacAddress()
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(mac)
 		},
 	}
 )
@@ -277,4 +283,36 @@ func networkInfo() ([]NetworkInfoSt, error) {
 	}
 
 	return networks, nil
+}
+
+func generateRandomMacAddress() (string, error) {
+	var existingMacs []string
+	for _, v := range getAllVms() {
+		tempConfig := vmConfig(v)
+		existingMacs = append(existingMacs, tempConfig.Networks[0].NetworkMac)
+	}
+
+	// Generate a random MAC address
+	mac := make([]byte, 3)
+	_, err := rand.Read(mac)
+	if err != nil {
+		return "", err
+	}
+
+	// Format the MAC address as a string with the desired prefix
+	macStr := fmt.Sprintf("58:9c:fc:%02x:%02x:%02x", mac[0], mac[1], mac[2])
+
+	if slices.Contains(existingMacs, macStr) {
+		// Generate a random MAC address
+		mac := make([]byte, 3)
+		_, err := rand.Read(mac)
+		if err != nil {
+			return "", err
+		}
+
+		// Format the MAC address as a string with the desired prefix
+		macStr = fmt.Sprintf("58:9c:fc:%02x:%02x:%02x", mac[0], mac[1], mac[2])
+	}
+
+	return macStr, nil
 }
