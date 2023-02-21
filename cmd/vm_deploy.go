@@ -259,10 +259,9 @@ func networkInfo() ([]NetworkInfoSt, error) {
 	// JSON config file location
 	execPath, err := os.Executable()
 	if err != nil {
-		log.Fatal(err)
+		return []NetworkInfoSt{}, err
 	}
 	networkConfigFile := path.Dir(execPath) + "/config_files/network_config.json"
-	fmt.Println(networkConfigFile)
 
 	// Read the JSON file
 	data, err := ioutil.ReadFile(networkConfigFile)
@@ -271,11 +270,11 @@ func networkInfo() ([]NetworkInfoSt, error) {
 	}
 
 	// Unmarshal the JSON data into a slice of Network structs
-	var networks []NetworkInfoSt
+	var networks = []NetworkInfoSt{}
 	err = json.Unmarshal(data, &networks)
 	if err != nil {
 		return []NetworkInfoSt{}, err
 	}
 
-	return []NetworkInfoSt{}, nil
+	return networks, nil
 }
