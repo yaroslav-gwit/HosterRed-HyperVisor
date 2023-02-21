@@ -262,6 +262,7 @@ func networkInfo() ([]NetworkInfoSt, error) {
 		log.Fatal(err)
 	}
 	networkConfigFile := path.Dir(execPath) + "/config_files/network_config.json"
+	fmt.Println(networkConfigFile)
 
 	// Read the JSON file
 	data, err := ioutil.ReadFile(networkConfigFile)
