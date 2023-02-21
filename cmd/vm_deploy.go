@@ -29,7 +29,7 @@ var (
 	}
 )
 
-const ciUserData = `
+const ciUserDataTemplate = `
 #cloud-config
 
 users:
@@ -63,12 +63,12 @@ package_update: false
 package_upgrade: false
 `
 
-const ciMetaData = `
+const ciMetaDataTemplate = `
 instance-id: iid-wmxgv
 local-hostname: test-vm-1
 `
 
-const ciNetworkConfig = `
+const ciNetworkConfigTemplate = `
 version: 2
 ethernets:
   interface0:
@@ -86,7 +86,7 @@ ethernets:
        addresses: [{{ .NetworkGateway }}, ]
 `
 
-const vmJsonConfig = `
+const vmConfigFileTemlate = `
 {
     "cpu_sockets": "1",
     "cpu_cores": "1",
@@ -157,12 +157,13 @@ func generateNewIp(subnet string, rangeStart string, rangeEnd string) (string, e
 	for {
 		if slices.Contains(existingIps, randomIp) || !ipIsWinthinRange(randomIp, subnet, rangeStart, rangeEnd) {
 			randomIp, err = generateUniqueRandomIp(subnet)
-			iteration = iteration + 1
 			if err != nil {
 				return "", errors.New("could not generate a random IP address: " + err.Error())
 			}
-		} else if iteration > 400 {
-			return "", errors.New("ran out of IP addresses")
+			iteration = iteration + 1
+			if iteration > 400 {
+				return "", errors.New("ran out of IP addresses")
+			}
 		} else {
 			break
 		}
