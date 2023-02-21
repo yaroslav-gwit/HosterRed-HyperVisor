@@ -153,12 +153,16 @@ func generateNewIp(subnet string, rangeStart string, rangeEnd string) (string, e
 		return "", errors.New("could not generate a random IP address: " + err.Error())
 	}
 
+	iteration := 0
 	for {
 		if slices.Contains(existingIps, randomIp) || !ipIsWinthinRange(randomIp, subnet, rangeStart, rangeEnd) {
 			randomIp, err = generateUniqueRandomIp(subnet)
+			iteration = iteration + 1
 			if err != nil {
 				return "", errors.New("could not generate a random IP address: " + err.Error())
 			}
+		} else if iteration > 40 {
+			return "", errors.New("ran out of IP addresses")
 		} else {
 			break
 		}
