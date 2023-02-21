@@ -274,7 +274,7 @@ func networkInfo() ([]NetworkInfoSt, error) {
 	var networks []NetworkInfoSt
 	err = json.Unmarshal(data, &networks)
 	if err != nil {
-		panic(err)
+		return []NetworkInfoSt{}, err
 	}
 
 	return []NetworkInfoSt{}, nil
