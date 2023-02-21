@@ -270,7 +270,7 @@ func networkInfo() ([]NetworkInfoSt, error) {
 	}
 
 	// Unmarshal the JSON data into a slice of Network structs
-	networks := []NetworkInfoSt{}
+	var networks []NetworkInfoSt
 	err = json.Unmarshal(data, &networks)
 	if err != nil {
 		return []NetworkInfoSt{}, err
