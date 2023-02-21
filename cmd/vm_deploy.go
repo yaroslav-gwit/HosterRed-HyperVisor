@@ -161,7 +161,7 @@ func generateNewIp(subnet string, rangeStart string, rangeEnd string) (string, e
 			if err != nil {
 				return "", errors.New("could not generate a random IP address: " + err.Error())
 			}
-		} else if iteration > 40 {
+		} else if iteration > 400 {
 			return "", errors.New("ran out of IP addresses")
 		} else {
 			break
