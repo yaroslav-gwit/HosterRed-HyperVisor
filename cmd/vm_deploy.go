@@ -2,6 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"math/rand"
+	"net"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -14,6 +18,11 @@ var (
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(args[0])
+			ip, err := generateIp(args[0])
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(ip)
 		},
 	}
 )
@@ -127,3 +136,31 @@ const vmJsonConfig = `
     "description": "-"
 }
 `
+
+func generateIp(subnet string) (string, error) {
+	// Set the seed for the random number generator
+	rand.Seed(time.Now().UnixNano())
+
+	// Parse the subnet IP and mask
+	// subnet := "192.168.0.0/24"
+	ip, ipNet, err := net.ParseCIDR(subnet)
+	if err != nil {
+		return "", err
+	}
+
+	// Calculate the size of the address space within the subnet
+	size, _ := ipNet.Mask.Size()
+	numHosts := (1 << (32 - size)) - 2
+
+	// Generate a random host address within the subnet
+	host := rand.Intn(numHosts) + 1
+	addr := ip.Mask(ipNet.Mask)
+	addr[0] |= byte(host >> 24)
+	addr[1] |= byte(host >> 16)
+	addr[2] |= byte(host >> 8)
+	addr[3] |= byte(host)
+
+	// Print the generated address
+	// fmt.Println(addr)
+	return string(addr), nil
+}
