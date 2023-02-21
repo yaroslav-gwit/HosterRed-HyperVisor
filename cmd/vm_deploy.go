@@ -148,28 +148,54 @@ func generateNewIp(subnet string, rangeStart string, rangeEnd string) (string, e
 
 	var randomIp string
 	var err error
-	randomIp, err = generateUniqueRandomIp(subnet, rangeStart, rangeEnd)
+	randomIp, err = generateUniqueRandomIp(subnet)
 	if err != nil {
 		return "", errors.New("could not generate a random IP address: " + err.Error())
 	}
 
-	for slices.Contains(existingIps, randomIp) {
-		randomIp, err = generateUniqueRandomIp(subnet, rangeStart, rangeEnd)
-		if err != nil {
-			return "", errors.New("could not generate a random IP address: " + err.Error())
+	for {
+		if slices.Contains(existingIps, randomIp) || !ipIsWinthinRange(randomIp, subnet, rangeStart, rangeEnd) {
+			randomIp, err = generateUniqueRandomIp(subnet)
+			if err != nil {
+				return "", errors.New("could not generate a random IP address: " + err.Error())
+			}
+		} else {
+			break
 		}
 	}
 
 	return randomIp, nil
 }
 
-func generateUniqueRandomIp(subnet string, rangeStart string, rangeEnd string) (string, error) {
+func generateUniqueRandomIp(subnet string) (string, error) {
 	// Set the seed for the random number generator
 	rand.Seed(time.Now().UnixNano())
 
 	// Parse the subnet IP and mask
-	// ip, ipNet, err := net.ParseCIDR(subnet)
-	ip, _, err := net.ParseCIDR(subnet)
+	ip, ipNet, err := net.ParseCIDR(subnet)
+	if err != nil {
+		panic(err)
+	}
+
+	// Calculate the size of the address space within the subnet
+	size, _ := ipNet.Mask.Size()
+	numHosts := (1 << (32 - size)) - 2
+
+	// Generate a random host address within the subnet
+	host := rand.Intn(numHosts) + 1
+	addr := ip.Mask(ipNet.Mask)
+	addr[0] |= byte(host >> 24)
+	addr[1] |= byte(host >> 16)
+	addr[2] |= byte(host >> 8)
+	addr[3] |= byte(host)
+
+	stringAddress := fmt.Sprintf("%v", addr)
+	return stringAddress, nil
+}
+
+func ipIsWinthinRange(ipAddress string, subnet string, rangeStart string, rangeEnd string) bool {
+	// Parse the subnet IP and mask
+	_, ipNet, err := net.ParseCIDR(subnet)
 	if err != nil {
 		panic(err)
 	}
@@ -178,19 +204,22 @@ func generateUniqueRandomIp(subnet string, rangeStart string, rangeEnd string) (
 	start := net.ParseIP(rangeStart).To4()
 	end := net.ParseIP(rangeEnd).To4()
 
-	// Calculate the size of the address space within the range
-	numHosts := int(end[3]-start[3]) + 1
-	numHosts += int(end[2]-start[2]) * 256
+	// Parse the IP address to check
+	ip := net.ParseIP(ipAddress).To4()
 
-	// Generate a random host address within the range
-	host := start[3] + byte(rand.Intn(numHosts))
-	if host > end[3] {
-		host -= byte(numHosts)
-		ip[2]++
+	// Check if the IP address is within the allowed range
+	if ipNet.Contains(ip) && bytesInRange(ip, start, end) {
+		return true
+	} else {
+		return false
 	}
-	ip[3] = host
-	addr := net.IPv4(ip[12], ip[13], ip[14], ip[15])
+}
 
-	stringAddress := fmt.Sprintf("%v", addr)
-	return stringAddress, nil
+func bytesInRange(ip, start, end []byte) bool {
+	for i := 0; i < len(ip); i++ {
+		if ip[i] < start[i] || ip[i] > end[i] {
+			return false
+		}
+	}
+	return true
 }
