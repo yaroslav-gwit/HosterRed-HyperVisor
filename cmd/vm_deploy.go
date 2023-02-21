@@ -23,7 +23,7 @@ var (
 		Long:  `Deploy the VM, using a pre-defined template`,
 		// Args:  cobra.ExactArgs(3),
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(args[0])
+			// fmt.Println(args[0])
 			ip, err := generateNewIp()
 			if err != nil {
 				log.Fatal(err)
