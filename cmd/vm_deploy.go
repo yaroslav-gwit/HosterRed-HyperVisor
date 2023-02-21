@@ -292,26 +292,21 @@ func generateRandomMacAddress() (string, error) {
 		existingMacs = append(existingMacs, tempConfig.Networks[0].NetworkMac)
 	}
 
-	// Generate a random MAC address
-	mac := make([]byte, 3)
-	_, err := rand.Read(mac)
-	if err != nil {
-		return "", err
-	}
+	macStr := ""
+	for {
+		if slices.Contains(existingMacs, macStr) || len(macStr) < 1 {
+			// Generate a random MAC address
+			mac := make([]byte, 3)
+			_, err := rand.Read(mac)
+			if err != nil {
+				return "", err
+			}
 
-	// Format the MAC address as a string with the desired prefix
-	macStr := fmt.Sprintf("58:9c:fc:%02x:%02x:%02x", mac[0], mac[1], mac[2])
-
-	if slices.Contains(existingMacs, macStr) {
-		// Generate a random MAC address
-		mac := make([]byte, 3)
-		_, err := rand.Read(mac)
-		if err != nil {
-			return "", err
+			// Format the MAC address as a string with the desired prefix
+			macStr = fmt.Sprintf("58:9c:fc:%02x:%02x:%02x", mac[0], mac[1], mac[2])
+		} else {
+			break
 		}
-
-		// Format the MAC address as a string with the desired prefix
-		macStr = fmt.Sprintf("58:9c:fc:%02x:%02x:%02x", mac[0], mac[1], mac[2])
 	}
 
 	return macStr, nil
