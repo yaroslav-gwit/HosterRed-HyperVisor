@@ -146,10 +146,6 @@ func generateNewIp(subnet string, rangeStart string, rangeEnd string) (string, e
 		existingIps = append(existingIps, tempConfig.Networks[0].IPAddress)
 	}
 
-	if rangeStart < rangeEnd {
-		return "", errors.New("bottom range should not be higher than the top range")
-	}
-
 	var randomIp string
 	var err error
 	randomIp, err = generateUniqueRandomIp(subnet)
@@ -227,6 +223,8 @@ func bytesInRange(ip, start, end []byte) bool {
 	for i := 0; i < len(ip); i++ {
 		if ip[i] < start[i] || ip[i] > end[i] {
 			return false
+		} else if start[i] > end[i] {
+			log.Fatal("Make sure range start is lower than range end!")
 		}
 	}
 	return true
