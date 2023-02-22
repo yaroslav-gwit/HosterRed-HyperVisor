@@ -145,8 +145,7 @@ func printTemplatesToScreen(vmName string, osType string) error {
 	return nil
 }
 
-const ciUserDataTemplate = `
-#cloud-config
+const ciUserDataTemplate = `#cloud-config
 
 users:
   - default
@@ -157,7 +156,7 @@ users:
     ssh_authorized_keys:
 	  {{- range .SshKeys}}
       - {{ .Key }}
-	  {{ end }}
+	  {{- end }}
 
   - name: gwitsuper
     sudo: ALL=(ALL) NOPASSWD:ALL
@@ -167,7 +166,7 @@ users:
     ssh_authorized_keys:
 	  {{- range .SshKeys}}
       - {{ .Key }}
-	  {{ end }}
+	  {{- end }}
 
 chpasswd:
   list: |
