@@ -157,7 +157,19 @@ func printTemplatesToScreen(vmName string, osType string) error {
 	if err := tmpl.Execute(&ciNetworkConfig, c); err != nil {
 		return errors.New("could not generate ciNetworkConfigTemplate: " + err.Error())
 	}
-	fmt.Println(ciNetworkConfig.String())
+	// fmt.Println(ciNetworkConfig.String())
+
+	// Generate template ciNetworkConfigTemplate
+	tmpl, err = template.New("ciMetaDataTemplate").Parse(ciMetaDataTemplate)
+	if err != nil {
+		return errors.New("could not generate ciMetaDataTemplate: " + err.Error())
+	}
+
+	var ciMetaData strings.Builder
+	if err := tmpl.Execute(&ciMetaData, c); err != nil {
+		return errors.New("could not generate ciMetaDataTemplate: " + err.Error())
+	}
+	fmt.Println(ciMetaData.String())
 
 	return nil
 }
@@ -217,7 +229,7 @@ ethernets:
        addresses: [{{ .Gateway }}, ]
 `
 
-const vmConfigFileTemlate = `
+const vmConfigFileTemplate = `
 {
     "cpu_sockets": "1",
     "cpu_cores": "1",
