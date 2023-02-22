@@ -155,7 +155,7 @@ func printTemplatesToScreen(vmName string, osType string) error {
 	if err := tmpl.Execute(&ciNetworkConfig, c); err != nil {
 		return errors.New("could not generate ciNetworkConfigTemplate: " + err.Error())
 	}
-	fmt.Println(ciUserData.String())
+	fmt.Println(ciNetworkConfig.String())
 
 	return nil
 }
