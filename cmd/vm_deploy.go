@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -323,9 +324,12 @@ func generateRandomMacAddress() (string, error) {
 }
 
 func generateVmName(vmName string) (string, error) {
+	reAllowed := regexp.MustCompile(`[^a-zA-Z0-9\-]`)
 	iter := 1
 	vms := getAllVms()
-	if vmName == "test-vm" {
+	if reAllowed.MatchString(vmName) {
+		return "", errors.New("name can only include A-Z, dash (-), and/or numbers")
+	} else if vmName == "test-vm" {
 		vmName = "test-vm-" + strconv.Itoa(iter)
 		for {
 			if slices.Contains(vms, vmName) {
