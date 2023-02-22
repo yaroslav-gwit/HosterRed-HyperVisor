@@ -53,6 +53,7 @@ type ConfigOutputStruct struct {
 	MacAddress        string
 	IpAddress         string
 	Subnet            string
+	NakedSubnet       string
 	Gateway           string
 	LiveStatus        string
 	OsType            string
@@ -103,6 +104,7 @@ func printTemplatesToScreen(vmName string, osType string) error {
 		return errors.New("could not generate the IP")
 	}
 	c.Subnet = networkInfo[0].Subnet
+	c.NakedSubnet = strings.Split(networkInfo[0].Subnet, "/")[1]
 	c.Gateway = networkInfo[0].Subnet
 
 	reMatchTest := regexp.MustCompile(`.*test`)
@@ -206,7 +208,7 @@ ethernets:
      
      set-name: eth0
      addresses:
-     - {{ .IpAddress }}/{{ .Subnet }}
+     - {{ .IpAddress }}/{{ .NakedSubnet }}
      
      gateway4: {{ .Gateway }}
      
