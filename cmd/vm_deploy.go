@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"path"
+	"strconv"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -17,11 +18,14 @@ import (
 )
 
 var (
+	vmName string
+	osType string
+
 	vmDeployCmd = &cobra.Command{
 		Use:   "deploy",
 		Short: "Deploy the VM, using a pre-defined template",
 		Long:  `Deploy the VM, using a pre-defined template`,
-		// Args:  cobra.ExactArgs(3),
+		// Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// fmt.Println(args[0])
 			ip, err := generateNewIp()
@@ -35,6 +39,12 @@ var (
 				log.Fatal(err)
 			}
 			fmt.Println(mac)
+
+			newVmName, err := generateVmName(vmName)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(newVmName)
 		},
 	}
 )
@@ -310,4 +320,23 @@ func generateRandomMacAddress() (string, error) {
 	}
 
 	return macStr, nil
+}
+
+func generateVmName(vmName string) (string, error) {
+	iter := 1
+	vms := getAllVms()
+	if vmName == "test-vm" {
+		vmName = "test-vm-" + strconv.Itoa(iter)
+		for {
+			if slices.Contains(vms, vmName) {
+				iter = iter + 1
+				vmName = "test-vm-" + strconv.Itoa(iter)
+			} else {
+				break
+			}
+		}
+	} else if slices.Contains(vms, vmName) {
+		return "", errors.New("vm already exists")
+	}
+	return vmName, nil
 }

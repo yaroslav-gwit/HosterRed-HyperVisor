@@ -85,6 +85,8 @@ func init() {
 
 	// VM cmd -> vm deploy
 	vmCmd.AddCommand(vmDeployCmd)
+	vmDeployCmd.Flags().StringVarP(&osType, "name", "n", "test-vm", "Set the VM name (automatically generated if left empty)")
+	vmDeployCmd.Flags().StringVarP(&osType, "os-stype", "t", "debian11", "OS or type or distribution (ie: debian11, ubuntu2004, etc)")
 
 	// API command section
 	rootCmd.AddCommand(apiCmd)
