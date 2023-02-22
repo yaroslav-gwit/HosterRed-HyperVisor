@@ -63,9 +63,11 @@ type ConfigOutputStruct struct {
 }
 
 func printTemplatesToScreen(vmName string, osType string) error {
+	// Initialize values
 	c := ConfigOutputStruct{}
 	var err error
 
+	// Collect the required information
 	c.RootPassword, err = generateRandomPassword(33, true, true)
 	if err != nil {
 		return errors.New("could not generate random password for root user: " + err.Error())
@@ -131,6 +133,7 @@ func printTemplatesToScreen(vmName string, osType string) error {
 		return errors.New("could not get ssh keys: " + err.Error())
 	}
 
+	// Generate template ciUserDataTemplate
 	tmpl, err := template.New("ciUserDataTemplate").Parse(ciUserDataTemplate)
 	if err != nil {
 		return errors.New("could not generate ciUserDataTemplate: " + err.Error())
@@ -139,6 +142,18 @@ func printTemplatesToScreen(vmName string, osType string) error {
 	var ciUserData strings.Builder
 	if err := tmpl.Execute(&ciUserData, c); err != nil {
 		return errors.New("could not generate ciUserDataTemplate: " + err.Error())
+	}
+	// fmt.Println(ciUserData.String())
+
+	// Generate template ciNetworkConfigTemplate
+	tmpl, err = template.New("ciNetworkConfigTemplate").Parse(ciNetworkConfigTemplate)
+	if err != nil {
+		return errors.New("could not generate ciNetworkConfigTemplate: " + err.Error())
+	}
+
+	var ciNetworkConfig strings.Builder
+	if err := tmpl.Execute(&ciNetworkConfig, c); err != nil {
+		return errors.New("could not generate ciNetworkConfigTemplate: " + err.Error())
 	}
 	fmt.Println(ciUserData.String())
 
@@ -183,8 +198,7 @@ instance-id: iid-{{ .InstanceId }}
 local-hostname: {{ .VmName }}
 `
 
-const ciNetworkConfigTemplate = `
-version: 2
+const ciNetworkConfigTemplate = `version: 2
 ethernets:
   interface0:
      match:
