@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"html/template"
 	"log"
 	"math/rand"
 	"net"
@@ -12,6 +12,7 @@ import (
 	"path"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -29,26 +30,120 @@ var (
 		// Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// fmt.Println(args[0])
-			ip, err := generateNewIp()
+			err := printTemplatesToScreen(vmName, osType)
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Println(ip)
-
-			mac, err := generateRandomMacAddress()
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Println(mac)
-
-			newVmName, err := generateVmName(vmName)
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Println(newVmName)
 		},
 	}
 )
+
+type SshKey struct {
+	Key     string
+	Owner   string
+	Comment string
+}
+
+type ConfigOutputStruct struct {
+	SshKeys           []SshKey
+	RootPassword      string
+	GwitsuperPassword string
+	InstanceId        string
+	VmName            string
+	MacAddress        string
+	IpAddress         string
+	Subnet            string
+	Gateway           string
+	LiveStatus        string
+	OsType            string
+	OsComment         string
+	ParentHost        string
+	VncPort           string
+	VncPassword       string
+}
+
+func printTemplatesToScreen(vmName string, osType string) error {
+	c := ConfigOutputStruct{}
+	var err error
+
+	c.RootPassword, err = generateRandomPassword(33, true, true)
+	if err != nil {
+		return errors.New("could not generate random password for root user: " + err.Error())
+	}
+
+	c.GwitsuperPassword, err = generateRandomPassword(33, true, true)
+	if err != nil {
+		return errors.New("could not generate random password for gwitsuper user: " + err.Error())
+	}
+
+	c.InstanceId, err = generateRandomPassword(5, false, true)
+	if err != nil {
+		return errors.New("could not generate random instance id: " + err.Error())
+	}
+
+	c.VmName, err = generateVmName(vmName)
+	if err != nil {
+		return errors.New("could not generate vm name: " + err.Error())
+	}
+
+	c.MacAddress, err = generateRandomMacAddress()
+	if err != nil {
+		return errors.New("could not generate vm name: " + err.Error())
+	}
+
+	c.IpAddress, err = generateNewIp()
+	if err != nil {
+		return errors.New("could not generate the IP")
+	}
+
+	networkInfo, err := networkInfo()
+	if err != nil {
+		return errors.New("could not generate the IP")
+	}
+	c.Subnet = networkInfo[0].Subnet
+	c.Gateway = networkInfo[0].Subnet
+
+	reMatchTest := regexp.MustCompile(`.*test`)
+	if reMatchTest.MatchString(c.VmName) {
+		c.LiveStatus = "testing"
+	} else {
+		c.LiveStatus = "production"
+	}
+
+	c.OsType = osType
+	switch c.OsType {
+	case "debian11":
+		c.OsComment = "Debian 11"
+	default:
+		c.OsComment = "-"
+	}
+
+	c.ParentHost = GetHostName()
+
+	c.VncPort = generateRandomVncPort()
+	c.VncPassword, err = generateRandomPassword(8, true, true)
+	if err != nil {
+		return errors.New("could not generate vnc port: " + err.Error())
+	}
+
+	c.SshKeys, err = getSystemSshKeys()
+	if err != nil {
+		return errors.New("could not get ssh keys: " + err.Error())
+	}
+
+	tmpl, err := template.New("ciUserDataTemplate").Parse(ciUserDataTemplate)
+	if err != nil {
+		return errors.New("could not generate ciUserDataTemplate: " + err.Error())
+	}
+
+	var ciUserData strings.Builder
+	if err := tmpl.Execute(&ciUserData, c); err != nil {
+		return errors.New("could not generate ciUserDataTemplate: " + err.Error())
+	}
+	fmt.Println(ciUserData.String())
+
+	return nil
+}
 
 const ciUserDataTemplate = `
 #cloud-config
@@ -60,9 +155,9 @@ users:
     ssh_pwauth: true
     disable_root: false
     ssh_authorized_keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDs7hczETEkQ7k1f4xxQCHHWjqOaiVVKpJegMXqiOkHmmJyarnrxGb2YOKx9Vn4jHEJyzO5vcUCgSDhbDQ3AWoMyUnKbEn/beOy31Fft0Pt54McIb0G6M2gM7Ywgwek6JL2ltJMj6Q1PvZkBoBGNVc+0q7AYq1J80s9baO7l9pAJ73BJm18lqwir0kaFHHxB7IdBVoKTaNFSEu8Lbt8axwOjiPiNKv5jFKdAXkU7IEO5Ts+UOEMQf8tCFkMmWH5h71WtcMy9BglqtvSjxxn1bWcU9MEvunOaXyNTVy+FUvpaVvCcKm5EsLNMXtVAQK0K5lfzHgcXiHw4f2bgUr2oubm5KuLyMmneq/5NPf8B4yR6rXD6D+d7ZzUVwW8LhKyd/MfCNjudwShrV8kkp/cc0JoWhelDCxp+YOqPKeIWZBYHZkDP5cQCM6TjYyZ0JfTlZaATk6PV7LM3xHSlBnbXKYDwp3UlvVDARFiCQMKIQDqKHC37SzL0vX4BEvhf7m1oXhv+P7dbBIGrZThDD4sjaHgegTfouOcG+ggQSto1Y9uApXepeU/5I0+TtPuoKr2u9xzX8VYnlNceOrx2+52sYa1AlFG/OhL2tEMV91QpZox5T35mDv1nKhflcLc4YLIMvO/f2w3FOfnrjbcF2U3y4bYr8ul9OJZzX++uC7Q8cZNvw== root@hoster-test-0101
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC4ecr6eYKbz7zUnsUsZ2Lw+mkSEYiIIyjhsrHBPoCoNN0V6O8CAog6Xc52KM4r+ozC07J4iz0G2UKjO7INSoDGVa6gMwzTrPeg2hLY7aNJytRqSVwpo5nujKcNCISoY9wCcXkTG1yVvty7pJ2Dk8ysHl6nCn6pIfQ87hRJ+ywSiE4y5AqDC5xMeGIw/bPajzofOXCQSMNgtflynbeBC6McA0kClmUp0kCX6kwGdPU2FNmz3Vba6ixMhP7Ng0vTJSmOStEqpd2in/nhz2JNtUcWIickPZf1II0s4LXZ74H308QJtYw1nVavKF4SKiVPkP7gKGrnCYDsq2p0P+EhZlHvK/nJPdS8qaWyVmeFr07o+F5mhYbw4t2BJUKgfKnStqatXZtAzwKvPyYzVpjD0nGVhxjF2BH0XdtWfbdTARaeZxJEVPoPtLm4cTP0CA7RljplJuGwp9DGgzwO3zbfx8CcjtmkJaELG9hrTeMhRmY6FMccci4LeJLhs9LHHblNXYEu+5xGzPPEj2AP3x73XmVdcRpUExtwScN4PrcV0JPSqkTwfwB25mCKfEv76vTl9iPe9D8Veerfyuhq2LsboGExTqw4HtazO2tmwfVIptF2Ak6eeEKX09V1lPQbIWi/vRIYVLgTHMeaU66rvT6LWqxyWUB++11ToNBNrigTa2tOWw== root@hoster-test-0102
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDsOnhH5R/Incbxjtb/c4Z3t3hlDo3aHt02miE5R1i09s78zljYFHCAmJ6/fKDTPmt+irNPDTaCTShZTen/U1B5E/aljFzl4ZJxL9Z4MV0YXfbq7IMGs2ln/DWV+pVdgmuhCP4cZsFOeuX7T6JPk4IgAEGQrGl+J/+xzlU9PeU0DMgUFl1sljOEtvKnnjH/cs4s/gvQGOBFiggB4Gl2UPBYaT88dRrv5VJJ5G/WKq+Ngk3qwA0ilx/9L3Z9Cio1ROHrHw32Hxa6BgBz4fwZWRM7oeqtc2jIYP0upbAsthcU6nG8WAq1i/fKmJe7p89b6afIoqPA8ZxmHjVOQJ92K9a+1wrR7z2elZ/F+aosOQ0kda66cmYvSWyc2CylySobxJsHNrx7Jn+kEHzRd7zFOgOitS2QbwvleHpfd+EeDIHc09xmcJfS6AtPg3cuku5EMS+EHOD9TgshqgzNxVRARMAo8LPepsoCnUw7+l2rt/ff07Zs3Ka8jJ+3DRTkqARHQS8= yaroslav@lenovo-yoga-052155
+	  {{- range .SshKeys}}
+      - {{ .Key }}
+	  {{ end }}
 
   - name: gwitsuper
     sudo: ALL=(ALL) NOPASSWD:ALL
@@ -70,14 +165,14 @@ users:
     ssh_pwauth: true
     lock_passwd: false
     ssh_authorized_keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDs7hczETEkQ7k1f4xxQCHHWjqOaiVVKpJegMXqiOkHmmJyarnrxGb2YOKx9Vn4jHEJyzO5vcUCgSDhbDQ3AWoMyUnKbEn/beOy31Fft0Pt54McIb0G6M2gM7Ywgwek6JL2ltJMj6Q1PvZkBoBGNVc+0q7AYq1J80s9baO7l9pAJ73BJm18lqwir0kaFHHxB7IdBVoKTaNFSEu8Lbt8axwOjiPiNKv5jFKdAXkU7IEO5Ts+UOEMQf8tCFkMmWH5h71WtcMy9BglqtvSjxxn1bWcU9MEvunOaXyNTVy+FUvpaVvCcKm5EsLNMXtVAQK0K5lfzHgcXiHw4f2bgUr2oubm5KuLyMmneq/5NPf8B4yR6rXD6D+d7ZzUVwW8LhKyd/MfCNjudwShrV8kkp/cc0JoWhelDCxp+YOqPKeIWZBYHZkDP5cQCM6TjYyZ0JfTlZaATk6PV7LM3xHSlBnbXKYDwp3UlvVDARFiCQMKIQDqKHC37SzL0vX4BEvhf7m1oXhv+P7dbBIGrZThDD4sjaHgegTfouOcG+ggQSto1Y9uApXepeU/5I0+TtPuoKr2u9xzX8VYnlNceOrx2+52sYa1AlFG/OhL2tEMV91QpZox5T35mDv1nKhflcLc4YLIMvO/f2w3FOfnrjbcF2U3y4bYr8ul9OJZzX++uC7Q8cZNvw== root@hoster-test-0101
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC4ecr6eYKbz7zUnsUsZ2Lw+mkSEYiIIyjhsrHBPoCoNN0V6O8CAog6Xc52KM4r+ozC07J4iz0G2UKjO7INSoDGVa6gMwzTrPeg2hLY7aNJytRqSVwpo5nujKcNCISoY9wCcXkTG1yVvty7pJ2Dk8ysHl6nCn6pIfQ87hRJ+ywSiE4y5AqDC5xMeGIw/bPajzofOXCQSMNgtflynbeBC6McA0kClmUp0kCX6kwGdPU2FNmz3Vba6ixMhP7Ng0vTJSmOStEqpd2in/nhz2JNtUcWIickPZf1II0s4LXZ74H308QJtYw1nVavKF4SKiVPkP7gKGrnCYDsq2p0P+EhZlHvK/nJPdS8qaWyVmeFr07o+F5mhYbw4t2BJUKgfKnStqatXZtAzwKvPyYzVpjD0nGVhxjF2BH0XdtWfbdTARaeZxJEVPoPtLm4cTP0CA7RljplJuGwp9DGgzwO3zbfx8CcjtmkJaELG9hrTeMhRmY6FMccci4LeJLhs9LHHblNXYEu+5xGzPPEj2AP3x73XmVdcRpUExtwScN4PrcV0JPSqkTwfwB25mCKfEv76vTl9iPe9D8Veerfyuhq2LsboGExTqw4HtazO2tmwfVIptF2Ak6eeEKX09V1lPQbIWi/vRIYVLgTHMeaU66rvT6LWqxyWUB++11ToNBNrigTa2tOWw== root@hoster-test-0102
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDsOnhH5R/Incbxjtb/c4Z3t3hlDo3aHt02miE5R1i09s78zljYFHCAmJ6/fKDTPmt+irNPDTaCTShZTen/U1B5E/aljFzl4ZJxL9Z4MV0YXfbq7IMGs2ln/DWV+pVdgmuhCP4cZsFOeuX7T6JPk4IgAEGQrGl+J/+xzlU9PeU0DMgUFl1sljOEtvKnnjH/cs4s/gvQGOBFiggB4Gl2UPBYaT88dRrv5VJJ5G/WKq+Ngk3qwA0ilx/9L3Z9Cio1ROHrHw32Hxa6BgBz4fwZWRM7oeqtc2jIYP0upbAsthcU6nG8WAq1i/fKmJe7p89b6afIoqPA8ZxmHjVOQJ92K9a+1wrR7z2elZ/F+aosOQ0kda66cmYvSWyc2CylySobxJsHNrx7Jn+kEHzRd7zFOgOitS2QbwvleHpfd+EeDIHc09xmcJfS6AtPg3cuku5EMS+EHOD9TgshqgzNxVRARMAo8LPepsoCnUw7+l2rt/ff07Zs3Ka8jJ+3DRTkqARHQS8= yaroslav@lenovo-yoga-052155
+	  {{- range .SshKeys}}
+      - {{ .Key }}
+	  {{ end }}
 
 chpasswd:
   list: |
-    root:Fx1Y6UFFecXHFBeViVP8s16rpxbRvnB5G7DQ3K9h3
-    gwitsuper:hav5XEQRrIlH8VaIMtLSTsVvYytzDc21IjHxnBkXT
+    root:{{ .RootPassword }}
+    gwitsuper:{{ .GwitsuperPassword }}
   expire: False
 
 package_update: false
@@ -85,8 +180,8 @@ package_upgrade: false
 `
 
 const ciMetaDataTemplate = `
-instance-id: iid-wmxgv
-local-hostname: test-vm-1
+instance-id: iid-{{ .InstanceId }}
+local-hostname: {{ .VmName }}
 `
 
 const ciNetworkConfigTemplate = `
@@ -98,13 +193,13 @@ ethernets:
      
      set-name: eth0
      addresses:
-     - {{ .IpAddress }}/{{ .NetworkSubnet }}
+     - {{ .IpAddress }}/{{ .Subnet }}
      
-     gateway4: {{ .NetworkGateway }}
+     gateway4: {{ .Gateway }}
      
      nameservers:
        search: [gateway-it.internal, ]
-       addresses: [{{ .NetworkGateway }}, ]
+       addresses: [{{ .Gateway }}, ]
 `
 
 const vmConfigFileTemlate = `
@@ -113,18 +208,18 @@ const vmConfigFileTemlate = `
     "cpu_cores": "1",
     "memory": "1G",
     "loader": "uefi",
-    "live_status": "production",
-    "os_type": "debian11",
-    "os_comment": "Debian 11",
+    "live_status": "{{ .LiveStatus }}",
+    "os_type": "{{ .OsType }}",
+    "os_comment": "{{ .OsComment }}",
     "owner": "System",
-    "parent_host": "hoster-test-0101",
+    "parent_host": "{{ .ParentHost }}",
 
     "networks": [
         {
             "network_adaptor_type": "virtio-net",
             "network_bridge": "internal",
-            "network_mac": "58:9c:fc:75:22:73",
-            "ip_address": "10.0.100.10",
+            "network_mac": "{{ .MacAddress }}",
+            "ip_address": "{{ .IpAddress }}",
             "comment": "Internal Network"
         }
     ],
@@ -146,15 +241,11 @@ const vmConfigFileTemlate = `
 
     "include_hostwide_ssh_keys": true,
     "vm_ssh_keys": [
-        {
-            "key_owner": "Yaroslav",
-            "key_value": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDvZbo8t8qSdcHZjCiRi0fVoGBHDXJVPYR+OynuxFc+Sle45xMfRiKjRwHnzBnUqTTppsE2wnLTxVMLfrV4Fqnx8irnr+Rll+YvfMPtCpwcR/Zxlu/zHXK+YUbKIOx0/qKJqfsJ8PaZffob7rGoIBgko8fO7iPd0Y5MK1T+uoVQnFRJMAr6RLlz1oMEppdWsEA2pTUhM6mUj57yqwmIznHIYjy44qIWauqOyR7NB9NV7ahxYh/K6lQtcHqxb9l3AE/dfV/RPAv5CDIEGhs1oCHN/1o1iKoKZKOGZJbn02tGNqA+8XUcKiT1Wh82fGhU6GKj/CWqhs0RNpjp12ETGabPzWEZ12OP6GkoIFmkQEFgdpq3fUlCcb1uRAywOncoCLN8njcMGyUMBR9lB+yWDrSY7psTjHGPGb7+nEl+4NvZB1Dhqci6lGYgO0/DS71UVPs8LTEcrqa18ir0yjcIvhEgc/IbPbnySMSm33PpIKHvartqmuIdo8d3kwFbuMDRWBk= yaroslav@ryzen-pc",
-            "comment": "Fedora Ryzen PC Key"
-        }
+        {}
     ],
 
-    "vnc_port": "5909",
-    "vnc_password": "f7PJ2KcY",
+    "vnc_port": "{{ .VncPort }}",
+    "vnc_password": "{{ .VncPassword }}",
 
     "description": "-"
 }
@@ -185,7 +276,7 @@ func generateNewIp() (string, error) {
 
 	iteration := 0
 	for {
-		if slices.Contains(existingIps, randomIp) || !ipIsWinthinRange(randomIp, subnet, rangeStart, rangeEnd) {
+		if slices.Contains(existingIps, randomIp) || !ipIsWithinRange(randomIp, subnet, rangeStart, rangeEnd) {
 			randomIp, err = generateUniqueRandomIp(subnet)
 			if err != nil {
 				return "", errors.New("could not generate a random IP address: " + err.Error())
@@ -228,7 +319,7 @@ func generateUniqueRandomIp(subnet string) (string, error) {
 	return stringAddress, nil
 }
 
-func ipIsWinthinRange(ipAddress string, subnet string, rangeStart string, rangeEnd string) bool {
+func ipIsWithinRange(ipAddress string, subnet string, rangeStart string, rangeEnd string) bool {
 	// Parse the subnet IP and mask
 	_, ipNet, err := net.ParseCIDR(subnet)
 	if err != nil {
@@ -281,7 +372,7 @@ func networkInfo() ([]NetworkInfoSt, error) {
 	networkConfigFile := path.Dir(execPath) + "/config_files/network_config.json"
 
 	// Read the JSON file
-	data, err := ioutil.ReadFile(networkConfigFile)
+	data, err := os.ReadFile(networkConfigFile)
 	if err != nil {
 		return []NetworkInfoSt{}, err
 	}
@@ -345,4 +436,101 @@ func generateVmName(vmName string) (string, error) {
 		return "", errors.New("vm already exists")
 	}
 	return vmName, nil
+}
+
+// Generate a random password given the length and character types
+func generateRandomPassword(length int, caps, nums bool) (string, error) {
+	// Define the character set for the password
+	charset := "abcdefghijklmnopqrstuvwxyz"
+	capS := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	numS := "0123456789"
+	if caps {
+		charset = charset + capS
+	}
+	if nums {
+		charset = charset + numS
+	}
+
+	// Generate random bytes
+	bytes := make([]byte, length)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+	// Convert the bytes to a password string
+	password := ""
+	for _, v := range bytes {
+		// Use modulus to get an index in the charset
+		index := int(int64(v)) % len(charset)
+		// Add the character at the selected index to the password
+		password = password + string(charset[index])
+	}
+	return password, nil
+}
+
+func generateRandomVncPort() string {
+	var existingPorts []string
+	startPort := 5900
+	endPort := 6300
+	for _, v := range getAllVms() {
+		tempConfig := vmConfig(v)
+		existingPorts = append(existingPorts, tempConfig.VncPort)
+	}
+	for {
+		if slices.Contains(existingPorts, strconv.Itoa(startPort)) {
+			startPort = startPort + 1
+			continue
+		} else if startPort > endPort {
+			startPort = 5900
+		} else {
+			break
+		}
+	}
+
+	return strconv.Itoa(startPort)
+}
+
+type HostConfigKey struct {
+	KeyValue string `json:"key_value"`
+	Comment  string `json:"comment"`
+}
+
+type HostConfig struct {
+	BackupServers  []string        `json:"backup_servers"`
+	ActiveDatasets []string        `json:"active_datasets"`
+	HostDNSACLs    []string        `json:"host_dns_acls"`
+	HostSSHKeys    []HostConfigKey `json:"host_ssh_keys"`
+}
+
+func getSystemSshKeys() ([]SshKey, error) {
+	sshKeys := []SshKey{}
+	hostConfig := HostConfig{}
+	// JSON config file location
+	execPath, err := os.Executable()
+	if err != nil {
+		return sshKeys, err
+	}
+	hostConfigFile := path.Dir(execPath) + "/config_files/host_config.json"
+
+	// Read the JSON file
+	data, err := os.ReadFile(hostConfigFile)
+	if err != nil {
+		return sshKeys, err
+	}
+
+	// Unmarshal the JSON data into a slice of Network structs
+	err = json.Unmarshal(data, &hostConfig)
+	if err != nil {
+		return sshKeys, err
+	}
+
+	for _, v := range hostConfig.HostSSHKeys {
+		tempKey := SshKey{}
+		tempKey.Key = v.KeyValue
+		tempKey.Comment = v.Comment
+		tempKey.Owner = "System"
+		sshKeys = append(sshKeys, tempKey)
+	}
+
+	return sshKeys, nil
 }
