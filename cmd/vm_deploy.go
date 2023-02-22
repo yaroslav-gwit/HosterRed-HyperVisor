@@ -145,7 +145,7 @@ func printTemplatesToScreen(vmName string, osType string) error {
 	if err := tmpl.Execute(&ciUserData, c); err != nil {
 		return errors.New("could not generate ciUserDataTemplate: " + err.Error())
 	}
-	fmt.Println(ciUserData.String())
+	// fmt.Println(ciUserData.String())
 
 	// Generate template ciNetworkConfigTemplate
 	tmpl, err = template.New("ciNetworkConfigTemplate").Parse(ciNetworkConfigTemplate)
@@ -159,7 +159,7 @@ func printTemplatesToScreen(vmName string, osType string) error {
 	}
 	// fmt.Println(ciNetworkConfig.String())
 
-	// Generate template ciNetworkConfigTemplate
+	// Generate template ciMetaDataTemplate
 	tmpl, err = template.New("ciMetaDataTemplate").Parse(ciMetaDataTemplate)
 	if err != nil {
 		return errors.New("could not generate ciMetaDataTemplate: " + err.Error())
@@ -169,7 +169,19 @@ func printTemplatesToScreen(vmName string, osType string) error {
 	if err := tmpl.Execute(&ciMetaData, c); err != nil {
 		return errors.New("could not generate ciMetaDataTemplate: " + err.Error())
 	}
-	fmt.Println(ciMetaData.String())
+	// fmt.Println(ciMetaData.String())
+
+	// Generate template vmConfigFileTemplate
+	tmpl, err = template.New("vmConfigFileTemplate").Parse(vmConfigFileTemplate)
+	if err != nil {
+		return errors.New("could not generate vmConfigFileTemplate: " + err.Error())
+	}
+
+	var vmConfigFile strings.Builder
+	if err := tmpl.Execute(&vmConfigFile, c); err != nil {
+		return errors.New("could not generate vmConfigFileTemplate: " + err.Error())
+	}
+	fmt.Println(vmConfigFile.String())
 
 	return nil
 }
