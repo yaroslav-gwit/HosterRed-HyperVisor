@@ -329,6 +329,8 @@ func generateVmName(vmName string) (string, error) {
 	vms := getAllVms()
 	if reAllowed.MatchString(vmName) {
 		return "", errors.New("name can only include A-Z, dash (-), and/or numbers")
+	} else if string(vmName[len(vmName)-1]) == "-" {
+		return "", errors.New("name cannot end with a dash (-)")
 	} else if vmName == "test-vm" {
 		vmName = "test-vm-" + strconv.Itoa(iter)
 		for {
