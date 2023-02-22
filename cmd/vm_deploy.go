@@ -105,7 +105,7 @@ func printTemplatesToScreen(vmName string, osType string) error {
 	}
 	c.Subnet = networkInfo[0].Subnet
 	c.NakedSubnet = strings.Split(networkInfo[0].Subnet, "/")[1]
-	c.Gateway = networkInfo[0].Subnet
+	c.Gateway = networkInfo[0].Gateway
 
 	reMatchTest := regexp.MustCompile(`.*test`)
 	if reMatchTest.MatchString(c.VmName) {
