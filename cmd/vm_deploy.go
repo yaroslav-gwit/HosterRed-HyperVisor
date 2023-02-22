@@ -69,17 +69,17 @@ func printTemplatesToScreen(vmName string, osType string) error {
 	var err error
 
 	// Collect the required information
-	c.RootPassword, err = generateRandomPassword(33, true, true)
+	c.RootPassword = generateRandomPassword(33, true, true)
 	if err != nil {
 		return errors.New("could not generate random password for root user: " + err.Error())
 	}
 
-	c.GwitsuperPassword, err = generateRandomPassword(33, true, true)
+	c.GwitsuperPassword = generateRandomPassword(33, true, true)
 	if err != nil {
 		return errors.New("could not generate random password for gwitsuper user: " + err.Error())
 	}
 
-	c.InstanceId, err = generateRandomPassword(5, false, true)
+	c.InstanceId = generateRandomPassword(5, false, true)
 	if err != nil {
 		return errors.New("could not generate random instance id: " + err.Error())
 	}
@@ -125,7 +125,7 @@ func printTemplatesToScreen(vmName string, osType string) error {
 	c.ParentHost = GetHostName()
 
 	c.VncPort = generateRandomVncPort()
-	c.VncPassword, err = generateRandomPassword(8, true, true)
+	c.VncPassword = generateRandomPassword(8, true, true)
 	if err != nil {
 		return errors.New("could not generate vnc port: " + err.Error())
 	}
@@ -465,7 +465,7 @@ func generateVmName(vmName string) (string, error) {
 }
 
 // Generate a random password given the length and character types
-func generateRandomPassword(length int, caps, nums bool) (string, error) {
+func generateRandomPassword(length int, caps, nums bool) string {
 	// Define the character set for the password
 	charset := "abcdefghijklmnopqrstuvwxyz"
 	capS := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -477,21 +477,19 @@ func generateRandomPassword(length int, caps, nums bool) (string, error) {
 		charset = charset + numS
 	}
 
-	// Generate random bytes
-	bytes := make([]byte, length)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		return "", err
+	rand.Seed(time.Now().UnixNano())
+	result := ""
+	iter := 0
+	for {
+		pwByte := charset[rand.Intn(len(charset))]
+		result = result + string(pwByte)
+		iter = iter + 1
+		if iter > length {
+			break
+		}
 	}
-	// Convert the bytes to a password string
-	password := ""
-	for _, v := range bytes {
-		// Use modulus to get an index in the charset
-		index := int(int64(v)) % len(charset)
-		// Add the character at the selected index to the password
-		password = password + string(charset[index])
-	}
-	return password, nil
+
+	return result
 }
 
 func generateRandomVncPort() string {
