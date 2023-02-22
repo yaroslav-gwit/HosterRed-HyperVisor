@@ -145,7 +145,7 @@ func printTemplatesToScreen(vmName string, osType string) error {
 	if err := tmpl.Execute(&ciUserData, c); err != nil {
 		return errors.New("could not generate ciUserDataTemplate: " + err.Error())
 	}
-	// fmt.Println(ciUserData.String())
+	fmt.Println(ciUserData.String())
 
 	// Generate template ciNetworkConfigTemplate
 	tmpl, err = template.New("ciNetworkConfigTemplate").Parse(ciNetworkConfigTemplate)
@@ -207,8 +207,7 @@ package_update: false
 package_upgrade: false
 `
 
-const ciMetaDataTemplate = `
-instance-id: iid-{{ .InstanceId }}
+const ciMetaDataTemplate = `instance-id: iid-{{ .InstanceId }}
 local-hostname: {{ .VmName }}
 `
 
