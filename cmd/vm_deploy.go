@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net"
 	"os"
+	"os/exec"
 	"path"
 	"regexp"
 	"strconv"
@@ -20,8 +21,9 @@ import (
 )
 
 var (
-	vmName string
-	osType string
+	vmName     string
+	osType     string
+	zfsDataset string
 
 	vmDeployCmd = &cobra.Command{
 		Use:   "deploy",
@@ -30,7 +32,7 @@ var (
 		// Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// fmt.Println(args[0])
-			err := printTemplatesToScreen(vmName, osType)
+			err := printTemplatesToScreen(vmName, osType, zfsDataset)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -63,7 +65,7 @@ type ConfigOutputStruct struct {
 	VncPassword       string
 }
 
-func printTemplatesToScreen(vmName string, osType string) error {
+func printTemplatesToScreen(vmName string, osType string, dsParent string) error {
 	// Initialize values
 	c := ConfigOutputStruct{}
 	var err error
@@ -181,7 +183,12 @@ func printTemplatesToScreen(vmName string, osType string) error {
 	if err := tmpl.Execute(&vmConfigFile, c); err != nil {
 		return errors.New("could not generate vmConfigFileTemplate: " + err.Error())
 	}
-	fmt.Println(vmConfigFile.String())
+	// fmt.Println(vmConfigFile.String())
+
+	zfsCloneResult, err := zfsDatasetClone(dsParent, osType, vmName)
+	if err != nil || !zfsCloneResult {
+		return errors.New(err.Error())
+	}
 
 	return nil
 }
@@ -569,4 +576,30 @@ func getSystemSshKeys() ([]SshKey, error) {
 	}
 
 	return sshKeys, nil
+}
+
+func zfsDatasetClone(dsParent string, osType string, newVmName string) (bool, error) {
+	vmTemplateExist := "/" + dsParent + "/" + osType + "/disk0.img"
+	_, err := os.Stat(vmTemplateExist)
+
+	if os.IsNotExist(err) {
+		return false, errors.New("template dataset/disk image " + vmTemplateExist + " does not exist")
+	} else if err != nil {
+		return false, errors.New("error checking folder: " + err.Error())
+	}
+
+	vmTemplate := dsParent + "/" + osType
+
+	snapName := "@deployment_" + newVmName + "_" + generateRandomPassword(8, false, true)
+	err = exec.Command("zfs", "snapshot", vmTemplate+snapName).Run()
+	if err != nil {
+		return false, errors.New("could not execute zfs snapshot: " + err.Error())
+	}
+
+	err = exec.Command("zfs", "clone", vmTemplate+snapName, dsParent+"/"+newVmName).Run()
+	if err != nil {
+		return false, errors.New("could not execute zfs clone: " + err.Error())
+	}
+
+	return true, nil
 }
