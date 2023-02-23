@@ -152,8 +152,7 @@ func generateNewDnsConfig() error {
 
 func reloadDnsService() error {
 	fmt.Println("DNS Service reloaded")
-	reloadUnboundCmd := exec.Command("service", "local_unbound", "reload")
-	err := reloadUnboundCmd.Run()
+	err := exec.Command("service", "local_unbound", "reload").Run()
 	if err != nil {
 		return errors.New("could not reload the unbound service: " + err.Error())
 	}

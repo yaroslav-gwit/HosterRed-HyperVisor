@@ -281,6 +281,20 @@ func printTemplatesToScreen(vmName string, osType string, dsParent string) error
 		return errors.New(err.Error())
 	}
 
+	err = createCiIso(vmName)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+
+	err = generateNewDnsConfig()
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	err = reloadDnsService()
+	if err != nil {
+		return errors.New(err.Error())
+	}
+
 	return nil
 }
 
@@ -693,4 +707,14 @@ func zfsDatasetClone(dsParent string, osType string, newVmName string) (bool, er
 	}
 
 	return true, nil
+}
+
+func createCiIso(vmName string) error {
+	vmFolder := getVmFolder(vmName)
+	ciFolder := vmFolder + "/cloud-init-files/"
+	err := exec.Command("genisoimage", "-output", vmFolder+"/seed.iso -volid cidata -joliet -rock "+ciFolder+"/user-data "+ciFolder+"/meta-data "+ciFolder+"/network-config ").Run()
+	if err != nil {
+		return errors.New("could not reload the unbound service: " + err.Error())
+	}
+	return nil
 }
