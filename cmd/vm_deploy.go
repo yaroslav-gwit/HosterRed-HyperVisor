@@ -588,7 +588,7 @@ func zfsDatasetClone(dsParent string, osType string, newVmName string) (bool, er
 		return false, errors.New("error checking folder: " + err.Error())
 	}
 
-	vmTemplate := dsParent + "/" + osType
+	vmTemplate := dsParent + "/template-" + osType
 
 	snapName := "@deployment_" + newVmName + "_" + generateRandomPassword(8, false, true)
 	err = exec.Command("zfs", "snapshot", vmTemplate+snapName).Run()
