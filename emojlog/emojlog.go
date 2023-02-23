@@ -5,20 +5,29 @@ import (
 	"time"
 )
 
-// Prints out log messages to the screen, includes status emoji, time and value
-// Example use: PrintLogMessage("message", "info")
+const Info string = "info"
+const Changed string = "changed"
+const Debug string = "debug"
+const Warning string = "warning"
+const Error string = "error"
+
+// Prints out log messages to the screen, includes status emoji, time and value.
+//
+// > Example: `emojlog.PrintLogMessage("message", emojlog.Changed)`
+//
+// > Result `🔶 CHANGED: 🕔 2023-02-23 22:05:58: 📄 message`.
 func PrintLogMessage(value string, msgType string) {
 	var result string
 	switch msgType {
-	case "info":
+	case Info:
 		result = generateInfo(value)
-	case "changed":
+	case Changed:
 		result = generateChanged(value)
-	case "debug":
+	case Debug:
 		result = generateDebug(value)
-	case "warning":
+	case Warning:
 		result = generateWarning(value)
-	case "error":
+	case Error:
 		result = generateError(value)
 	default:
 		result = ""

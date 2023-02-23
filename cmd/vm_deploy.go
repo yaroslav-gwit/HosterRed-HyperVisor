@@ -732,6 +732,6 @@ func createCiIso(vmFolder string) error {
 		return errors.New("there was a problem generating an ISO: " + err.Error())
 	}
 
-	emojlog.PrintLogMessage("New CloudInit ISO has been created", "info")
+	emojlog.PrintLogMessage("New CloudInit ISO has been created", emojlog.Info)
 	return nil
 }

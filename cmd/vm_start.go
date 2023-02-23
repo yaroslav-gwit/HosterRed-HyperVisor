@@ -52,8 +52,10 @@ func vmStart(vmName string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	execFile := path.Dir(execPath) + "/vm_supervisor_service"
+
+	emojlog.PrintLogMessage("Starting the VM: "+vmName, emojlog.Info)
 	// Start VM supervisor process
+	execFile := path.Dir(execPath) + "/vm_supervisor_service"
 	cmd := exec.Command("nohup", execFile, "for", vmName, "&")
 	err = cmd.Start()
 	if err != nil {
@@ -76,20 +78,20 @@ func generateBhyveStartCommand(vmName string) string {
 	for _, v := range vmConfigVar.Networks {
 		availableTap := findAvailableTapInterface()
 		availableTaps = append(availableTaps, availableTap)
-		emojlog.PrintLogMessage("Creating the TAP interface: "+availableTap, "changed")
+		emojlog.PrintLogMessage("Creating the TAP interface: "+availableTap, emojlog.Debug)
 		createTapInterface := "ifconfig " + availableTap + " create"
 		parts := strings.Fields(createTapInterface)
-		emojlog.PrintLogMessage("Executing: "+createTapInterface, "debug")
+		emojlog.PrintLogMessage("Executing: "+createTapInterface, emojlog.Debug)
 		exec.Command(parts[0], parts[1:]...).Run()
 
 		bridgeTapInterface := "ifconfig vm-" + v.NetworkBridge + " addm " + availableTap
 		parts = strings.Fields(bridgeTapInterface)
-		emojlog.PrintLogMessage("Executing: "+bridgeTapInterface, "debug")
+		emojlog.PrintLogMessage("Executing: "+bridgeTapInterface, emojlog.Debug)
 		exec.Command(parts[0], parts[1:]...).Run()
 
 		upBridgeInterface := "ifconfig vm-" + v.NetworkBridge + " up"
 		parts = strings.Fields(upBridgeInterface)
-		emojlog.PrintLogMessage("Executing: "+upBridgeInterface, "debug")
+		emojlog.PrintLogMessage("Executing: "+upBridgeInterface, emojlog.Debug)
 		exec.Command(parts[0], parts[1:]...).Run()
 
 		setTapDescription1 := "ifconfig"
@@ -97,7 +99,7 @@ func generateBhyveStartCommand(vmName string) string {
 		setTapDescription3 := "description"
 		setTapDescription4 := "\"" + availableTap + " " + vmName + " interface -> " + v.NetworkBridge + "\""
 		setTapDescription := fmt.Sprint(setTapDescription1, setTapDescription2, setTapDescription3, setTapDescription4)
-		emojlog.PrintLogMessage("Executing: "+setTapDescription, "debug")
+		emojlog.PrintLogMessage("Executing: "+setTapDescription, emojlog.Debug)
 		exec.Command(setTapDescription1, setTapDescription2, setTapDescription3, setTapDescription4).Run()
 	}
 
@@ -169,7 +171,7 @@ func generateBhyveStartCommand(vmName string) string {
 	}
 
 	bhyveFinalCommand = bhyveFinalCommand + loaderCommand
-	emojlog.PrintLogMessage("Executing bhyve command: "+bhyveFinalCommand, "debug")
+	emojlog.PrintLogMessage("Executing bhyve command: "+bhyveFinalCommand, emojlog.Debug)
 	return bhyveFinalCommand
 }
 

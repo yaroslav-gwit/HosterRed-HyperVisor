@@ -31,6 +31,7 @@ var (
 )
 
 func HostMain() {
+	swapInfo()
 	if jsonPrettyHostInfoOutput {
 		jsonOutputVar := jsonOutputHostInfo()
 		jsonData, err := json.MarshalIndent(jsonOutputVar, "", "   ")
@@ -62,11 +63,11 @@ func HostMain() {
 		go func() { defer wg.Done(); tLiveVms = getNumberOfRunningVms() }()
 		go func() { defer wg.Done(); tSystemUptime = getSystemUptime() }()
 		go func() { defer wg.Done(); tSystemRam = getHostRam() }()
-		go func() { defer wg.Done(); tSwapUsed = getFreeSwapSpace() }()
-		go func() { defer wg.Done(); tAllSwap = getAllSwapSpace() }()
 		go func() { defer wg.Done(); tArcSize = getArcSize() }()
 		go func() { defer wg.Done(); tFreeZfsSpace = getFreeZfsSpace() }()
 		go func() { defer wg.Done(); tZrootStatus = getZrootStatus() }()
+		go func() { defer wg.Done(); tSwapUsed = getFreeSwapSpace() }()
+		go func() { defer wg.Done(); tAllSwap = getAllSwapSpace() }()
 		wg.Wait()
 
 		t := table.New(os.Stdout)
@@ -89,13 +90,13 @@ func HostMain() {
 		t.SetHeaderColSpans(0, 8)
 		t.AddHeaders(
 			"Hostname",
-			"Live\nVMs",
+			"Live VMs",
 			"System Uptime",
-			"RAM\n(Used/Total)",
-			"SWAP\n(Used/Total)",
-			"ZFS ARC\nCache Size",
-			"Zroot\n(Used/Total)",
-			"Zroot\nStatus",
+			"RAM (Used/Total)",
+			"SWAP (Used/Total)",
+			"ZFS ARC Size",
+			"Zroot (Used/Total)",
+			"Zroot Status",
 		)
 
 		t.AddRow(tHostname,
@@ -375,6 +376,32 @@ func getFreeZfsSpace() string {
 
 	var finalResult = zrootFree
 	return finalResult
+}
+
+type swapInfoStruct struct {
+	swapFree  string
+	swapUsed  string
+	swapTotal string
+}
+
+func swapInfo() (swapInfoStruct, error) {
+	swapInfoVar := swapInfoStruct{}
+	stdout, stderr := exec.Command("swapinfo").Output()
+	if stderr != nil {
+		return swapInfoStruct{}, stderr
+	}
+
+	var swapInfoList []string
+	for i, v := range strings.Split(string(stdout), " ") {
+		if len(v) > 1 {
+			swapInfoList = append(swapInfoList, v)
+			fmt.Println(i, v)
+		}
+	}
+	// swapTotal := swapInfoList[5]
+	// swapFree := swapInfoList[7]
+
+	return swapInfoVar, nil
 }
 
 func getFreeSwapSpace() string {

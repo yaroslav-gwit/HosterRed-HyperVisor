@@ -145,7 +145,7 @@ func generateNewDnsConfig() error {
 		return errors.New(err.Error())
 	}
 
-	emojlog.PrintLogMessage("Unbound service config file has been written successfully", "info")
+	emojlog.PrintLogMessage("Unbound service config file has been written successfully", emojlog.Info)
 	return nil
 }
 
@@ -155,6 +155,6 @@ func reloadDnsService() error {
 		return errors.New("could not reload the unbound service: " + err.Error())
 	}
 
-	emojlog.PrintLogMessage("DNS Service reloaded", "changed")
+	emojlog.PrintLogMessage("DNS Service reloaded", emojlog.Changed)
 	return nil
 }
