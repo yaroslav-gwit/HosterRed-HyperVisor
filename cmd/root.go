@@ -89,6 +89,10 @@ func init() {
 	vmDeployCmd.Flags().StringVarP(&osType, "os-stype", "t", "debian11", "OS or type or distribution (ie: debian11, ubuntu2004, etc)")
 	vmDeployCmd.Flags().StringVarP(&zfsDataset, "dataset", "d", "zroot/vm-encrypted", "Choose the parent dataset for the VM deployment")
 
+	// VM cmd -> vm deploy
+	vmCmd.AddCommand(vmCiResetCmd)
+	vmDeployCmd.Flags().StringVarP(&newVmName, "new-name", "n", "", "Set a new VM name")
+
 	// API command section
 	rootCmd.AddCommand(apiCmd)
 	apiCmd.Flags().IntVarP(&apiServerPort, "port", "p", 3000, "Specify the port to listen on")
