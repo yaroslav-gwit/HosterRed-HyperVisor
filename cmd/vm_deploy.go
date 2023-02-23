@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -187,6 +188,96 @@ func printTemplatesToScreen(vmName string, osType string, dsParent string) error
 
 	zfsCloneResult, err := zfsDatasetClone(dsParent, osType, c.VmName)
 	if err != nil || !zfsCloneResult {
+		return errors.New(err.Error())
+	}
+
+	// Write config files
+	newVmFolder := "/" + dsParent + "/" + c.VmName
+
+	// Open a new file for writing
+	vmConfigFileLocation, err := os.Create(newVmFolder + "/vm_config.json")
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	defer vmConfigFileLocation.Close()
+	// Create a new writer
+	writer := bufio.NewWriter(vmConfigFileLocation)
+	// Write a string to the file
+	str := vmConfigFile.String()
+	_, err = writer.WriteString(str)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	// Flush the writer to ensure all data has been written to the file
+	err = writer.Flush()
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	// Create cloud init folder
+	if _, err := os.Stat(newVmFolder + "/cloud-init-files"); os.IsNotExist(err) {
+		err = os.Mkdir(newVmFolder+"/cloud-init-files", 0750)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Open /cloud-init-files/user-data for writing
+	ciUserDataFileLocation, err := os.Create(newVmFolder + "/cloud-init-files/user-data")
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	defer ciUserDataFileLocation.Close()
+	// Create a new writer
+	writer = bufio.NewWriter(ciUserDataFileLocation)
+	// Write a string to the file
+	str = ciUserData.String()
+	_, err = writer.WriteString(str)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	// Flush the writer to ensure all data has been written to the file
+	err = writer.Flush()
+	if err != nil {
+		return errors.New(err.Error())
+	}
+
+	// Open /cloud-init-files/network-config for writing
+	ciNetworkFileLocation, err := os.Create(newVmFolder + "/cloud-init-files/network-config")
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	defer ciNetworkFileLocation.Close()
+	// Create a new writer
+	writer = bufio.NewWriter(ciNetworkFileLocation)
+	// Write a string to the file
+	str = ciNetworkConfig.String()
+	_, err = writer.WriteString(str)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	// Flush the writer to ensure all data has been written to the file
+	err = writer.Flush()
+	if err != nil {
+		return errors.New(err.Error())
+	}
+
+	// Open /cloud-init-files/meta-data for writing
+	ciMetaDataFileLocation, err := os.Create(newVmFolder + "/cloud-init-files/meta-data")
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	defer ciMetaDataFileLocation.Close()
+	// Create a new writer
+	writer = bufio.NewWriter(ciMetaDataFileLocation)
+	// Write a string to the file
+	str = ciMetaData.String()
+	_, err = writer.WriteString(str)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	// Flush the writer to ensure all data has been written to the file
+	err = writer.Flush()
+	if err != nil {
 		return errors.New(err.Error())
 	}
 
