@@ -66,6 +66,11 @@ func ciReset(oldVmName string, newVmName string) error {
 		c.VmName = oldVmName
 	}
 
+	c.MacAddress, err = generateRandomMacAddress()
+	if err != nil {
+		return errors.New("could not generate vm name: " + err.Error())
+	}
+
 	c.IpAddress, err = generateNewIp()
 	if err != nil {
 		return errors.New("could not generate the IP")
