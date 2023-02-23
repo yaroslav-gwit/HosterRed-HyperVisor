@@ -185,7 +185,7 @@ func printTemplatesToScreen(vmName string, osType string, dsParent string) error
 	}
 	// fmt.Println(vmConfigFile.String())
 
-	zfsCloneResult, err := zfsDatasetClone(dsParent, osType, vmName)
+	zfsCloneResult, err := zfsDatasetClone(dsParent, osType, c.VmName)
 	if err != nil || !zfsCloneResult {
 		return errors.New(err.Error())
 	}
