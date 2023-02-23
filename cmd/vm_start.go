@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"hoster/emojlog"
 	"log"
 	"os"
 	"os/exec"
@@ -75,28 +76,28 @@ func generateBhyveStartCommand(vmName string) string {
 	for _, v := range vmConfigVar.Networks {
 		availableTap := findAvailableTapInterface()
 		availableTaps = append(availableTaps, availableTap)
-		fmt.Println("Creating the TAP interface:", availableTap)
-
+		emojlog.PrintLogMessage("Creating the TAP interface: "+availableTap, "changed")
 		createTapInterface := "ifconfig " + availableTap + " create"
-		fmt.Println(" " + createTapInterface)
 		parts := strings.Fields(createTapInterface)
+		emojlog.PrintLogMessage("Executing: "+createTapInterface, "debug")
 		exec.Command(parts[0], parts[1:]...).Run()
 
 		bridgeTapInterface := "ifconfig vm-" + v.NetworkBridge + " addm " + availableTap
-		fmt.Println(" " + bridgeTapInterface)
 		parts = strings.Fields(bridgeTapInterface)
+		emojlog.PrintLogMessage("Executing: "+bridgeTapInterface, "debug")
 		exec.Command(parts[0], parts[1:]...).Run()
 
 		upBridgeInterface := "ifconfig vm-" + v.NetworkBridge + " up"
-		fmt.Println(" " + upBridgeInterface)
 		parts = strings.Fields(upBridgeInterface)
+		emojlog.PrintLogMessage("Executing: "+upBridgeInterface, "debug")
 		exec.Command(parts[0], parts[1:]...).Run()
 
 		setTapDescription1 := "ifconfig"
 		setTapDescription2 := availableTap
 		setTapDescription3 := "description"
 		setTapDescription4 := "\"" + availableTap + " " + vmName + " interface -> " + v.NetworkBridge + "\""
-		fmt.Println("", setTapDescription1, setTapDescription2, setTapDescription3, setTapDescription4)
+		setTapDescription := fmt.Sprint(setTapDescription1, setTapDescription2, setTapDescription3, setTapDescription4)
+		emojlog.PrintLogMessage("Executing: "+setTapDescription, "debug")
 		exec.Command(setTapDescription1, setTapDescription2, setTapDescription3, setTapDescription4).Run()
 	}
 
@@ -168,8 +169,7 @@ func generateBhyveStartCommand(vmName string) string {
 	}
 
 	bhyveFinalCommand = bhyveFinalCommand + loaderCommand
-	fmt.Println("Generated bhyve command (for troubleshooting): " + bhyveFinalCommand)
-
+	emojlog.PrintLogMessage("Executing bhyve command: "+bhyveFinalCommand, "debug")
 	return bhyveFinalCommand
 }
 

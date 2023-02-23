@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+// Prints out log messages to the screen, includes status emoji, time and value
+// Example use: PrintLogMessage("message", "info")
 func PrintLogMessage(value string, msgType string) {
 	var result string
 	switch msgType {
