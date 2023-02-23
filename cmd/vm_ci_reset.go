@@ -148,7 +148,7 @@ func ciReset(oldVmName string, newVmName string) error {
 		return errors.New("could not generate vmConfigFileTemplate: " + err.Error())
 	}
 
-	var vmName string
+	// var vmName string
 	var newDsName string
 	if len(newVmName) > 0 {
 		reVmNameReplace := regexp.MustCompile(`/` + oldVmName + `$`)
@@ -156,14 +156,14 @@ func ciReset(oldVmName string, newVmName string) error {
 		if err := zfsDsRename(oldDsName, newDsName); err != nil {
 			return errors.New(err.Error())
 		}
-		vmName = newVmName
+		// vmName = newVmName
 	} else {
-		vmName = oldVmName
+		// vmName = oldVmName
 		newDsName = oldDsName
 	}
 
 	// Write config files
-	newVmFolder := "/" + newDsName + "/" + vmName
+	newVmFolder := "/" + newDsName
 
 	// Open a new file for writing
 	vmConfigFileLocation, err := os.Create(newVmFolder + "/vm_config.json")
