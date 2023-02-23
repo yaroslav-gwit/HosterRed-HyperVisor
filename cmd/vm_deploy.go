@@ -579,7 +579,7 @@ func getSystemSshKeys() ([]SshKey, error) {
 }
 
 func zfsDatasetClone(dsParent string, osType string, newVmName string) (bool, error) {
-	vmTemplateExist := "/" + dsParent + "/" + osType + "/disk0.img"
+	vmTemplateExist := "/" + dsParent + "/template-" + osType + "/disk0.img"
 	_, err := os.Stat(vmTemplateExist)
 
 	if os.IsNotExist(err) {
