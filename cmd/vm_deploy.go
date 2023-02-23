@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hoster/emojlog"
 	"log"
 	"math/rand"
 	"net"
@@ -121,8 +122,22 @@ func printTemplatesToScreen(vmName string, osType string, dsParent string) error
 	switch c.OsType {
 	case "debian11":
 		c.OsComment = "Debian 11"
+	case "ubuntu2004":
+		c.OsComment = "Ubuntu 20.04"
+	case "almalinux8":
+		c.OsComment = "AlmaLinux 8"
+	case "rockylinux8":
+		c.OsComment = "RockyLinux 8"
+	case "freebsd13ufs":
+		c.OsComment = "FreeBSD 13 UFW"
+	case "freebsd13zfs":
+		c.OsComment = "FreeBSD 13 ZFS"
+	case "windows10":
+		c.OsComment = "Windows 10"
+	case "windows11":
+		c.OsComment = "Windows 11"
 	default:
-		c.OsComment = "-"
+		c.OsComment = "Custom OS"
 	}
 
 	c.ParentHost = GetHostName()
@@ -213,6 +228,7 @@ func printTemplatesToScreen(vmName string, osType string, dsParent string) error
 	if err != nil {
 		return errors.New(err.Error())
 	}
+
 	// Create cloud init folder
 	if _, err := os.Stat(newVmFolder + "/cloud-init-files"); os.IsNotExist(err) {
 		err = os.Mkdir(newVmFolder+"/cloud-init-files", 0750)
@@ -710,11 +726,12 @@ func zfsDatasetClone(dsParent string, osType string, newVmName string) (bool, er
 }
 
 func createCiIso(vmFolder string) error {
-	// vmFolder := getVmFolder(vmName)
 	ciFolder := vmFolder + "/cloud-init-files/"
 	err := exec.Command("genisoimage", "-output", vmFolder+"/seed.iso", "-volid", "cidata", "-joliet", "-rock", ciFolder+"user-data", ciFolder+"meta-data", ciFolder+"network-config").Run()
 	if err != nil {
 		return errors.New("there was a problem generating an ISO: " + err.Error())
 	}
+
+	emojlog.PrintLogMessage("New CloudInit ISO has been created", "info")
 	return nil
 }

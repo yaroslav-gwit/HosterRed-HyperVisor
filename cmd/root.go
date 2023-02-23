@@ -91,7 +91,7 @@ func init() {
 
 	// VM cmd -> vm deploy
 	vmCmd.AddCommand(vmCiResetCmd)
-	vmCiResetCmd.Flags().StringVarP(&newVmName, "new-name", "n", "", "Set a new VM name")
+	vmCiResetCmd.Flags().StringVarP(&newVmName, "new-name", "n", "", "Set a new VM name (if you'd like to rename the VM as well)")
 
 	// API command section
 	rootCmd.AddCommand(apiCmd)

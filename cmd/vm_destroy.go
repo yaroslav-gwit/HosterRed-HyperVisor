@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"hoster/emojlog"
 	"html/template"
 	"log"
 	"os"
@@ -100,7 +101,6 @@ type dnsInfoStruct struct {
 }
 
 func generateNewDnsConfig() error {
-	fmt.Println("New DNS config file generated")
 	var vmDnsInfo []dnsInfoStruct
 
 	for _, v := range getAllVms() {
@@ -145,16 +145,16 @@ func generateNewDnsConfig() error {
 		return errors.New(err.Error())
 	}
 
-	fmt.Println("Unbound service config file has been written successfully")
-
+	emojlog.PrintLogMessage("Unbound service config file has been written successfully", "info")
 	return nil
 }
 
 func reloadDnsService() error {
-	fmt.Println("DNS Service reloaded")
 	err := exec.Command("service", "local_unbound", "reload").Run()
 	if err != nil {
 		return errors.New("could not reload the unbound service: " + err.Error())
 	}
+
+	emojlog.PrintLogMessage("DNS Service reloaded", "changed")
 	return nil
 }
