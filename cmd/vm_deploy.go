@@ -712,9 +712,9 @@ func zfsDatasetClone(dsParent string, osType string, newVmName string) (bool, er
 func createCiIso(vmName string) error {
 	vmFolder := getVmFolder(vmName)
 	ciFolder := vmFolder + "/cloud-init-files/"
-	err := exec.Command("genisoimage", "-output", vmFolder+"/seed.iso -volid cidata -joliet -rock "+ciFolder+"/user-data "+ciFolder+"/meta-data "+ciFolder+"/network-config ").Run()
+	err := exec.Command("genisoimage", "-output", vmFolder+"/seed.iso -volid cidata -joliet -rock "+ciFolder+"user-data "+ciFolder+"meta-data "+ciFolder+"network-config ").Run()
 	if err != nil {
-		return errors.New("could not reload the unbound service: " + err.Error())
+		return errors.New("there was a problem generating an ISO: " + err.Error())
 	}
 	return nil
 }
