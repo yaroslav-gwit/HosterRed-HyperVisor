@@ -25,27 +25,27 @@ func PrintLogMessage(value string, msgType string) {
 }
 
 func generateInfo(value string) string {
-	initialValue := " 🟢 INFO: 🕔 " + generateTime() + ": "
+	initialValue := " 🟢 INFO:    🕔 " + generateTime() + ": 📄 "
 	return initialValue + value
 }
 
 func generateChanged(value string) string {
-	initialValue := " 🔶 CHANGED: 🕔 " + generateTime() + ": "
+	initialValue := " 🔶 CHANGED: 🕔 " + generateTime() + ": 📄 "
 	return initialValue + value
 }
 
 func generateDebug(value string) string {
-	initialValue := " 🔷 DEBUG: 🕔 " + generateTime() + ": "
+	initialValue := " 🔷 DEBUG:   🕔 " + generateTime() + ": 📄 "
 	return initialValue + value
 }
 
 func generateWarning(value string) string {
-	initialValue := " 🔴 WARNING: 🕔 " + generateTime() + ": "
+	initialValue := " 🔴 WARNING: 🕔 " + generateTime() + ": 📄 "
 	return initialValue + value
 }
 
 func generateError(value string) string {
-	initialValue := " 🚫 ERROR: 🕔 " + generateTime() + ": "
+	initialValue := " 🚫 ERROR:   🕔 " + generateTime() + ": 📄 "
 	return initialValue + value
 }
 
