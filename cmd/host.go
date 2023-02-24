@@ -400,11 +400,11 @@ func swapInfo() (swapInfoStruct, error) {
 		}
 	}
 	swapTotalBytes, _ := strconv.Atoi(swapInfoList[6])
-	swapTotalBytes = swapTotalBytes / 1024
+	swapTotalBytes = swapTotalBytes * 1024
 	swapUsedBytes, _ := strconv.Atoi(swapInfoList[7])
-	swapUsedBytes = swapUsedBytes / 1024
+	swapUsedBytes = swapUsedBytes * 1024
 	swapFreeBytes, _ := strconv.Atoi(swapInfoList[8])
-	swapFreeBytes = swapFreeBytes / 1024
+	swapFreeBytes = swapFreeBytes * 1024
 
 	swapInfoVar.total = ByteConversion(swapTotalBytes)
 	swapInfoVar.free = ByteConversion(swapFreeBytes)
