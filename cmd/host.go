@@ -421,11 +421,13 @@ func getSwapInfo() (swapInfoStruct, error) {
 	swapInfoVar.free = ByteConversion(swapFreeBytes)
 	swapInfoVar.used = ByteConversion(swapUsedBytes)
 
-	for i, v := range strings.Split(string(stdout), "\n") {
+	var tempString string
+	for _, v := range strings.Split(string(stdout), "\n") {
 		if len(v) > 0 {
-			fmt.Println(i, v)
+			tempString = v
 		}
 	}
+	fmt.Println(tempString)
 
 	return swapInfoVar, nil
 }
