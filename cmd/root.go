@@ -99,6 +99,9 @@ func init() {
 	apiCmd.Flags().StringVarP(&apiServerUser, "user", "u", "admin", "Username for API authentication")
 	apiCmd.Flags().StringVarP(&apiServerPassword, "password", "", "123456", "Password for API authentication")
 
+	// Init command section
+	rootCmd.AddCommand(initCmd)
+
 	// Version command section
 	rootCmd.AddCommand(versionCmd)
 }
