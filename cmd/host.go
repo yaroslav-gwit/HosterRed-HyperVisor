@@ -413,7 +413,7 @@ func getSwapInfo() (swapInfoStruct, error) {
 	var swapInfoList []string
 	reSplitSpace := regexp.MustCompile(`\s+`)
 	for _, v := range reSplitSpace.Split(swapInfoString, -1) {
-		if len(v) > 1 {
+		if len(v) > 0 {
 			swapInfoList = append(swapInfoList, v)
 		}
 	}
