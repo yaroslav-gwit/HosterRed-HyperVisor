@@ -25,12 +25,13 @@ var (
 		Short: "Host related operations",
 		Long:  `Host related operations.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			HostMain()
+			hostMain()
 		},
 	}
 )
 
-func HostMain() {
+func hostMain() {
+	getZrootInfo()
 	if jsonPrettyHostInfoOutput {
 		jsonOutputVar := jsonOutputHostInfo()
 		jsonData, err := json.MarshalIndent(jsonOutputVar, "", "   ")
@@ -426,12 +427,8 @@ func getSwapInfo() (swapInfoStruct, error) {
 
 func getSystemUptime() string {
 	var systemUptime string
-	var systemUptimeArg1 = "sysctl"
-	var systemUptimeArg2 = "-nq"
-	var systemUptimeArg3 = "kern.boottime"
 
-	var cmd = exec.Command(systemUptimeArg1, systemUptimeArg2, systemUptimeArg3)
-	var stdout, err = cmd.Output()
+	stdout, err := exec.Command("sysctl", "-nq", "kern.boottime").Output()
 	if err != nil {
 		fmt.Println("Func getSystemUptime/systemUptime: There has been an error:", err)
 		os.Exit(1)
@@ -450,55 +447,64 @@ func getSystemUptime() string {
 	systemUptime = strings.Replace(systemUptime, ",", "", -1)
 	systemUptime = strings.Replace(systemUptime, " ", "", -1)
 
-	var systemUptimeInt, _ = strconv.ParseInt(systemUptime, 10, 64)
-	var unixTime = time.Unix(systemUptimeInt, 0)
+	systemUptimeInt, _ := strconv.ParseInt(systemUptime, 10, 64)
+	unixTime := time.Unix(systemUptimeInt, 0)
 
-	var timeSince = time.Since(unixTime).Seconds()
-	var secondsModulus = int(timeSince) % 60.0
+	timeSince := time.Since(unixTime).Seconds()
+	secondsModulus := int(timeSince) % 60.0
 
-	var minutesSince = (timeSince - float64(secondsModulus)) / 60.0
-	var minutesModulus = int(minutesSince) % 60.0
+	minutesSince := (timeSince - float64(secondsModulus)) / 60.0
+	minutesModulus := int(minutesSince) % 60.0
 
-	var hoursSince = (minutesSince - float64(minutesModulus)) / 60
-	var hoursModulus = int(hoursSince) % 24
+	hoursSince := (minutesSince - float64(minutesModulus)) / 60
+	hoursModulus := int(hoursSince) % 24
 
-	var daysSince = (int(hoursSince) - hoursModulus) / 24
+	daysSince := (int(hoursSince) - hoursModulus) / 24
 
-	var finalResult = strconv.Itoa(daysSince) + "d "
-	finalResult = finalResult + strconv.Itoa(hoursModulus) + "h "
-	finalResult = finalResult + strconv.Itoa(minutesModulus) + "m "
-	finalResult = finalResult + strconv.Itoa(secondsModulus) + "s"
+	result := strconv.Itoa(daysSince) + "d "
+	result = result + strconv.Itoa(hoursModulus) + "h "
+	result = result + strconv.Itoa(minutesModulus) + "m "
+	result = result + strconv.Itoa(secondsModulus) + "s"
 
-	return finalResult
+	return result
+}
+
+type zrootInfoStruct struct {
+	total  string
+	used   string
+	free   string
+	status string
+}
+
+func getZrootInfo() zrootInfoStruct {
+	zrootInfoVar := zrootInfoStruct{}
+	stdout, err := exec.Command("zpool", "list", "-p", "zroot").Output()
+	if err != nil {
+		log.Fatal("Could not run zpool list")
+	}
+
+	reSplitSpace := regexp.MustCompile(`\s+`)
+	for i, v := range reSplitSpace.Split(string(stdout), -1) {
+		fmt.Println(i, v)
+	}
+
+	return zrootInfoVar
 }
 
 func GetHostName() string {
 	// GET SYSCTL "vm.stats.vm.v_free_count" AND RETURN THE VALUE
-	var hostName string
-	var hostNameArg1 = "sysctl"
-	var hostNameArg2 = "-nq"
-	var hostNameArg3 = "kern.hostname"
-
-	var cmd = exec.Command(hostNameArg1, hostNameArg2, hostNameArg3)
-	var stdout, err = cmd.Output()
+	stdout, err := exec.Command("sysctl", "-nq", "kern.hostname").Output()
 	if err != nil {
 		fmt.Println("Func GetHostName/hostName: There has been an error:", err)
 		os.Exit(1)
-	} else {
-		hostName = string(stdout)
 	}
-
 	var hostNameList []string
-	for _, i := range strings.Split(hostName, "\n") {
+	for _, i := range strings.Split(string(stdout), "\n") {
 		if len(i) > 1 {
 			hostNameList = append(hostNameList, i)
 		}
 	}
-	hostName = hostNameList[0]
-
-	var finalResult = hostName
-
-	return finalResult
+	return hostNameList[0]
 }
 
 func ByteConversion(bytes int) string {
