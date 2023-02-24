@@ -12,8 +12,8 @@ var rootCmd = &cobra.Command{
 	Short: "HosterCore is a highly opinionated Bhyve automation platform written in Go",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		HostMain()
-		VmListMain()
+		hostMain()
+		vmListMain()
 	},
 }
 

@@ -26,7 +26,7 @@ var (
 		Short: "VM list",
 		Long:  `VM list in the form of tables, json, or json pretty`,
 		Run: func(cmd *cobra.Command, args []string) {
-			VmListMain()
+			vmListMain()
 		},
 	}
 )
@@ -34,7 +34,7 @@ var (
 var allVmsUptime []string
 var wg = &sync.WaitGroup{}
 
-func VmListMain() {
+func vmListMain() {
 	if jsonOutputVm {
 		vmList := vmJsonOutput()
 		jsonPrint, err := json.Marshal(vmList)
