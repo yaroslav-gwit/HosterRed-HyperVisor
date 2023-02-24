@@ -31,7 +31,6 @@ var (
 )
 
 func HostMain() {
-	swapInfo()
 	if jsonPrettyHostInfoOutput {
 		jsonOutputVar := jsonOutputHostInfo()
 		jsonData, err := json.MarshalIndent(jsonOutputVar, "", "   ")
@@ -51,14 +50,14 @@ func HostMain() {
 		var tLiveVms string
 		var tSystemUptime string
 		var tSystemRam = ramResponse{}
-		var tSwapUsed string
-		var tAllSwap string
+		var tSwapInfo swapInfoStruct
 		var tArcSize string
 		var tFreeZfsSpace string
 		var tZrootStatus string
 
 		var wg = &sync.WaitGroup{}
-		wg.Add(9)
+		var err error
+		wg.Add(8)
 		go func() { defer wg.Done(); tHostname = GetHostName() }()
 		go func() { defer wg.Done(); tLiveVms = getNumberOfRunningVms() }()
 		go func() { defer wg.Done(); tSystemUptime = getSystemUptime() }()
@@ -66,8 +65,13 @@ func HostMain() {
 		go func() { defer wg.Done(); tArcSize = getArcSize() }()
 		go func() { defer wg.Done(); tFreeZfsSpace = getFreeZfsSpace() }()
 		go func() { defer wg.Done(); tZrootStatus = getZrootStatus() }()
-		go func() { defer wg.Done(); tSwapUsed = getFreeSwapSpace() }()
-		go func() { defer wg.Done(); tAllSwap = getAllSwapSpace() }()
+		go func() {
+			defer wg.Done()
+			tSwapInfo, err = getSwapInfo()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}()
 		wg.Wait()
 
 		t := table.New(os.Stdout)
@@ -103,7 +107,7 @@ func HostMain() {
 			tLiveVms,
 			tSystemUptime,
 			tSystemRam.used+"/"+tSystemRam.all,
-			tSwapUsed+"/"+tAllSwap,
+			tSwapInfo.used+"/"+tSwapInfo.total,
 			tArcSize,
 			tFreeZfsSpace,
 			tZrootStatus,
@@ -120,8 +124,9 @@ type jsonOutputHostInfoStruct struct {
 	RamTotal     string `json:"ram_total"`
 	RamFree      string `json:"ram_free"`
 	RamUsed      string `json:"ram_used"`
-	SwapUsed     string `json:"swap_used"`
 	SwapTotal    string `json:"swap_total"`
+	SwapUsed     string `json:"swap_used"`
+	SwapFree     string `json:"swap_free"`
 	ArcSize      string `json:"zfs_acr_size"`
 	ZrootFree    string `json:"zroot_free"`
 	ZrootStatus  string `json:"zroot_status"`
@@ -132,23 +137,29 @@ func jsonOutputHostInfo() jsonOutputHostInfoStruct {
 	var tLiveVms string
 	var tSystemUptime string
 	var tSystemRam = ramResponse{}
-	var tSwapUsed string
-	var tSwapTotal string
+	var tSwapInfo swapInfoStruct
 	var tArcSize string
 	var tFreeZfsSpace string
 	var tZrootStatus string
 
 	var wg = &sync.WaitGroup{}
-	wg.Add(9)
+	var err error
+	wg.Add(8)
 	go func() { defer wg.Done(); tHostname = GetHostName() }()
 	go func() { defer wg.Done(); tLiveVms = getNumberOfRunningVms() }()
 	go func() { defer wg.Done(); tSystemUptime = getSystemUptime() }()
 	go func() { defer wg.Done(); tSystemRam = getHostRam() }()
-	go func() { defer wg.Done(); tSwapUsed = getFreeSwapSpace() }()
-	go func() { defer wg.Done(); tSwapTotal = getAllSwapSpace() }()
 	go func() { defer wg.Done(); tArcSize = getArcSize() }()
 	go func() { defer wg.Done(); tFreeZfsSpace = getFreeZfsSpace() }()
 	go func() { defer wg.Done(); tZrootStatus = getZrootStatus() }()
+
+	go func() {
+		defer wg.Done()
+		tSwapInfo, err = getSwapInfo()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 	wg.Wait()
 
 	jsonOutputVar := jsonOutputHostInfoStruct{}
@@ -158,8 +169,9 @@ func jsonOutputHostInfo() jsonOutputHostInfoStruct {
 	jsonOutputVar.RamTotal = tSystemRam.all
 	jsonOutputVar.RamFree = tSystemRam.free
 	jsonOutputVar.RamUsed = tSystemRam.used
-	jsonOutputVar.SwapUsed = tSwapUsed
-	jsonOutputVar.SwapTotal = tSwapTotal
+	jsonOutputVar.SwapTotal = tSwapInfo.total
+	jsonOutputVar.SwapUsed = tSwapInfo.used
+	jsonOutputVar.SwapFree = tSwapInfo.free
 	jsonOutputVar.ArcSize = tArcSize
 	jsonOutputVar.ZrootFree = tFreeZfsSpace
 	jsonOutputVar.ZrootStatus = tZrootStatus
@@ -379,12 +391,12 @@ func getFreeZfsSpace() string {
 }
 
 type swapInfoStruct struct {
-	free  string
-	used  string
 	total string
+	used  string
+	free  string
 }
 
-func swapInfo() (swapInfoStruct, error) {
+func getSwapInfo() (swapInfoStruct, error) {
 	swapInfoVar := swapInfoStruct{}
 	stdout, stderr := exec.Command("swapinfo").Output()
 	if stderr != nil {
@@ -396,7 +408,6 @@ func swapInfo() (swapInfoStruct, error) {
 	for _, v := range reSplitSpace.Split(string(stdout), -1) {
 		if len(v) > 1 {
 			swapInfoList = append(swapInfoList, v)
-			// fmt.Println(i, v)
 		}
 	}
 	swapTotalBytes, _ := strconv.Atoi(swapInfoList[6])
@@ -410,97 +421,7 @@ func swapInfo() (swapInfoStruct, error) {
 	swapInfoVar.free = ByteConversion(swapFreeBytes)
 	swapInfoVar.used = ByteConversion(swapUsedBytes)
 
-	fmt.Println(swapInfoVar)
-
 	return swapInfoVar, nil
-}
-
-func getFreeSwapSpace() string {
-	var swapFree string
-	var swapFreeArg1 = "swapinfo"
-
-	var cmd = exec.Command(swapFreeArg1)
-	var stdout, err = cmd.Output()
-	if err != nil {
-		fmt.Println("Func getFreeZfsSpace/zrootFree: There has been an error:", err)
-		os.Exit(1)
-	} else {
-		swapFree = string(stdout)
-	}
-	var swapFreeList []string
-	for _, i := range strings.Split(swapFree, " ") {
-		if len(i) > 1 {
-			swapFreeList = append(swapFreeList, i)
-		}
-	}
-
-	// CONVERT KB TO A DIFFERENT BYTE TYPE IF NECESSARY
-	swapFree = swapFreeList[7]
-	var swapFreeBytes, _ = strconv.Atoi(swapFree)
-	var byteType = "K"
-	if len(swapFree) > 3 {
-		swapFreeBytes = swapFreeBytes / 1024
-		byteType = "M"
-	}
-
-	var swapFreeGb = 0.0
-	if swapFreeBytes > 1024 {
-		swapFreeGb = float64(swapFreeBytes) / 1024.0
-		byteType = "G"
-	}
-
-	var finalResult string
-	if swapFreeGb > 0.0 {
-		finalResult = fmt.Sprintf("%.2f", swapFreeGb) + byteType
-	} else {
-		finalResult = strconv.Itoa(swapFreeBytes) + byteType
-	}
-
-	return finalResult
-}
-
-func getAllSwapSpace() string {
-	var swapAll string
-	var swapAllArg1 = "swapinfo"
-
-	var cmd = exec.Command(swapAllArg1)
-	var stdout, err = cmd.Output()
-	if err != nil {
-		fmt.Println("Func getAllSwapSpace/swapAll: There has been an error:", err)
-		os.Exit(1)
-	} else {
-		swapAll = string(stdout)
-	}
-	var swapAllList []string
-	for _, i := range strings.Split(swapAll, " ") {
-		if len(i) > 1 {
-			swapAllList = append(swapAllList, i)
-		}
-	}
-
-	// CONVERT KB TO A DIFFERENT BYTE TYPE IF NECESSARY
-	swapAll = swapAllList[5]
-	var swapAllBytes, _ = strconv.Atoi(swapAll)
-	var byteType = "K"
-	if len(swapAll) > 3 {
-		swapAllBytes = swapAllBytes / 1024
-		byteType = "M"
-	}
-
-	var swapAllGb = 0.0
-	if swapAllBytes > 1024 {
-		swapAllGb = float64(swapAllBytes) / 1024.0
-		byteType = "G"
-	}
-
-	var finalResult string
-	if swapAllGb > 0.0 {
-		finalResult = fmt.Sprintf("%.2f", swapAllGb) + byteType
-	} else {
-		finalResult = strconv.Itoa(swapAllBytes) + byteType
-	}
-
-	return finalResult
 }
 
 func getSystemUptime() string {
