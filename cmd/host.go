@@ -403,31 +403,31 @@ func getSwapInfo() (swapInfoStruct, error) {
 		return swapInfoStruct{}, stderr
 	}
 
-	reSplitSpace := regexp.MustCompile(`\s+`)
+	var swapInfoString string
+	for _, v := range strings.Split(string(stdout), "\n") {
+		if len(v) > 0 {
+			swapInfoString = v
+		}
+	}
+
 	var swapInfoList []string
-	for _, v := range reSplitSpace.Split(string(stdout), -1) {
+	reSplitSpace := regexp.MustCompile(`\s+`)
+	for _, v := range reSplitSpace.Split(swapInfoString, -1) {
 		if len(v) > 1 {
 			swapInfoList = append(swapInfoList, v)
 		}
 	}
-	swapTotalBytes, _ := strconv.Atoi(swapInfoList[6])
+
+	swapTotalBytes, _ := strconv.Atoi(swapInfoList[1])
 	swapTotalBytes = swapTotalBytes * 1024
-	swapUsedBytes, _ := strconv.Atoi(swapInfoList[7])
+	swapUsedBytes, _ := strconv.Atoi(swapInfoList[2])
 	swapUsedBytes = swapUsedBytes * 1024
-	swapFreeBytes, _ := strconv.Atoi(swapInfoList[8])
+	swapFreeBytes, _ := strconv.Atoi(swapInfoList[3])
 	swapFreeBytes = swapFreeBytes * 1024
 
 	swapInfoVar.total = ByteConversion(swapTotalBytes)
 	swapInfoVar.free = ByteConversion(swapFreeBytes)
 	swapInfoVar.used = ByteConversion(swapUsedBytes)
-
-	var tempString string
-	for _, v := range strings.Split(string(stdout), "\n") {
-		if len(v) > 0 {
-			tempString = v
-		}
-	}
-	fmt.Println(tempString)
 
 	return swapInfoVar, nil
 }
