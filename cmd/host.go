@@ -391,8 +391,9 @@ func swapInfo() (swapInfoStruct, error) {
 		return swapInfoStruct{}, stderr
 	}
 
+	reSplitSpace := regexp.MustCompile(`\s+`)
 	var swapInfoList []string
-	for i, v := range strings.Split(string(stdout), " ") {
+	for i, v := range reSplitSpace.Split(string(stdout), -1) {
 		if len(v) > 1 {
 			swapInfoList = append(swapInfoList, v)
 			fmt.Println(i, v)
