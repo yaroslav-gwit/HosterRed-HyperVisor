@@ -379,9 +379,9 @@ func getFreeZfsSpace() string {
 }
 
 type swapInfoStruct struct {
-	swapFree  string
-	swapUsed  string
-	swapTotal string
+	free  string
+	used  string
+	total string
 }
 
 func swapInfo() (swapInfoStruct, error) {
@@ -393,14 +393,24 @@ func swapInfo() (swapInfoStruct, error) {
 
 	reSplitSpace := regexp.MustCompile(`\s+`)
 	var swapInfoList []string
-	for i, v := range reSplitSpace.Split(string(stdout), -1) {
+	for _, v := range reSplitSpace.Split(string(stdout), -1) {
 		if len(v) > 1 {
 			swapInfoList = append(swapInfoList, v)
-			fmt.Println(i, v)
+			// fmt.Println(i, v)
 		}
 	}
-	// swapTotal := swapInfoList[5]
-	// swapFree := swapInfoList[7]
+	swapTotalBytes, _ := strconv.Atoi(swapInfoList[6])
+	swapTotalBytes = swapTotalBytes / 1024
+	swapUsedBytes, _ := strconv.Atoi(swapInfoList[7])
+	swapUsedBytes = swapUsedBytes / 1024
+	swapFreeBytes, _ := strconv.Atoi(swapInfoList[8])
+	swapFreeBytes = swapFreeBytes / 1024
+
+	swapInfoVar.total = ByteConversion(swapTotalBytes)
+	swapInfoVar.free = ByteConversion(swapFreeBytes)
+	swapInfoVar.used = ByteConversion(swapUsedBytes)
+
+	fmt.Println(swapInfoVar)
 
 	return swapInfoVar, nil
 }
