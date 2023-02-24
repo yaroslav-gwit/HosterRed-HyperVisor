@@ -53,19 +53,17 @@ func hostMain() {
 		var tSystemRam = ramResponse{}
 		var tSwapInfo swapInfoStruct
 		var tArcSize string
-		var tFreeZfsSpace string
-		var tZrootStatus string
+		var tZrootInfo zrootInfoStruct
 
 		var wg = &sync.WaitGroup{}
 		var err error
-		wg.Add(8)
+		wg.Add(7)
 		go func() { defer wg.Done(); tHostname = GetHostName() }()
 		go func() { defer wg.Done(); tLiveVms = getNumberOfRunningVms() }()
 		go func() { defer wg.Done(); tSystemUptime = getSystemUptime() }()
 		go func() { defer wg.Done(); tSystemRam = getHostRam() }()
 		go func() { defer wg.Done(); tArcSize = getArcSize() }()
-		go func() { defer wg.Done(); tFreeZfsSpace = getFreeZfsSpace() }()
-		go func() { defer wg.Done(); tZrootStatus = getZrootStatus() }()
+		go func() { defer wg.Done(); tZrootInfo = getZrootInfo() }()
 		go func() {
 			defer wg.Done()
 			tSwapInfo, err = getSwapInfo()
@@ -110,8 +108,8 @@ func hostMain() {
 			tSystemRam.used+"/"+tSystemRam.all,
 			tSwapInfo.used+"/"+tSwapInfo.total,
 			tArcSize,
-			tFreeZfsSpace,
-			tZrootStatus,
+			tZrootInfo.used+"/"+tZrootInfo.total,
+			tZrootInfo.status,
 		)
 
 		t.Render()
@@ -129,6 +127,8 @@ type jsonOutputHostInfoStruct struct {
 	SwapUsed     string `json:"swap_used"`
 	SwapFree     string `json:"swap_free"`
 	ArcSize      string `json:"zfs_acr_size"`
+	ZrootTotal   string `json:"zroot_total"`
+	ZrootUsed    string `json:"zroot_used"`
 	ZrootFree    string `json:"zroot_free"`
 	ZrootStatus  string `json:"zroot_status"`
 }
@@ -140,8 +140,7 @@ func jsonOutputHostInfo() jsonOutputHostInfoStruct {
 	var tSystemRam = ramResponse{}
 	var tSwapInfo swapInfoStruct
 	var tArcSize string
-	var tFreeZfsSpace string
-	var tZrootStatus string
+	var tZrootInfo zrootInfoStruct
 
 	var wg = &sync.WaitGroup{}
 	var err error
@@ -151,8 +150,7 @@ func jsonOutputHostInfo() jsonOutputHostInfoStruct {
 	go func() { defer wg.Done(); tSystemUptime = getSystemUptime() }()
 	go func() { defer wg.Done(); tSystemRam = getHostRam() }()
 	go func() { defer wg.Done(); tArcSize = getArcSize() }()
-	go func() { defer wg.Done(); tFreeZfsSpace = getFreeZfsSpace() }()
-	go func() { defer wg.Done(); tZrootStatus = getZrootStatus() }()
+	go func() { defer wg.Done(); tZrootInfo = getZrootInfo() }()
 
 	go func() {
 		defer wg.Done()
@@ -174,8 +172,10 @@ func jsonOutputHostInfo() jsonOutputHostInfoStruct {
 	jsonOutputVar.SwapUsed = tSwapInfo.used
 	jsonOutputVar.SwapFree = tSwapInfo.free
 	jsonOutputVar.ArcSize = tArcSize
-	jsonOutputVar.ZrootFree = tFreeZfsSpace
-	jsonOutputVar.ZrootStatus = tZrootStatus
+	jsonOutputVar.ZrootTotal = tZrootInfo.total
+	jsonOutputVar.ZrootUsed = tZrootInfo.used
+	jsonOutputVar.ZrootFree = tZrootInfo.free
+	jsonOutputVar.ZrootStatus = tZrootInfo.status
 
 	return jsonOutputVar
 }
@@ -321,75 +321,75 @@ func getNumberOfRunningVms() string {
 	return finalResult
 }
 
-func getZrootStatus() string {
-	var zrootStatus string
-	var zrootStatusArg1 = "zpool"
-	var zrootStatusArg2 = "status"
-	var zrootStatusArg3 = "zroot"
+// func getZrootStatus() string {
+// 	var zrootStatus string
+// 	var zrootStatusArg1 = "zpool"
+// 	var zrootStatusArg2 = "status"
+// 	var zrootStatusArg3 = "zroot"
 
-	var cmd = exec.Command(zrootStatusArg1, zrootStatusArg2, zrootStatusArg3)
-	var stdout, err = cmd.Output()
-	if err != nil {
-		fmt.Println("Func getZrootStatus/zrootStatus: There has been an error:", err)
-		os.Exit(1)
-	} else {
-		zrootStatus = string(stdout)
-	}
-	var zrootStatusList []string
-	for _, i := range strings.Split(zrootStatus, "\n") {
-		if len(i) > 1 {
-			zrootStatusList = append(zrootStatusList, i)
-		}
-	}
+// 	var cmd = exec.Command(zrootStatusArg1, zrootStatusArg2, zrootStatusArg3)
+// 	var stdout, err = cmd.Output()
+// 	if err != nil {
+// 		fmt.Println("Func getZrootStatus/zrootStatus: There has been an error:", err)
+// 		os.Exit(1)
+// 	} else {
+// 		zrootStatus = string(stdout)
+// 	}
+// 	var zrootStatusList []string
+// 	for _, i := range strings.Split(zrootStatus, "\n") {
+// 		if len(i) > 1 {
+// 			zrootStatusList = append(zrootStatusList, i)
+// 		}
+// 	}
 
-	var r, _ = regexp.Compile(".*state:.*")
-	for _, i := range zrootStatusList {
-		var reMatch = r.MatchString(i)
-		if reMatch {
-			zrootStatus = i
-		}
-	}
+// 	var r, _ = regexp.Compile(".*state:.*")
+// 	for _, i := range zrootStatusList {
+// 		var reMatch = r.MatchString(i)
+// 		if reMatch {
+// 			zrootStatus = i
+// 		}
+// 	}
 
-	zrootStatus = strings.Replace(zrootStatus, "state:", "", -1)
-	zrootStatus = strings.Replace(zrootStatus, " ", "", -1)
-	if zrootStatus == "ONLINE" {
-		zrootStatus = "Online"
-	} else {
-		zrootStatus = "Problem!"
-	}
+// 	zrootStatus = strings.Replace(zrootStatus, "state:", "", -1)
+// 	zrootStatus = strings.Replace(zrootStatus, " ", "", -1)
+// 	if zrootStatus == "ONLINE" {
+// 		zrootStatus = "Online"
+// 	} else {
+// 		zrootStatus = "Problem!"
+// 	}
 
-	var finalResult = zrootStatus
+// 	var finalResult = zrootStatus
 
-	return finalResult
-}
+// 	return finalResult
+// }
 
-func getFreeZfsSpace() string {
-	var zrootFree string
-	var zrootFreeArg1 = "zfs"
-	var zrootFreeArg2 = "list"
-	var zrootFreeArg3 = "zroot"
+// func getFreeZfsSpace() string {
+// 	var zrootFree string
+// 	var zrootFreeArg1 = "zfs"
+// 	var zrootFreeArg2 = "list"
+// 	var zrootFreeArg3 = "zroot"
 
-	var cmd = exec.Command(zrootFreeArg1, zrootFreeArg2, zrootFreeArg3)
-	var stdout, err = cmd.Output()
-	if err != nil {
-		fmt.Println("Func getFreeZfsSpace/zrootFree: There has been an error:", err)
-		os.Exit(1)
-	} else {
-		zrootFree = string(stdout)
-	}
-	var zrootFreeList []string
-	for _, i := range strings.Split(zrootFree, " ") {
-		if len(i) > 1 {
-			zrootFreeList = append(zrootFreeList, i)
-		}
-	}
+// 	var cmd = exec.Command(zrootFreeArg1, zrootFreeArg2, zrootFreeArg3)
+// 	var stdout, err = cmd.Output()
+// 	if err != nil {
+// 		fmt.Println("Func getFreeZfsSpace/zrootFree: There has been an error:", err)
+// 		os.Exit(1)
+// 	} else {
+// 		zrootFree = string(stdout)
+// 	}
+// 	var zrootFreeList []string
+// 	for _, i := range strings.Split(zrootFree, " ") {
+// 		if len(i) > 1 {
+// 			zrootFreeList = append(zrootFreeList, i)
+// 		}
+// 	}
 
-	zrootFree = zrootFreeList[6]
-	zrootFree = strings.Replace(zrootFree, " ", "", -1)
+// 	zrootFree = zrootFreeList[6]
+// 	zrootFree = strings.Replace(zrootFree, " ", "", -1)
 
-	var finalResult = zrootFree
-	return finalResult
-}
+// 	var finalResult = zrootFree
+// 	return finalResult
+// }
 
 type swapInfoStruct struct {
 	total string
@@ -484,9 +484,23 @@ func getZrootInfo() zrootInfoStruct {
 	}
 
 	reSplitSpace := regexp.MustCompile(`\s+`)
-	for i, v := range reSplitSpace.Split(string(stdout), -1) {
-		fmt.Println(i, v)
+	var zrootInfoList []string
+	zrootInfoList = append(zrootInfoList, reSplitSpace.Split(string(stdout), -1)...)
+	// for _, v := range reSplitSpace.Split(string(stdout), -1) {
+	// 	zrootInfoList = append(zrootInfoList, v)
+	// }
+
+	if zrootInfoList[20] == "ONLINE" {
+		zrootInfoVar.status = "Healthy"
 	}
+
+	zrootInfoTotalInt, _ := strconv.ParseInt(zrootInfoList[12], 10, 64)
+	zrootInfoUsedInt, _ := strconv.ParseInt(zrootInfoList[13], 10, 64)
+	zrootInfoFreeInt, _ := strconv.ParseInt(zrootInfoList[14], 10, 64)
+
+	zrootInfoVar.total = ByteConversion(int(zrootInfoTotalInt))
+	zrootInfoVar.used = ByteConversion(int(zrootInfoUsedInt))
+	zrootInfoVar.free = ByteConversion(int(zrootInfoFreeInt))
 
 	return zrootInfoVar
 }
