@@ -1,5 +1,7 @@
 package cmd
 
+import "C"
+
 import (
 	"encoding/json"
 	"fmt"
@@ -11,6 +13,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"unsafe"
 
 	"github.com/aquasecurity/table"
 	"github.com/spf13/cobra"
@@ -31,7 +35,7 @@ var (
 )
 
 func hostMain() {
-	getZrootInfo()
+	getSwapInfoUnsafe()
 	if jsonPrettyHostInfoOutput {
 		jsonOutputVar := jsonOutputHostInfo()
 		jsonData, err := json.MarshalIndent(jsonOutputVar, "", "   ")
@@ -547,4 +551,41 @@ func ByteConversion(bytes int) string {
 		finalResult = strconv.Itoa(firstIteration) + iterationTitle
 	}
 	return finalResult
+}
+
+func getSwapInfoUnsafe() {
+	/*
+	   #include <sys/types.h>
+	   #include <sys/sysctl.h>
+
+	   // wrapper function to call sysctl and retrieve data as Go slice
+	   int sysctlbyname_wrap(const char *name, void *oldp, size_t *oldlenp) {
+	       return sysctlbyname(name, oldp, oldlenp, NULL, 0);
+	   }
+	*/
+	var vmStats C.int = C.CTL_VM
+	var swapStats C.int = C.VM_SWAP_STATS
+	var swapTotal C.int = C.VM_SWAP_TOTAL
+	var swapUsed C.int = C.VM_SWAP_USED
+
+	var total C.uint64_t
+	var used C.uint64_t
+
+	var totalLen C.size_t = C.size_t(unsafe.Sizeof(total))
+	var usedLen C.size_t = C.size_t(unsafe.Sizeof(used))
+
+	// get swap total
+	if _, err := C.sysctl(&vmStats, 2, nil, &totalLen, unsafe.Pointer(&swapTotal), C.size_t(unsafe.Sizeof(swapTotal))); err != 0 {
+		fmt.Println("Error getting swap total:", err)
+		return
+	}
+
+	if _, err := C.sysctlbyname_wrap(C.CString("vm.swapusage"), unsafe.Pointer(&used), &usedLen); err != 0 {
+		fmt.Println("Error getting swap usage:", err)
+		return
+	}
+
+	free := total - used
+
+	fmt.Printf("Swap total: %d\nSwap used: %d\nSwap free: %d\n", total, used, free)
 }
