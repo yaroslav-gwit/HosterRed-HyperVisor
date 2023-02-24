@@ -3,7 +3,6 @@ package cmd
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"hoster/emojlog"
 	"html/template"
 	"log"
@@ -40,7 +39,8 @@ var (
 
 func vmDestroy(vmName string) error {
 	vmDataset, err := getVmDataset(vmName)
-	fmt.Println("Will be removing this VM dataset: " + vmDataset)
+	emojlog.PrintLogMessage("Destroying VM: "+vmName, emojlog.Info)
+	emojlog.PrintLogMessage("Removing this VM dataset: "+vmDataset, emojlog.Debug)
 	if err != nil {
 		return errors.New("could not find the VM dataset: " + err.Error())
 	}
@@ -53,7 +53,7 @@ func vmDestroy(vmName string) error {
 	}
 
 	vmDatasetParent := reSplit.Split(string(stdout), -1)[1]
-	fmt.Println("Removing parent VM dataset: " + vmDatasetParent)
+	emojlog.PrintLogMessage("Removing parent VM dataset: "+vmDatasetParent, emojlog.Debug)
 	err = exec.Command("zfs", "destroy", "-r", vmDataset).Run()
 	if stderr != nil {
 		return errors.New("could not execute zfs destroy: " + err.Error())
