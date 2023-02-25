@@ -58,8 +58,12 @@ func returnMissingModules() ([]string, error) {
 			for _, vv := range kernelModuleList {
 				reMatchModule := regexp.MustCompile(vv + `\.ko`)
 				if reMatchModule.MatchString(v) {
-					v = reSplitSpace.Split(v, -1)[4]
-					result = append(result, strings.TrimSpace(v))
+					tempList := reSplitSpace.Split(v, -1)
+					for _, vvv := range tempList {
+						if reMatchModule.MatchString(vvv) {
+							result = append(result, strings.TrimSpace(vvv))
+						}
+					}
 				}
 			}
 		}
