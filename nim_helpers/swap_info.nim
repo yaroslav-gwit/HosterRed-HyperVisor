@@ -1,41 +1,42 @@
-import os
-import math
+import system
+import strutils
+
+const CTL_VM = 2
+const VM_SWAPUSAGE = 5
 
 type
-  KvmSwap = object
-    ksw_devname: string
-    ksw_total: uint32
-    ksw_used: uint32
-    ksw_flags: int32
+  SwapUsage = object
+    su_total: cint
+    su_avail: cint
+    su_used: cint
+    su_pagesize: cint
 
-proc swapmode(var retavail, var retfree: int): int =
-  var swapary = newSeq[KvmSwap](1)
-  var pagesize = os.getPageSize()
-  var swap_maxpages = os.getSysctl("vm.swap_maxpages")
+proc getSwapUsage(): SwapUsage =
+  var mib: seq[int] = @[CTL_VM, VM_SWAPUSAGE]
+  var swapusage: SwapUsage
+  var size: int = sizeof(SwapUsage)
 
-  # CONVERT macro in C:
-  # #define CONVERT(v) ((quad_t)(v) * pagesize / 1024)
-  template CONVERT(v: uint32): int =
-    cast[int](v * uint64(pagesize) div 1024)
+  if sysctl(mib.addr, mib.len, &swapusage, &size, nil, 0) != 0:
+    raise newException(OSError, "sysctl(VM_SWAPUSAGE) failed")
 
-  var n = os.kvm_getswapinfo(swapary.ctypes.data, swapary.len, 0)
-  if n < 0:
-    echo stderr, "Sorry, kvm_getswapinfo returned ", n
-    quit(1)
+  return swapusage
 
-  if swapary[0].ksw_total == 0:
-    echo stderr, "Sorry, kvm_getswapinfo said there is 0 swap available"
-    quit(1)
+proc formatBytes(bytes: cint): string =
+  var units: seq[string] = @["B", "KB", "MB", "GB", "TB"]
+  var unitIndex: int = 0
+  var remaining: float = float(bytes)
 
-  if swapary[0].ksw_total > swap_maxpages:
-    swapary[0].ksw_total = swap_maxpages
+  while remaining >= 1024.0 and unitIndex < units.len - 1:
+    remaining = remaining / 1024.0
+    unitIndex += 1
 
-  retavail = CONVERT(swapary[0].ksw_total)
-  retfree = CONVERT(swapary[0].ksw_total - swapary[0].ksw_used)
+  return $remaining & " " & units[unitIndex]
 
-  return cast[int](swapary[0].ksw_used * 100.0 / swapary[0].ksw_total)
+proc main() =
+  let swapusage = getSwapUsage()
+  echo "Total swap space: " & formatBytes(swapusage.su_total)
+  echo "Available swap space: " & formatBytes(swapusage.su_avail)
+  echo "Used swap space: " & formatBytes(swapusage.su_used)
 
-# Example usage
-var a, f: int
-swapmode(a, f)
-echo a, f
+when isMainModule:
+  main()
