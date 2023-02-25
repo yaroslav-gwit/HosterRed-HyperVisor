@@ -1,44 +1,41 @@
 import os
-import strutils
-import times
+import math
 
 type
   KvmSwap = object
     ksw_devname: string
-    ksw_total: uint
-    ksw_used: uint
-    ksw_flags: int
+    ksw_total: uint32
+    ksw_used: uint32
+    ksw_flags: int32
 
-proc getSwapMode(): (int, int) =
-  var kd = kvm_open(nil, "/dev/null", nil, O_RDONLY, "kvm_open")
-  if kd == nil:
-    raiseException(OSError, "kvm_open failed")
-  defer:
-    if kd != nil:
-      kvm_close(kd)
-  
-  let pagesize = getpagesize().int32
-  var swap_maxpages: uint64 = 0
-  sysctlbyname("vm.swap_maxpages", swap_maxpages.addr, swap_maxpages.len.addr, nil, 0)
-  
-  var swapary = kvm_swap(ksw_devname: init, ksw_total: 0, ksw_used: 0, ksw_flags: 0)
-  let n = kvm_getswapinfo(kd, &swapary, 1, 0)
+proc swapmode(var retavail, var retfree: int): int =
+  var swapary = newSeq[KvmSwap](1)
+  var pagesize = os.getPageSize()
+  var swap_maxpages = os.getSysctl("vm.swap_maxpages")
+
+  # CONVERT macro in C:
+  # #define CONVERT(v) ((quad_t)(v) * pagesize / 1024)
+  template CONVERT(v: uint32): int =
+    cast[int](v * uint64(pagesize) div 1024)
+
+  var n = os.kvm_getswapinfo(swapary.ctypes.data, swapary.len, 0)
   if n < 0:
-    raiseException(OSError, "kvm_getswapinfo returned $(n)")
-  elif swapary.ksw_total == 0:
-    raiseException(OSError, "kvm_getswapinfo said there is 0 swap available")
-  
-  # ksw_total contains the total size of swap all devices which may
-  # exceed the maximum swap size allocatable in the system
-  if swapary.ksw_total > swap_maxpages:
-    swapary.ksw_total = swap_maxpages
-  
-  let totalSwapKB = swapary.ksw_total * pagesize / 1024
-  let freeSwapKB = (swapary.ksw_total - swapary.ksw_used) * pagesize / 1024
-  
-  return (totalSwapKB.int, freeSwapKB.int)
+    echo stderr, "Sorry, kvm_getswapinfo returned ", n
+    quit(1)
 
-when isMainModule:
-  let (totalSwap, freeSwap) = getSwapMode()
-  echo "Total Swap: ", totalSwap, " KB"
-  echo "Free Swap: ", freeSwap, " KB"
+  if swapary[0].ksw_total == 0:
+    echo stderr, "Sorry, kvm_getswapinfo said there is 0 swap available"
+    quit(1)
+
+  if swapary[0].ksw_total > swap_maxpages:
+    swapary[0].ksw_total = swap_maxpages
+
+  retavail = CONVERT(swapary[0].ksw_total)
+  retfree = CONVERT(swapary[0].ksw_total - swapary[0].ksw_used)
+
+  return cast[int](swapary[0].ksw_used * 100.0 / swapary[0].ksw_total)
+
+# Example usage
+var a, f: int
+swapmode(a, f)
+echo a, f
