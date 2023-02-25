@@ -138,3 +138,4 @@ zig_helpers/zig-cache
 zig_helpers/zig-out
 zig_helpers/src
 zig_helpers/build.zig
+zig_helpers/main.zig
