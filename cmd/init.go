@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -45,8 +46,12 @@ func returnMissingModules() ([]string, error) {
 		return []string{}, stderr
 	}
 
+	reMatchKo := regexp.MustCompile(`\.ko`)
+
 	for _, v := range strings.Split(string(stdout), "\n") {
-		result = append(result, strings.TrimSpace(v))
+		if reMatchKo.MatchString(v) {
+			result = append(result, strings.TrimSpace(v))
+		}
 	}
 
 	return result, nil
