@@ -93,6 +93,11 @@ func init() {
 	vmCmd.AddCommand(vmCiResetCmd)
 	vmCiResetCmd.Flags().StringVarP(&newVmName, "new-name", "n", "", "Set a new VM name (if you'd like to rename the VM as well)")
 
+	// VM cmd -> vm replicate
+	vmCmd.AddCommand(vmZfsReplicateCmd)
+	vmZfsReplicateCmd.Flags().StringVarP(&replicationEndpoint, "endpoint", "e", "", "Set the endpoint SSH address")
+	vmZfsReplicateCmd.Flags().StringVarP(&endpointSshPort, "ssh-port", "p", "22", "Set the endpoint SSH port")
+
 	// API command section
 	rootCmd.AddCommand(apiCmd)
 	apiCmd.Flags().IntVarP(&apiServerPort, "port", "p", 3000, "Specify the port to listen on")

@@ -40,7 +40,7 @@ var (
 func vmDestroy(vmName string) error {
 	vmDataset, err := getVmDataset(vmName)
 	emojlog.PrintLogMessage("Destroying VM: "+vmName, emojlog.Info)
-	emojlog.PrintLogMessage("Removing this VM dataset: "+vmDataset, emojlog.Debug)
+	emojlog.PrintLogMessage("Removing this VM dataset: "+vmDataset, emojlog.Changed)
 	if err != nil {
 		return errors.New("could not find the VM dataset: " + err.Error())
 	}
@@ -53,7 +53,7 @@ func vmDestroy(vmName string) error {
 	}
 
 	vmDatasetParent := reSplit.Split(string(stdout), -1)[1]
-	emojlog.PrintLogMessage("Removing parent VM dataset: "+vmDatasetParent, emojlog.Debug)
+	emojlog.PrintLogMessage("Removing parent VM dataset: "+vmDatasetParent, emojlog.Changed)
 	err = exec.Command("zfs", "destroy", "-r", vmDataset).Run()
 	if stderr != nil {
 		return errors.New("could not execute zfs destroy: " + err.Error())
@@ -145,7 +145,7 @@ func generateNewDnsConfig() error {
 		return errors.New(err.Error())
 	}
 
-	emojlog.PrintLogMessage("Unbound service config file has been written successfully", emojlog.Info)
+	emojlog.PrintLogMessage("Unbound service config file has been written successfully", emojlog.Changed)
 	return nil
 }
 
@@ -155,6 +155,6 @@ func reloadDnsService() error {
 		return errors.New("could not reload the unbound service: " + err.Error())
 	}
 
-	emojlog.PrintLogMessage("DNS Service reloaded", emojlog.Changed)
+	emojlog.PrintLogMessage("DNS Service reloaded", emojlog.Info)
 	return nil
 }
