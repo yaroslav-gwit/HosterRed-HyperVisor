@@ -35,6 +35,8 @@ var (
 // kldload if_bridge
 // kldload if_tuntap
 // kldload if_tap
+// kldload pf
+// kldload pflog
 // sysctl net.link.tap.up_on_open=1
 // 13.0-RELEASE-p11
 
@@ -47,10 +49,16 @@ func returnMissingModules() ([]string, error) {
 	}
 
 	reMatchKo := regexp.MustCompile(`\.ko`)
+	kernelModuleList := []string{"vmm", "nmdm", "if_bridge", "if_tuntap", "if_tap", "pf", "pflog"}
 
 	for _, v := range strings.Split(string(stdout), "\n") {
 		if reMatchKo.MatchString(v) {
-			result = append(result, strings.TrimSpace(v))
+			for _, vv := range kernelModuleList {
+				reMatchModule := regexp.MustCompile(vv + `\.ko`)
+				if reMatchModule.MatchString(v) {
+					result = append(result, strings.TrimSpace(v))
+				}
+			}
 		}
 	}
 
