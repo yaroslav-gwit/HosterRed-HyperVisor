@@ -49,6 +49,7 @@ func returnMissingModules() ([]string, error) {
 	}
 
 	reMatchKo := regexp.MustCompile(`\.ko`)
+	reSplitSpace := regexp.MustCompile(`\s+`)
 	kernelModuleList := []string{"vmm", "nmdm", "if_bridge", "pf", "pflog"}
 	kernelModuleListNoKo := []string{"if_tuntap", "if_tap"}
 
@@ -57,6 +58,7 @@ func returnMissingModules() ([]string, error) {
 			for _, vv := range kernelModuleList {
 				reMatchModule := regexp.MustCompile(vv + `\.ko`)
 				if reMatchModule.MatchString(v) {
+					v = reSplitSpace.Split(v, -1)[4]
 					result = append(result, strings.TrimSpace(v))
 				}
 			}
@@ -67,6 +69,7 @@ func returnMissingModules() ([]string, error) {
 		for _, vv := range kernelModuleListNoKo {
 			reMatchModule := regexp.MustCompile(vv)
 			if reMatchModule.MatchString(v) {
+				v = reSplitSpace.Split(v, -1)[1]
 				result = append(result, strings.TrimSpace(v))
 			}
 		}
