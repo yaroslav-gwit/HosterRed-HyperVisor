@@ -62,6 +62,7 @@ func returnMissingModules() ([]string, error) {
 					tempList := reSplitSpace.Split(v, -1)
 					for _, vvv := range tempList {
 						if reMatchModuleFinal.MatchString(vvv) {
+							vvv = reMatchKo.ReplaceAllString(vvv, "")
 							result = append(result, strings.TrimSpace(vvv))
 						}
 					}
