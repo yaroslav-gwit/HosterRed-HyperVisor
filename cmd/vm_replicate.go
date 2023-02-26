@@ -95,6 +95,8 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 		}
 	}
 
+	sendSnapshot()
+
 	emojlog.PrintLogMessage("Replication for "+remoteVmDataset[0]+" is now finished", emojlog.Info)
 	return nil
 }
@@ -146,7 +148,7 @@ func getRemoteZfsDatasets(replicationEndpoint string, endpointSshPort int, sshKe
 
 func sendSnapshot() {
 	// Set the local dataset to replicate
-	localDataset := "zroot/vm-encrypted/replicationTestVm"
+	localDataset := "zroot/vm-encrypted/replicationTestVm@replication_2023-02-26_23-50-45"
 
 	// Set the SSH command to run on the remote system
 	remoteCommand := "zfs receive -F zroot/vm-encrypted/replicationTestVm"
