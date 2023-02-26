@@ -87,10 +87,11 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 	fmt.Println()
 
 	for _, v := range remoteVmSnapshots {
-		if slices.Contains(localVmSnaps, v) {
+		if !slices.Contains(localVmSnaps, v) {
 			snapshotDiff = append(snapshotDiff, v)
 		}
 	}
+	fmt.Println("Vm Snapshot Diff:")
 	fmt.Println(snapshotDiff)
 	fmt.Println()
 
