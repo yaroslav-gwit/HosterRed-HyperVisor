@@ -96,7 +96,7 @@ func init() {
 	// VM cmd -> vm replicate
 	vmCmd.AddCommand(vmZfsReplicateCmd)
 	vmZfsReplicateCmd.Flags().StringVarP(&replicationEndpoint, "endpoint", "e", "", "Set the endpoint SSH address")
-	vmZfsReplicateCmd.Flags().StringVarP(&endpointSshPort, "port", "p", "22", "Set the endpoint SSH port")
+	vmZfsReplicateCmd.Flags().IntVarP(&endpointSshPort, "port", "p", 22, "Set the endpoint SSH port")
 	vmZfsReplicateCmd.Flags().StringVarP(&sshKeyLocation, "key", "k", "/root/.ssh/id_rsa", "Set the absolute location for the SSH key")
 
 	// API command section
