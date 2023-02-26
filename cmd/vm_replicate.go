@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"hoster/emojlog"
 	"log"
 	"os/exec"
 	"regexp"
@@ -65,9 +66,7 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 		}
 	}
 
-	fmt.Println("Vm Remote Dataset:")
-	fmt.Println(remoteVmDataset)
-	fmt.Println()
+	emojlog.PrintLogMessage("Working with this remote dataset: "+remoteVmDataset[0], emojlog.Info)
 
 	fmt.Println("Vm Local Snapshots:")
 	vmDataset, err := getVmDataset(vmName)
@@ -78,22 +77,15 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 	if err != nil {
 		return err
 	}
-	fmt.Println(localVmSnaps)
-	fmt.Println()
 
 	var snapshotDiff []string
-	fmt.Println("Vm Remote Snapshots:")
-	fmt.Println(remoteVmSnapshots)
-	fmt.Println()
-
 	for _, v := range remoteVmSnapshots {
 		if !slices.Contains(localVmSnaps, v) {
 			snapshotDiff = append(snapshotDiff, v)
 		}
 	}
-	fmt.Println("Vm Snapshot Diff:")
-	fmt.Println(snapshotDiff)
-	fmt.Println()
+	snapshotDiffStr := fmt.Sprint("Will be removing these snapshots:", snapshotDiff)
+	emojlog.PrintLogMessage(snapshotDiffStr, emojlog.Info)
 
 	return nil
 }
