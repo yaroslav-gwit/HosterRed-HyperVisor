@@ -30,6 +30,10 @@ var (
 			if err != nil {
 				log.Fatal(err.Error())
 			}
+			err = applyPfSettings()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
 			emojlog.PrintLogMessage("Please don't forget to mount any encrypted ZFS volumes", emojlog.Info)
 		},
 	}
@@ -211,5 +215,14 @@ func loadNetworkConfig() error {
 		}
 	}
 
+	return nil
+}
+
+func applyPfSettings() error {
+	stdout, stderr := exec.Command("pfctl", "-f", "/etc/pf.conf").CombinedOutput()
+	if stderr != nil {
+		return errors.New("error running pfctl: " + string(stdout) + " " + stderr.Error())
+	}
+	emojlog.PrintLogMessage("pf Settings have been applied: pfctl -f /etc/pf.conf", emojlog.Changed)
 	return nil
 }
