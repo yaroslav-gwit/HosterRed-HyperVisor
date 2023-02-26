@@ -27,7 +27,8 @@ var (
 			if len(replicationEndpoint) < 1 {
 				log.Fatal("Please specify an endpoint!")
 			}
-			err := replicateVm(args[0], replicationEndpoint, endpointSshPort, sshKeyLocation)
+			vmName := args[0]
+			err := replicateVm(vmName, replicationEndpoint, endpointSshPort, sshKeyLocation)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -52,12 +53,23 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 
 	reMatchVm := regexp.MustCompile(`.*/` + vmName + `$`)
 	reMatchVmSnaps := regexp.MustCompile(`.*/` + vmName + `@.*`)
+
+	var remoteVmDataset []string
+	var remoteVmSnapshots []string
 	for _, v := range zfsDatasets {
 		v = strings.TrimSpace(v)
-		if reMatchVm.MatchString(v) || reMatchVmSnaps.MatchString(v) {
-			fmt.Println(v)
+		if reMatchVm.MatchString(v) {
+			remoteVmDataset = append(remoteVmDataset, v)
+		} else if reMatchVmSnaps.MatchString(v) {
+			remoteVmSnapshots = append(remoteVmSnapshots, v)
 		}
 	}
+
+	fmt.Println("Vm Remote Dataset:")
+	fmt.Println(remoteVmDataset)
+	fmt.Println()
+	fmt.Println("Vm Remote Snapshots:")
+	fmt.Println(remoteVmSnapshots)
 
 	return nil
 }
