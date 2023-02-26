@@ -30,6 +30,7 @@ var (
 			if err != nil {
 				log.Fatal(err.Error())
 			}
+			emojlog.PrintLogMessage("Please don't forget to mount any encrypted ZFS volumes", emojlog.Info)
 		},
 	}
 )
