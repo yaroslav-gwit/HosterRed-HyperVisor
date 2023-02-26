@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
 )
@@ -141,4 +142,71 @@ func getRemoteZfsDatasets(replicationEndpoint string, endpointSshPort int, sshKe
 	}
 
 	return remoteDatasetList, nil
+}
+
+func sendSnapshot() {
+	// Set the local dataset to replicate
+	localDataset := "zroot/vm-encrypted/replicationTestVm"
+
+	// Set the SSH command to run on the remote system
+	remoteCommand := "zfs receive -F zroot/vm-encrypted/replicationTestVm"
+
+	// Set the SSH options
+	sshHost := "192.168.120.17"
+	// sshUser := "username"
+	sshKey := "/root/.ssh/id_rsa"
+
+	// Build the SSH command string
+	// sshCmd := fmt.Sprintf("ssh -i %s %s@%s '%s'", sshKey, sshUser, sshHost, remoteCommand)
+	sshCmd := exec.Command("ssh", "-i", sshKey, sshHost, remoteCommand)
+
+	// Build the local zfs send command
+	zfsCmd := exec.Command("zfs", "send", "-v", "-p", localDataset)
+
+	// Set up a progress bar for the zfsCmd
+	zfsStats, err := zfsCmd.StderrPipe()
+	if err != nil {
+		panic(err)
+	}
+	bar := progressbar.DefaultBytes(
+		-1, // Set the total size to unknown
+		"Replicating "+localDataset+": ",
+	)
+
+	// Set the Stdout of the zfsCmd to the Stdin of the sshCmd
+	zfsOut, err := zfsCmd.StdoutPipe()
+	if err != nil {
+		panic(err)
+	}
+	sshCmd.Stdin = zfsOut
+
+	// Start the zfsCmd and sshCmd
+	if err := zfsCmd.Start(); err != nil {
+		panic(err)
+	}
+	if err := sshCmd.Start(); err != nil {
+		panic(err)
+	}
+
+	// Read output from zfsCmd and update the progress bar
+	go func() {
+		for {
+			buf := make([]byte, 1024)
+			n, err := zfsStats.Read(buf)
+			if err != nil {
+				break
+			}
+			bar.Add(n)
+		}
+	}()
+
+	// Wait for the commands to finish
+	if err := zfsCmd.Wait(); err != nil {
+		panic(err)
+	}
+	if err := sshCmd.Wait(); err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Replication completed successfully!")
 }

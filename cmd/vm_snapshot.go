@@ -33,7 +33,7 @@ var (
 
 // Snapshot a given VM. Returns an error, if something wrong happened in the process.
 func vmZfsSnapshot(vmName string, snapshotType string, snapshotsToKeep int) error {
-	possibleSnapshotTypes := []string{"hourly", "daily", "weekly", "monthly", "yearly", "custom"}
+	possibleSnapshotTypes := []string{"hourly", "daily", "weekly", "monthly", "yearly", "replication", "custom"}
 	if !slices.Contains(possibleSnapshotTypes, snapshotType) {
 		return errors.New("this snapshot type `" + snapshotType + "` is not supported by our system")
 	}
