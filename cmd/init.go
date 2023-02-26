@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slices"
 )
 
 var (
@@ -57,7 +58,6 @@ func loadMissingModules() error {
 
 // Returns a list of kernel modules that are not yet loaded, or an error
 func returnMissingModules() ([]string, error) {
-	var result []string
 	stdout, stderr := exec.Command("kldstat", "-v").CombinedOutput()
 	if stderr != nil {
 		return []string{}, errors.New("error running kldstat: " + string(stdout) + " " + stderr.Error())
@@ -66,6 +66,7 @@ func returnMissingModules() ([]string, error) {
 	reMatchKo := regexp.MustCompile(`\.ko`)
 	reSplitSpace := regexp.MustCompile(`\s+`)
 
+	var loadedModules []string
 	kernelModuleList := []string{"vmm", "nmdm", "if_bridge", "pf", "pflog"}
 	for _, v := range strings.Split(string(stdout), "\n") {
 		if reMatchKo.MatchString(v) {
@@ -77,7 +78,7 @@ func returnMissingModules() ([]string, error) {
 					for _, vvv := range tempList {
 						if reMatchModuleFinal.MatchString(vvv) {
 							vvv = reMatchKo.ReplaceAllString(vvv, "")
-							result = append(result, strings.TrimSpace(vvv))
+							loadedModules = append(loadedModules, strings.TrimSpace(vvv))
 						}
 					}
 				}
@@ -93,7 +94,7 @@ func returnMissingModules() ([]string, error) {
 				tempList := reSplitSpace.Split(v, -1)
 				for _, vvv := range tempList {
 					if reMatchModule.MatchString(vvv) {
-						result = append(result, strings.TrimSpace(vvv))
+						loadedModules = append(loadedModules, strings.TrimSpace(vvv))
 					}
 				}
 			}
@@ -104,9 +105,21 @@ func returnMissingModules() ([]string, error) {
 	if stderr != nil {
 		return []string{}, errors.New("error running sysctl: " + string(stdout) + " " + stderr.Error())
 	}
-
-	for _, v := range result {
+	for _, v := range loadedModules {
 		emojlog.PrintLogMessage("Module is already active: "+v, emojlog.Debug)
+	}
+
+	var result []string
+	for _, v := range kernelModuleList {
+		if !slices.Contains(loadedModules, v) {
+			result = append(result, v)
+		}
+	}
+
+	for _, v := range kernelModuleListNoKo {
+		if !slices.Contains(loadedModules, v) {
+			result = append(result, v)
+		}
 	}
 
 	return result, nil
