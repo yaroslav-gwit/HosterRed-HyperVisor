@@ -151,7 +151,7 @@ func sendSnapshot() {
 	localDataset := "zroot/vm-encrypted/replicationTestVm@replication_2023-02-26_23-50-45"
 
 	// Set the SSH command to run on the remote system
-	remoteCommand := "zfs receive -F zroot/vm-encrypted/replicationTestVm"
+	remoteDataset := "zroot/vm-encrypted/replicationTestVm"
 
 	// Set the SSH options
 	sshHost := "192.168.120.17"
@@ -160,7 +160,7 @@ func sendSnapshot() {
 
 	// Build the SSH command string
 	// sshCmd := fmt.Sprintf("ssh -i %s %s@%s '%s'", sshKey, sshUser, sshHost, remoteCommand)
-	sshCmd := exec.Command("ssh", "-i", sshKey, sshHost, remoteCommand)
+	sshCmd := exec.Command("ssh", "-i", sshKey, sshHost, "zfs", "receive", "-F", remoteDataset)
 
 	// Build the local zfs send command
 	zfsCmd := exec.Command("zfs", "send", "-v", "-p", localDataset)
