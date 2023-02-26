@@ -45,8 +45,13 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 		return err
 	}
 
+	reMatchVm := regexp.MustCompile(`.*/` + vmName + `$`)
+	reMatchVmSnaps := regexp.MustCompile(`.*/` + vmName + `@.*`)
 	for _, v := range zfsDatasets {
-		fmt.Println(v)
+		v = strings.TrimSpace(v)
+		if reMatchVm.MatchString(v) || reMatchVmSnaps.MatchString(v) {
+			fmt.Println(v)
+		}
 	}
 
 	return nil
