@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slices"
 )
 
 var (
@@ -35,6 +36,10 @@ var (
 )
 
 func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int, sshKeyLocation string) error {
+	if !slices.Contains(getAllVms(), vmName) {
+		return errors.New("vm does not exist")
+	}
+
 	_, err := checkSshConnection(replicationEndpoint, endpointSshPort, sshKeyLocation)
 	if err != nil {
 		return err
