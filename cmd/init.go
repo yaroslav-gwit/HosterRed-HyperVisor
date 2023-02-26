@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"hoster/emojlog"
 	"log"
 	"os/exec"
@@ -51,6 +52,11 @@ func loadMissingModules() error {
 			return errors.New("error running kldstat: " + string(stdout) + " " + stderr.Error())
 		}
 		emojlog.PrintLogMessage("Loaded kernel module: "+v, emojlog.Changed)
+	}
+
+	err = loadNetworkConfig()
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -149,6 +155,30 @@ func applySysctls() error {
 		emojlog.PrintLogMessage("Applied: sysctl net.link.tap.up_on_open=1", emojlog.Changed)
 
 	}
+
+	return nil
+}
+
+func loadNetworkConfig() error {
+	// networkInfoVar, err := networkInfo()
+	// if err != nil {
+	// 	return err
+	// }
+
+	stdout, stderr := exec.Command("ifconfig").CombinedOutput()
+	if stderr != nil {
+		return errors.New("error running ifconfig: " + string(stdout) + " " + stderr.Error())
+	}
+	reMatchVmInterface := regexp.MustCompile(`vm-.*:`)
+	for _, v := range strings.Split(string(stdout), "\n") {
+		if reMatchVmInterface.MatchString(v) {
+			fmt.Println(v)
+		}
+	}
+
+	// for _, v := range networkInfoVar {
+
+	// }
 
 	return nil
 }
