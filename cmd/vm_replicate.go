@@ -67,8 +67,9 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 
 	fmt.Println("Vm Remote Dataset:")
 	fmt.Println(remoteVmDataset)
+	fmt.Println()
 
-	fmt.Println("Vm Local Dataset:")
+	fmt.Println("Vm Local Snapshots:")
 	vmDataset, err := getVmDataset(vmName)
 	if err != nil {
 		return err
@@ -78,7 +79,6 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 		return err
 	}
 	fmt.Println(localVmSnaps)
-
 	fmt.Println()
 
 	fmt.Println("Vm Remote Snapshots:")
