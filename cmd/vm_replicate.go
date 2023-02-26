@@ -65,10 +65,8 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 			remoteVmSnapshots = append(remoteVmSnapshots, v)
 		}
 	}
-
 	emojlog.PrintLogMessage("Working with this remote dataset: "+remoteVmDataset[0], emojlog.Info)
 
-	fmt.Println("Vm Local Snapshots:")
 	vmDataset, err := getVmDataset(vmName)
 	if err != nil {
 		return err
@@ -77,14 +75,13 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 	if err != nil {
 		return err
 	}
-
 	var snapshotDiff []string
 	for _, v := range remoteVmSnapshots {
 		if !slices.Contains(localVmSnaps, v) {
 			snapshotDiff = append(snapshotDiff, v)
 		}
 	}
-	snapshotDiffStr := fmt.Sprint("Will be removing these snapshots:", snapshotDiff)
+	snapshotDiffStr := fmt.Sprint("Will be removing these snapshots: ", snapshotDiff)
 	emojlog.PrintLogMessage(snapshotDiffStr, emojlog.Info)
 
 	return nil
