@@ -183,7 +183,7 @@ func loadNetworkConfig() error {
 
 	for _, v := range networkInfoVar {
 		if slices.Contains(loadedInterfaceList, v.Name) {
-			emojlog.PrintLogMessage("Interface is up-to-date", emojlog.Debug)
+			emojlog.PrintLogMessage("Interface is up-to-date: vm-"+v.Name, emojlog.Debug)
 		} else {
 			stdout, stderr := exec.Command("ifconfig", "bridge", "create", "name", "vm-"+v.Name).CombinedOutput()
 			if stderr != nil {
