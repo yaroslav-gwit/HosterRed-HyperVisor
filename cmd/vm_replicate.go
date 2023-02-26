@@ -81,9 +81,20 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 			snapshotDiff = append(snapshotDiff, v)
 		}
 	}
-	snapshotDiffStr := fmt.Sprint("Will be removing these snapshots: ", snapshotDiff)
-	emojlog.PrintLogMessage(snapshotDiffStr, emojlog.Info)
+	if len(snapshotDiff) > 0 {
+		snapshotDiffStr := fmt.Sprint("Will be removing these snapshots: ", snapshotDiff)
+		emojlog.PrintLogMessage(snapshotDiffStr, emojlog.Info)
+		for _, v := range snapshotDiff {
+			sshPort := strconv.Itoa(endpointSshPort)
+			stdout, stderr := exec.Command("ssh", "-oBatchMode=yes", "-i", sshKeyLocation, "-p"+sshPort, replicationEndpoint, "zfs", "destroy", v).CombinedOutput()
+			if stderr != nil {
+				return errors.New("ssh connection error: " + string(stdout))
+			}
+			emojlog.PrintLogMessage("Destroyed an old snapshot: "+v, emojlog.Changed)
+		}
+	}
 
+	emojlog.PrintLogMessage("Replication for "+remoteVmDataset[0]+" is now finished", emojlog.Info)
 	return nil
 }
 
