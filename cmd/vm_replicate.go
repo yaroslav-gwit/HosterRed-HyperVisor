@@ -89,7 +89,9 @@ func getRemoteZfsDatasets(replicationEndpoint string, endpointSshPort int, sshKe
 	reSplitSpace := regexp.MustCompile(`\s+`)
 	for _, v := range strings.Split(string(stdout), "\n") {
 		tempResult := reSplitSpace.Split(v, -1)[0]
-		remoteDatasetList = append(remoteDatasetList, tempResult)
+		if len(tempResult) > 0 {
+			remoteDatasetList = append(remoteDatasetList, tempResult)
+		}
 	}
 
 	return remoteDatasetList, nil
