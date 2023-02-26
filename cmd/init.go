@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"hoster/emojlog"
 	"log"
 	"os/exec"
@@ -24,6 +23,10 @@ var (
 				log.Fatal(err.Error())
 			}
 			err = applySysctls()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			err = loadNetworkConfig()
 			if err != nil {
 				log.Fatal(err.Error())
 			}
@@ -52,11 +55,6 @@ func loadMissingModules() error {
 			return errors.New("error running kldstat: " + string(stdout) + " " + stderr.Error())
 		}
 		emojlog.PrintLogMessage("Loaded kernel module: "+v, emojlog.Changed)
-	}
-
-	err = loadNetworkConfig()
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -160,25 +158,57 @@ func applySysctls() error {
 }
 
 func loadNetworkConfig() error {
-	// networkInfoVar, err := networkInfo()
-	// if err != nil {
-	// 	return err
-	// }
+	networkInfoVar, err := networkInfo()
+	if err != nil {
+		return err
+	}
 
 	stdout, stderr := exec.Command("ifconfig").CombinedOutput()
 	if stderr != nil {
 		return errors.New("error running ifconfig: " + string(stdout) + " " + stderr.Error())
 	}
+
+	// reSplitSpace := regexp.MustCompile(`\s+`)
 	reMatchVmInterface := regexp.MustCompile(`vm-.*:`)
+	reReplacePrefix := regexp.MustCompile(`vm-`)
+	reReplaceSuffix := regexp.MustCompile(`:.*`)
+	var loadedInterfaceList []string
 	for _, v := range strings.Split(string(stdout), "\n") {
 		if reMatchVmInterface.MatchString(v) {
-			fmt.Println(v)
+			v = reReplacePrefix.ReplaceAllLiteralString(v, "")
+			v = reReplaceSuffix.ReplaceAllLiteralString(v, "")
+			loadedInterfaceList = append(loadedInterfaceList, v)
 		}
 	}
 
-	// for _, v := range networkInfoVar {
+	for _, v := range networkInfoVar {
+		if slices.Contains(loadedInterfaceList, v.Name) {
+			emojlog.PrintLogMessage("Interface is up-to-date", emojlog.Debug)
+		} else {
+			stdout, stderr := exec.Command("ifconfig", "bridge", "create", "name", "vm-"+v.Name).CombinedOutput()
+			if stderr != nil {
+				return errors.New("error running ifconfig bridge create: " + string(stdout) + " " + stderr.Error())
+			}
+			emojlog.PrintLogMessage("Created a network bridge for VM use: vm-"+v.Name, emojlog.Changed)
 
-	// }
+			if v.BridgeInterface != "None" {
+				stdout, stderr := exec.Command("ifconfig", "vm-"+v.Name, "addm", v.BridgeInterface).CombinedOutput()
+				if stderr != nil {
+					return errors.New("error running ifconfig bridge create: " + string(stdout) + " " + stderr.Error())
+				}
+				emojlog.PrintLogMessage("Bridged external interface with our VM network: "+v.BridgeInterface, emojlog.Changed)
+			}
+
+			if v.ApplyBridgeAddr {
+				subnet := strings.Split(v.Subnet, "/")[1]
+				stdout, stderr := exec.Command("ifconfig", "vm-"+v.Name, "inet", v.Gateway+"/"+subnet).CombinedOutput()
+				if stderr != nil {
+					return errors.New("error running ifconfig bridge create: " + string(stdout) + " " + stderr.Error())
+				}
+				emojlog.PrintLogMessage("Added IP address for vm-"+v.Name+" - "+v.Gateway+"/"+subnet, emojlog.Changed)
+			}
+		}
+	}
 
 	return nil
 }
