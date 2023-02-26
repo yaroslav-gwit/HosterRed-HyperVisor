@@ -15,8 +15,8 @@ import (
 var (
 	initCmd = &cobra.Command{
 		Use:   "init",
-		Short: "Initialize all FreeBSD kernel modules required by hoster",
-		Long:  `Initialize all FreeBSD kernel modules required by hoster`,
+		Short: "Initialize system services and kernel modules required by Hoster Core",
+		Long:  `Initialize system services and kernel modules required by Hoster Core`,
 		Run: func(cmd *cobra.Command, args []string) {
 			err := loadMissingModules()
 			if err != nil {
