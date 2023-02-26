@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"hoster/emojlog"
 	"log"
 	"os/exec"
@@ -18,12 +17,9 @@ var (
 		Short: "Initialize all FreeBSD kernel modules required by hoster",
 		Long:  `Initialize all FreeBSD kernel modules required by hoster`,
 		Run: func(cmd *cobra.Command, args []string) {
-			result, err := returnMissingModules()
+			err := loadMissingModules()
 			if err != nil {
 				log.Fatal(err.Error())
-			}
-			for _, v := range result {
-				fmt.Println(v)
 			}
 			err = applySysctls()
 			if err != nil {
@@ -33,9 +29,6 @@ var (
 	}
 )
 
-// #_ LIST OF MODULES TO LOAD _#
-// kldstat -m $MODULE
-// kldstat -mq $MODULE
 // kldload vmm
 // kldload nmdm
 // kldload if_bridge
@@ -44,7 +37,23 @@ var (
 // kldload pf
 // kldload pflog
 // sysctl net.link.tap.up_on_open=1
-// 13.0-RELEASE-p11
+
+func loadMissingModules() error {
+	moduleList, err := returnMissingModules()
+	if err != nil {
+		return err
+	}
+
+	for _, v := range moduleList {
+		stdout, stderr := exec.Command("kldload", v).CombinedOutput()
+		if stderr != nil {
+			return errors.New("error running kldstat: " + string(stdout) + " " + stderr.Error())
+		}
+		emojlog.PrintLogMessage("Loaded kernel module: "+v, emojlog.Changed)
+	}
+
+	return nil
+}
 
 // Returns a list of kernel modules that are not yet loaded, or an error
 func returnMissingModules() ([]string, error) {
@@ -97,7 +106,7 @@ func returnMissingModules() ([]string, error) {
 	}
 
 	for _, v := range result {
-		emojlog.PrintLogMessage("Module was already activated: "+v, emojlog.Debug)
+		emojlog.PrintLogMessage("Module is already active: "+v, emojlog.Debug)
 	}
 
 	return result, nil
@@ -115,7 +124,7 @@ func applySysctls() error {
 	for _, v := range reSplitSpace.Split(string(stdout), -1) {
 		if v == "1" {
 			tapUpOnOpen = true
-			emojlog.PrintLogMessage("net.link.tap.up_on_open is already loaded", emojlog.Debug)
+			emojlog.PrintLogMessage("Sysctl net.link.tap.up_on_open is already active", emojlog.Debug)
 		}
 	}
 
