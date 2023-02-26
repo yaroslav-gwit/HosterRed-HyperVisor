@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"hoster/emojlog"
 	"log"
 	"os/exec"
 	"regexp"
@@ -95,6 +96,10 @@ func returnMissingModules() ([]string, error) {
 		return []string{}, errors.New("error running sysctl: " + string(stdout) + " " + stderr.Error())
 	}
 
+	for _, v := range result {
+		emojlog.PrintLogMessage("Module was already activated: "+v, emojlog.Debug)
+	}
+
 	return result, nil
 }
 
@@ -105,10 +110,22 @@ func applySysctls() error {
 	}
 
 	reSplitSpace := regexp.MustCompile(`\s+`)
+
+	tapUpOnOpen := false
 	for _, v := range reSplitSpace.Split(string(stdout), -1) {
 		if v == "1" {
-			fmt.Println("net.link.tap.up_on_open is loaded!")
+			tapUpOnOpen = true
+			emojlog.PrintLogMessage("net.link.tap.up_on_open is already loaded", emojlog.Debug)
 		}
+	}
+
+	if !tapUpOnOpen {
+		err := exec.Command("sysctl", "net.link.tap.up_on_open=1").Run()
+		if err != nil {
+			return errors.New("error running sysctl: " + string(stdout) + " " + stderr.Error())
+		}
+		emojlog.PrintLogMessage("Applied: sysctl net.link.tap.up_on_open=1", emojlog.Changed)
+
 	}
 
 	return nil
