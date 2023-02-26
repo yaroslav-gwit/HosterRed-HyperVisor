@@ -141,7 +141,7 @@ func applySysctls() error {
 	for _, v := range reSplitSpace.Split(string(stdout), -1) {
 		if v == "1" {
 			tapUpOnOpen = true
-			emojlog.PrintLogMessage("Sysctl net.link.tap.up_on_open is already active", emojlog.Debug)
+			emojlog.PrintLogMessage("Sysctl is already active: net.link.tap.up_on_open", emojlog.Debug)
 		}
 	}
 
@@ -150,7 +150,7 @@ func applySysctls() error {
 		if err != nil {
 			return errors.New("error running sysctl: " + string(stdout) + " " + stderr.Error())
 		}
-		emojlog.PrintLogMessage("Applied: sysctl net.link.tap.up_on_open=1", emojlog.Changed)
+		emojlog.PrintLogMessage("Applied Sysctl setting: sysctl net.link.tap.up_on_open=1", emojlog.Changed)
 
 	}
 
