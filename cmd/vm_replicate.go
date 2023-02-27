@@ -101,7 +101,9 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 
 	sendInitialSnapshot()
 
-	emojlog.PrintLogMessage("Replication for "+remoteVmDataset[0]+" is now finished", emojlog.Info)
+	if len(remoteVmSnapshots) > 0 {
+		emojlog.PrintLogMessage("Replication for "+remoteVmDataset[0]+" is now finished", emojlog.Info)
+	}
 	return nil
 }
 
@@ -157,7 +159,7 @@ func sendInitialSnapshot() {
 	}
 	reMatchSize := regexp.MustCompile(`^size.*`)
 	reMatchWhitespace := regexp.MustCompile(`\s+`)
-	reMatchTime := regexp.MustCompile(`\d\d:\d\d:\d\d`)
+	reMatchTime := regexp.MustCompile(`.*\d\d:\d\d:\d\d.*`)
 
 	var snapshotSize int64
 	for _, v := range strings.Split(string(out), "\n") {
@@ -192,6 +194,7 @@ func sendInitialSnapshot() {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if reMatchTime.MatchString(line) {
+			fmt.Println("Line matched: " + line)
 			tempResult, _ := strconv.Atoi(reMatchWhitespace.Split(line, -1)[1])
 			currentResult = tempResult - currentResult
 			bar.Add(currentResult)
