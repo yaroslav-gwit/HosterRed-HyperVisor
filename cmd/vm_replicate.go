@@ -161,11 +161,11 @@ func sendInitialSnapshot() {
 	reMatchWhitespace := regexp.MustCompile(`\s+`)
 	reMatchTime := regexp.MustCompile(`.*\d\d:\d\d:\d\d.*`)
 
-	var snapshotSize int64
+	var snapshotSize int
 	for _, v := range strings.Split(string(out), "\n") {
 		if reMatchSize.MatchString(v) {
 			tempInt, _ := strconv.Atoi(reMatchWhitespace.Split(v, -1)[0])
-			snapshotSize = int64(tempInt)
+			snapshotSize = int(tempInt)
 		}
 	}
 
@@ -186,9 +186,15 @@ func sendInitialSnapshot() {
 	// read stderr output line by line
 	scanner := bufio.NewScanner(stderr)
 	var currentResult = 0
-	bar := progressbar.Default(
+	// bar := progressbar.Default(
+	// 	snapshotSize,
+	// 	" 📤 Uploading: zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01",
+	// )
+	bar := progressbar.NewOptions(
 		snapshotSize,
-		" 📤 Uploading: zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01",
+		// progressbar.OptionSetWidth(60),
+		// progressbar.OptionClearOnFinish(),
+		progressbar.OptionSetDescription(" 📤 Uploading: zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01"),
 	)
 	for scanner.Scan() {
 		line := scanner.Text()
