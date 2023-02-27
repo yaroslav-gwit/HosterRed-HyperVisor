@@ -167,7 +167,7 @@ func sendInitialSnapshot() {
 
 	bar := progressbar.DefaultBytes(
 		snapshotSize,
-		"Uploading: zroot/vm-encrypted/replicationTestVm@replication_2023-02-26_23-50-45",
+		" 📤 Uploading: zroot/vm-encrypted/replicationTestVm@replication_2023-02-26_23-50-45",
 	)
 
 	bashScript := []byte("zfs send -Pv zroot/vm-encrypted/replicationTestVm@replication_2023-02-26_23-50-45 | ssh -i /root/.ssh/id_rsa 192.168.120.17 zfs receive -F zroot/vm-encrypted/replicationTestVm")
@@ -201,5 +201,6 @@ func sendInitialSnapshot() {
 		log.Fatal(err)
 	}
 
-	bar.Close()
+	bar.Finish()
+	// bar.Close()
 }
