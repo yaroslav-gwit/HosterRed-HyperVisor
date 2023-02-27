@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"hoster/emojlog"
 	"log"
+	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -147,67 +149,42 @@ func getRemoteZfsDatasets(replicationEndpoint string, endpointSshPort int, sshKe
 }
 
 func sendSnapshot() {
-	// Set the local dataset to replicate
-	localDataset := "zroot/vm-encrypted/replicationTestVm"
-
-	// Set the SSH command to run on the remote system
-	remoteDataset := "zroot/vm-encrypted/replicationTestVm"
-
-	// Set the SSH options
-	sshHost := "192.168.120.17"
-	// sshUser := "username"
-	sshKey := "/root/.ssh/id_rsa"
-
-	// Build the SSH command string
-	sshCmd := exec.Command("ssh", "-i", sshKey, sshHost, "zfs", "receive", "-F", remoteDataset)
-
-	// Build the local zfs send command
-	zfsCmd := exec.Command("zfs", "send", "-Pv", localDataset)
-
-	// Set up a progress bar for the zfsCmd
-	zfsStats, err := zfsCmd.StderrPipe()
+	bashScript := []byte("zfs send -Pv zroot/vm-encrypted/replicationTestVm@replication_2023-02-26_23-50-45 | ssh -i /root/.ssh/id_rsa 192.168.120.17 zfs receive -F zroot/vm-encrypted/replicationTestVm")
+	err := os.WriteFile("/tmp/replication.sh", bashScript, 0600)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
+	cmd := exec.Command("/bin/bash", "-c", "/tmp/replication.sh")
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+
+	// create progress bar
 	bar := progressbar.DefaultBytes(
-		-1, // Set the total size to unknown
-		"Replicating "+localDataset+": ",
+		-1,
+		"Replication Progress:",
 	)
 
-	// Set the Stdout of the zfsCmd to the Stdin of the sshCmd
-	zfsOut, err := zfsCmd.StdoutPipe()
-	if err != nil {
-		panic(err)
-	}
-	sshCmd.Stdin = zfsOut
-
-	// Start the zfsCmd and sshCmd
-	if err := zfsCmd.Start(); err != nil {
-		panic(err)
-	}
-	if err := sshCmd.Start(); err != nil {
-		panic(err)
-	}
-
-	// Read output from zfsCmd and update the progress bar
-	go func() {
-		for {
-			buf := make([]byte, 1024)
-			n, err := zfsStats.Read(buf)
-			if err != nil {
-				break
+	// read stderr output line by line
+	scanner := bufio.NewScanner(stderr)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "00:") {
+			// update progress bar based on line contents
+			fields := strings.Fields(line)
+			if len(fields) == 3 {
+				size, _ := strconv.ParseInt(fields[2], 10, 64)
+				bar.Add64(size)
 			}
-			bar.Add(n)
 		}
-	}()
-
-	// Wait for the commands to finish
-	if err := zfsCmd.Wait(); err != nil {
-		panic(err)
-	}
-	if err := sshCmd.Wait(); err != nil {
-		panic(err)
 	}
 
-	fmt.Println("Replication completed successfully!")
+	// wait for command to finish
+	if err := cmd.Wait(); err != nil {
+		log.Fatal(err)
+	}
 }
