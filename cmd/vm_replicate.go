@@ -105,9 +105,11 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 			return err
 		}
 	}
+
 	if len(remoteVmSnapshots) > 0 {
 		emojlog.PrintLogMessage("Replication for "+remoteVmDataset[0]+" is now finished", emojlog.Info)
 	}
+
 	return nil
 }
 
@@ -157,11 +159,13 @@ func getRemoteZfsDatasets(replicationEndpoint string, endpointSshPort int, sshKe
 }
 
 func sendInitialSnapshot(endpointDataset string, snapshotToSend string, replicationEndpoint string, endpointSshPort int, sshKeyLocation string) error {
-	_ = "zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01"
+	emojlog.PrintLogMessage("Starting replication for "+snapshotToSend, emojlog.Debug)
+
 	out, err := exec.Command("zfs", "send", "-nP", snapshotToSend).CombinedOutput()
 	if err != nil {
 		return err
 	}
+
 	reMatchSize := regexp.MustCompile(`^size.*`)
 	reMatchWhitespace := regexp.MustCompile(`\s+`)
 	reMatchTime := regexp.MustCompile(`.*\d\d:\d\d:\d\d.*`)
@@ -173,6 +177,7 @@ func sendInitialSnapshot(endpointDataset string, snapshotToSend string, replicat
 			snapshotSize = int(tempInt)
 		}
 	}
+
 	bar := progressbar.NewOptions(
 		snapshotSize,
 		progressbar.OptionShowBytes(true),
@@ -186,6 +191,7 @@ func sendInitialSnapshot(endpointDataset string, snapshotToSend string, replicat
 	if err != nil {
 		return err
 	}
+
 	cmd := exec.Command("sh", "/tmp/replication.sh")
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
@@ -211,5 +217,7 @@ func sendInitialSnapshot(endpointDataset string, snapshotToSend string, replicat
 	}
 
 	bar.Finish()
+	emojlog.PrintLogMessage("Replication done for "+snapshotToSend, emojlog.Info)
+
 	return nil
 }
