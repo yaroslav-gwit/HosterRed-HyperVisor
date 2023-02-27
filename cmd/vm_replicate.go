@@ -164,7 +164,7 @@ func sendInitialSnapshot() {
 	var snapshotSize int64
 	for _, v := range strings.Split(string(out), "\n") {
 		if reMatchSize.MatchString(v) {
-			fmt.Println(reMatchWhitespace.Split(v, -1)[1])
+			// fmt.Println(reMatchWhitespace.Split(v, -1)[1])
 			tempInt, _ := strconv.Atoi(reMatchWhitespace.Split(v, -1)[1])
 			snapshotSize = int64(tempInt)
 		}
@@ -193,13 +193,14 @@ func sendInitialSnapshot() {
 
 	// read stderr output line by line
 	scanner := bufio.NewScanner(stderr)
-	var currentResult = 0
+	// var currentResult = 0
 	for scanner.Scan() {
 		line := scanner.Text()
 		if reMatchTime.MatchString(line) {
 			tempResult, _ := strconv.Atoi(reMatchWhitespace.Split(line, -1)[1])
-			currentResult = tempResult - currentResult
-			bar.Add(currentResult)
+			// currentResult = tempResult - currentResult
+			// bar.Add(currentResult)
+			bar.Set(tempResult)
 		}
 	}
 
