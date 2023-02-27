@@ -190,17 +190,18 @@ func sendInitialSnapshot() {
 
 	// read stderr output line by line
 	scanner := bufio.NewScanner(stderr)
-	var currentResult = 0
+	// var currentResult = 0
 	for scanner.Scan() {
 		line := scanner.Text()
 		if reMatchTime.MatchString(line) {
 			// fmt.Println("Line matched: " + line)
 			tempResult, _ := strconv.Atoi(reMatchWhitespace.Split(line, -1)[1])
-			currentResult = tempResult - currentResult
-			fmt.Println("Temp result:", tempResult)
-			fmt.Println("Current result:", currentResult)
-			bar.Add(currentResult)
-			fmt.Println("New current result:", currentResult)
+			// currentResult = tempResult - currentResult
+			// fmt.Println("Temp result:", tempResult)
+			// fmt.Println("Current result:", currentResult)
+			// bar.Add(currentResult)
+			bar.Set(tempResult)
+			// fmt.Println("New current result:", currentResult)
 		}
 	}
 
