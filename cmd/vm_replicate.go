@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	// "github.com/schollz/progressbar/v3"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
 )
@@ -162,17 +162,17 @@ func sendSnapshot() {
 	sshCmd := exec.Command("ssh", "-i", sshKey, sshHost, "zfs", "receive", "-F", remoteDataset)
 
 	// Build the local zfs send command
-	zfsCmd := exec.Command("zfs", "send", "-v", "-p", localDataset)
+	zfsCmd := exec.Command("zfs", "send", "-Pv", localDataset)
 
 	// Set up a progress bar for the zfsCmd
-	// zfsStats, err := zfsCmd.StderrPipe()
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// bar := progressbar.DefaultBytes(
-	// 	-1, // Set the total size to unknown
-	// 	"Replicating "+localDataset+": ",
-	// )
+	zfsStats, err := zfsCmd.StderrPipe()
+	if err != nil {
+		panic(err)
+	}
+	bar := progressbar.DefaultBytes(
+		-1, // Set the total size to unknown
+		"Replicating "+localDataset+": ",
+	)
 
 	// Set the Stdout of the zfsCmd to the Stdin of the sshCmd
 	zfsOut, err := zfsCmd.StdoutPipe()
@@ -190,16 +190,16 @@ func sendSnapshot() {
 	}
 
 	// Read output from zfsCmd and update the progress bar
-	// go func() {
-	// 	for {
-	// 		buf := make([]byte, 1024)
-	// 		n, err := zfsStats.Read(buf)
-	// 		if err != nil {
-	// 			break
-	// 		}
-	// 		bar.Add(n)
-	// 	}
-	// }()
+	go func() {
+		for {
+			buf := make([]byte, 1024)
+			n, err := zfsStats.Read(buf)
+			if err != nil {
+				break
+			}
+			bar.Add(n)
+		}
+	}()
 
 	// Wait for the commands to finish
 	if err := zfsCmd.Wait(); err != nil {
