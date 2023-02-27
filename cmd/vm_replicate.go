@@ -168,6 +168,12 @@ func sendInitialSnapshot() {
 			snapshotSize = int(tempInt)
 		}
 	}
+	bar := progressbar.NewOptions(
+		snapshotSize,
+		// progressbar.OptionSetWidth(60),
+		// progressbar.OptionClearOnFinish(),
+		progressbar.OptionSetDescription(" 📤 Uploading: zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01"),
+	)
 
 	bashScript := []byte("zfs send -Pv zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01 | ssh -i /root/.ssh/id_rsa 192.168.120.18 zfs receive -F zroot/vm-encrypted/vmRenamedBla")
 	err = os.WriteFile("/tmp/replication.sh", bashScript, 0600)
@@ -190,12 +196,7 @@ func sendInitialSnapshot() {
 	// 	snapshotSize,
 	// 	" 📤 Uploading: zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01",
 	// )
-	bar := progressbar.NewOptions(
-		snapshotSize,
-		// progressbar.OptionSetWidth(60),
-		// progressbar.OptionClearOnFinish(),
-		progressbar.OptionSetDescription(" 📤 Uploading: zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01"),
-	)
+
 	for scanner.Scan() {
 		line := scanner.Text()
 		if reMatchTime.MatchString(line) {
