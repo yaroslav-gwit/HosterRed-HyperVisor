@@ -68,7 +68,9 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 			remoteVmSnapshots = append(remoteVmSnapshots, v)
 		}
 	}
-	emojlog.PrintLogMessage("Working with this remote dataset: "+remoteVmDataset[0], emojlog.Info)
+	if len(remoteVmSnapshots) > 0 {
+		emojlog.PrintLogMessage("Working with this remote dataset: "+remoteVmDataset[0], emojlog.Info)
+	}
 
 	vmDataset, err := getVmDataset(vmName)
 	if err != nil {
