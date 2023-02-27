@@ -164,6 +164,7 @@ func sendInitialSnapshot() {
 	var snapshotSize int
 	for _, v := range strings.Split(string(out), "\n") {
 		if reMatchSize.MatchString(v) {
+			fmt.Println(reMatchWhitespace.Split(v, -1))
 			tempInt, _ := strconv.Atoi(reMatchWhitespace.Split(v, -1)[0])
 			snapshotSize = int(tempInt)
 		}
