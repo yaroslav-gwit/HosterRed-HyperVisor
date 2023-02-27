@@ -11,9 +11,12 @@ require (
 )
 
 require (
+	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/cheggaaa/pb v1.0.29 // indirect
+	github.com/cheggaaa/pb/v3 v3.1.0 // indirect
 	github.com/creack/pty v1.1.7 // indirect
+	github.com/fatih/color v1.10.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect

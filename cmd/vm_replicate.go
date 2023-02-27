@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/schollz/progressbar/v3"
+	"github.com/cheggaaa/pb"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
 )
@@ -168,12 +168,8 @@ func sendInitialSnapshot() {
 			snapshotSize = int(tempInt)
 		}
 	}
-	bar := progressbar.NewOptions(
-		snapshotSize,
-		// progressbar.OptionSetWidth(60),
-		// progressbar.OptionClearOnFinish(),
-		progressbar.OptionSetDescription(" 📤 Uploading: zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01"),
-	)
+	// progressbar.OptionSetDescription(" 📤 Uploading: zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01"),
+	bar := pb.StartNew(snapshotSize)
 
 	bashScript := []byte("zfs send -Pv zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01 | ssh -i /root/.ssh/id_rsa 192.168.120.18 zfs receive -F zroot/vm-encrypted/vmRenamedBla")
 	err = os.WriteFile("/tmp/replication.sh", bashScript, 0600)
@@ -192,22 +188,12 @@ func sendInitialSnapshot() {
 	// read stderr output line by line
 	scanner := bufio.NewScanner(stderr)
 	var currentResult = 0
-	// bar := progressbar.Default(
-	// 	snapshotSize,
-	// 	" 📤 Uploading: zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01",
-	// )
-
 	for scanner.Scan() {
 		line := scanner.Text()
 		if reMatchTime.MatchString(line) {
-			// fmt.Println("Line matched: " + line)
 			tempResult, _ := strconv.Atoi(reMatchWhitespace.Split(line, -1)[1])
 			currentResult = tempResult - currentResult
-			// fmt.Println("Temp result:", tempResult)
-			// fmt.Println("Current result:", currentResult)
-			// bar.Set(tempResult)
 			bar.Add(currentResult)
-			// fmt.Println("New current result:", currentResult)
 		}
 	}
 
@@ -217,5 +203,4 @@ func sendInitialSnapshot() {
 	}
 
 	bar.Finish()
-	// bar.Close()
 }
