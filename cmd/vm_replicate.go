@@ -148,7 +148,7 @@ func getRemoteZfsDatasets(replicationEndpoint string, endpointSshPort int, sshKe
 
 func sendSnapshot() {
 	// Set the local dataset to replicate
-	localDataset := "zroot/vm-encrypted/replicationTestVm@replication_2023-02-26_23-50-45"
+	localDataset := "zroot/vm-encrypted/replicationTestVm"
 
 	// Set the SSH command to run on the remote system
 	remoteDataset := "zroot/vm-encrypted/replicationTestVm"
@@ -159,7 +159,6 @@ func sendSnapshot() {
 	sshKey := "/root/.ssh/id_rsa"
 
 	// Build the SSH command string
-	// sshCmd := fmt.Sprintf("ssh -i %s %s@%s '%s'", sshKey, sshUser, sshHost, remoteCommand)
 	sshCmd := exec.Command("ssh", "-i", sshKey, sshHost, "zfs", "receive", "-F", remoteDataset)
 
 	// Build the local zfs send command
