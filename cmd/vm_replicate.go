@@ -161,20 +161,19 @@ func sendInitialSnapshot() {
 	reMatchWhitespace := regexp.MustCompile(`\s+`)
 	reMatchTime := regexp.MustCompile(`.*\d\d:\d\d:\d\d.*`)
 
-	var snapshotSize int64
+	var snapshotSize int
 	for _, v := range strings.Split(string(out), "\n") {
 		if reMatchSize.MatchString(v) {
 			// fmt.Println(reMatchWhitespace.Split(v, -1)[1])
 			tempInt, _ := strconv.Atoi(reMatchWhitespace.Split(v, -1)[1])
-			snapshotSize = int64(tempInt)
+			snapshotSize = int(tempInt)
 		}
 	}
-	// progressbar.OptionSetDescription(" 📤 Uploading: zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01"),
-	// fmt.Println(snapshotSize)
-	// bar := pb.StartNew(snapshotSize)
-	bar := progressbar.Default(
+	bar := progressbar.NewOptions(
 		snapshotSize,
-		" 📤 Uploading: zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01",
+		progressbar.OptionShowBytes(true),
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionSetDescription(" 📤 Running ZFS send || zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01"),
 	)
 
 	bashScript := []byte("zfs send -Pv zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01 | ssh -i /root/.ssh/id_rsa 192.168.120.18 zfs receive -F zroot/vm-encrypted/vmRenamedBla")
