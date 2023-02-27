@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cheggaaa/pb"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
 )
@@ -161,17 +161,21 @@ func sendInitialSnapshot() {
 	reMatchWhitespace := regexp.MustCompile(`\s+`)
 	reMatchTime := regexp.MustCompile(`.*\d\d:\d\d:\d\d.*`)
 
-	var snapshotSize int
+	var snapshotSize int64
 	for _, v := range strings.Split(string(out), "\n") {
 		if reMatchSize.MatchString(v) {
 			fmt.Println(reMatchWhitespace.Split(v, -1)[1])
 			tempInt, _ := strconv.Atoi(reMatchWhitespace.Split(v, -1)[1])
-			snapshotSize = int(tempInt)
+			snapshotSize = int64(tempInt)
 		}
 	}
 	// progressbar.OptionSetDescription(" 📤 Uploading: zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01"),
-	fmt.Println(snapshotSize)
-	bar := pb.StartNew(snapshotSize)
+	// fmt.Println(snapshotSize)
+	// bar := pb.StartNew(snapshotSize)
+	bar := progressbar.Default(
+		snapshotSize,
+		" 📤 Uploading: zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01",
+	)
 
 	bashScript := []byte("zfs send -Pv zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01 | ssh -i /root/.ssh/id_rsa 192.168.120.18 zfs receive -F zroot/vm-encrypted/vmRenamedBla")
 	err = os.WriteFile("/tmp/replication.sh", bashScript, 0600)
