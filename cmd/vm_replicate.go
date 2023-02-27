@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
 )
@@ -154,7 +153,7 @@ func sendSnapshot() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	cmd := exec.Command("/bin/bash", "-c", "/tmp/replication.sh")
+	cmd := exec.Command("sh", "/tmp/replication.sh")
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -163,24 +162,11 @@ func sendSnapshot() {
 		log.Fatal(err)
 	}
 
-	// create progress bar
-	bar := progressbar.DefaultBytes(
-		-1,
-		"Replication Progress:",
-	)
-
 	// read stderr output line by line
 	scanner := bufio.NewScanner(stderr)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix(line, "00:") {
-			// update progress bar based on line contents
-			fields := strings.Fields(line)
-			if len(fields) == 3 {
-				size, _ := strconv.ParseInt(fields[2], 10, 64)
-				bar.Add64(size)
-			}
-		}
+		fmt.Println("New line: " + line)
 	}
 
 	// wait for command to finish

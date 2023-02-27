@@ -41,6 +41,8 @@ func vmStart(vmName string) error {
 		return errors.New("VM is already up-and-running")
 	}
 
+	emojlog.PrintLogMessage("Starting the VM: "+vmName, emojlog.Info)
+
 	// Generate bhyve start command
 	bhyveCommand := generateBhyveStartCommand(vmName)
 	// Set env vars to send to "vm_supervisor"
@@ -53,7 +55,6 @@ func vmStart(vmName string) error {
 		log.Fatal(err)
 	}
 
-	emojlog.PrintLogMessage("Starting the VM: "+vmName, emojlog.Info)
 	// Start VM supervisor process
 	execFile := path.Dir(execPath) + "/vm_supervisor_service"
 	cmd := exec.Command("nohup", execFile, "for", vmName, "&")
@@ -68,6 +69,7 @@ func vmStart(vmName string) error {
 		}
 	}()
 
+	emojlog.PrintLogMessage("VM started: "+vmName, emojlog.Changed)
 	return nil
 }
 
@@ -98,7 +100,7 @@ func generateBhyveStartCommand(vmName string) string {
 		setTapDescription2 := availableTap
 		setTapDescription3 := "description"
 		setTapDescription4 := "\"" + availableTap + " " + vmName + " interface -> " + v.NetworkBridge + "\""
-		setTapDescription := fmt.Sprint(setTapDescription1, setTapDescription2, setTapDescription3, setTapDescription4)
+		setTapDescription := fmt.Sprint(setTapDescription1 + " " + setTapDescription2 + " " + setTapDescription3 + " " + setTapDescription4)
 		emojlog.PrintLogMessage("Executing: "+setTapDescription, emojlog.Debug)
 		exec.Command(setTapDescription1, setTapDescription2, setTapDescription3, setTapDescription4).Run()
 	}
