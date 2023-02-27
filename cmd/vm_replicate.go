@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
 )
@@ -96,7 +97,7 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 		}
 	}
 
-	sendSnapshot()
+	sendInitialSnapshot()
 
 	emojlog.PrintLogMessage("Replication for "+remoteVmDataset[0]+" is now finished", emojlog.Info)
 	return nil
@@ -147,9 +148,30 @@ func getRemoteZfsDatasets(replicationEndpoint string, endpointSshPort int, sshKe
 	return remoteDatasetList, nil
 }
 
-func sendSnapshot() {
+func sendInitialSnapshot() {
+	out, err := exec.Command("zfs", "send", "-nP", "zroot/vm-encrypted/replicationTestVm@replication_2023-02-26_23-50-45").CombinedOutput()
+	if err != nil {
+		panic("Could not detect snapshot size")
+	}
+	reMatchSize := regexp.MustCompile(`^size.*`)
+	reMatchWhitespace := regexp.MustCompile(`\s+`)
+	reMatchTime := regexp.MustCompile(`\d\d:\d\d:\d\d`)
+
+	var snapshotSize int64
+	for _, v := range strings.Split(string(out), "\n") {
+		if reMatchSize.MatchString(v) {
+			tempInt, _ := strconv.Atoi(reMatchWhitespace.Split(v, -1)[0])
+			snapshotSize = int64(tempInt)
+		}
+	}
+
+	bar := progressbar.DefaultBytes(
+		snapshotSize,
+		"Uploading: zroot/vm-encrypted/replicationTestVm@replication_2023-02-26_23-50-45",
+	)
+
 	bashScript := []byte("zfs send -Pv zroot/vm-encrypted/replicationTestVm@replication_2023-02-26_23-50-45 | ssh -i /root/.ssh/id_rsa 192.168.120.17 zfs receive -F zroot/vm-encrypted/replicationTestVm")
-	err := os.WriteFile("/tmp/replication.sh", bashScript, 0600)
+	err = os.WriteFile("/tmp/replication.sh", bashScript, 0600)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -164,13 +186,20 @@ func sendSnapshot() {
 
 	// read stderr output line by line
 	scanner := bufio.NewScanner(stderr)
+	var currentResult = 0
 	for scanner.Scan() {
 		line := scanner.Text()
-		fmt.Println("New line: " + line)
+		if reMatchTime.MatchString(line) {
+			tempResult, _ := strconv.Atoi(reMatchWhitespace.Split(line, -1)[1])
+			currentResult = tempResult - currentResult
+			bar.Add(currentResult)
+		}
 	}
 
 	// wait for command to finish
 	if err := cmd.Wait(); err != nil {
 		log.Fatal(err)
 	}
+
+	bar.Close()
 }
