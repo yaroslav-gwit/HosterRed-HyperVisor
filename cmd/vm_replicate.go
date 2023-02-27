@@ -149,7 +149,7 @@ func getRemoteZfsDatasets(replicationEndpoint string, endpointSshPort int, sshKe
 }
 
 func sendInitialSnapshot() {
-	out, err := exec.Command("zfs", "send", "-nP", "zroot/vm-encrypted/replicationTestVm@replication_2023-02-26_23-50-45").CombinedOutput()
+	out, err := exec.Command("zfs", "send", "-nP", "zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01").CombinedOutput()
 	if err != nil {
 		panic("Could not detect snapshot size")
 	}
@@ -167,10 +167,10 @@ func sendInitialSnapshot() {
 
 	bar := progressbar.DefaultBytes(
 		snapshotSize,
-		" 📤 Uploading: zroot/vm-encrypted/replicationTestVm@replication_2023-02-26_23-50-45",
+		" 📤 Uploading: zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01",
 	)
 
-	bashScript := []byte("zfs send -Pv zroot/vm-encrypted/replicationTestVm@replication_2023-02-26_23-50-45 | ssh -i /root/.ssh/id_rsa 192.168.120.17 zfs receive -F zroot/vm-encrypted/replicationTestVm")
+	bashScript := []byte("zfs send -Pv zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01 | ssh -i /root/.ssh/id_rsa 192.168.120.18 zfs receive -F zroot/vm-encrypted/vmRenamedBla")
 	err = os.WriteFile("/tmp/replication.sh", bashScript, 0600)
 	if err != nil {
 		log.Fatal(err)
