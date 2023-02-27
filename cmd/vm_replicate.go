@@ -160,7 +160,13 @@ func getRemoteZfsDatasets(replicationEndpoint string, endpointSshPort int, sshKe
 }
 
 func sendInitialSnapshot(endpointDataset string, snapshotToSend string, replicationEndpoint string, endpointSshPort int, sshKeyLocation string) error {
+	replicationScriptLocation := "/tmp/replication.sh"
 	emojlog.PrintLogMessage("Starting replication for "+snapshotToSend, emojlog.Debug)
+
+	_, err := os.Stat(replicationScriptLocation)
+	if err == nil {
+		return errors.New("looks like another replication process is already running: " + replicationScriptLocation)
+	}
 
 	out, err := exec.Command("zfs", "send", "-nP", snapshotToSend).CombinedOutput()
 	if err != nil {
@@ -193,7 +199,7 @@ func sendInitialSnapshot(endpointDataset string, snapshotToSend string, replicat
 		return err
 	}
 
-	cmd := exec.Command("sh", "/tmp/replication.sh")
+	cmd := exec.Command("sh", replicationScriptLocation)
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		return err
@@ -220,7 +226,9 @@ func sendInitialSnapshot(endpointDataset string, snapshotToSend string, replicat
 	bar.Finish()
 	time.Sleep(time.Millisecond * 250)
 	fmt.Println()
-	emojlog.PrintLogMessage("Replication done for "+snapshotToSend, emojlog.Info)
+	emojlog.PrintLogMessage("Replication done for "+snapshotToSend, emojlog.Debug)
+
+	os.Remove(replicationScriptLocation)
 
 	return nil
 }
