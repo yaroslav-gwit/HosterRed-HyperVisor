@@ -195,12 +195,12 @@ func sendInitialSnapshot() {
 		line := scanner.Text()
 		if reMatchTime.MatchString(line) {
 			// fmt.Println("Line matched: " + line)
-			tempResult, _ := strconv.Atoi(reMatchWhitespace.Split(line, -1)[1])
+			// tempResult, _ := strconv.Atoi(reMatchWhitespace.Split(line, -1)[1])
 			// currentResult = tempResult - currentResult
 			// fmt.Println("Temp result:", tempResult)
 			// fmt.Println("Current result:", currentResult)
-			// bar.Add(currentResult)
-			bar.Set(tempResult)
+			bar.Add(1)
+			// bar.Set(tempResult)
 			// fmt.Println("New current result:", currentResult)
 		}
 	}
