@@ -173,7 +173,8 @@ func sendInitialSnapshot() {
 		snapshotSize,
 		progressbar.OptionShowBytes(true),
 		progressbar.OptionEnableColorCodes(true),
-		progressbar.OptionSetDescription(" 📤 Running ZFS send || zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01"),
+		progressbar.OptionFullWidth(),
+		progressbar.OptionSetDescription(" 📤 Running ZFS send || zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01 || "),
 	)
 
 	bashScript := []byte("zfs send -Pv zroot/vm-encrypted/vmRenamedBla@daily_2023-02-25_00-00-01 | ssh -i /root/.ssh/id_rsa 192.168.120.18 zfs receive -F zroot/vm-encrypted/vmRenamedBla")
