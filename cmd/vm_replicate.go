@@ -217,6 +217,7 @@ func sendInitialSnapshot(endpointDataset string, snapshotToSend string, replicat
 	}
 
 	bar.Finish()
+	fmt.Println()
 	emojlog.PrintLogMessage("Replication done for "+snapshotToSend, emojlog.Info)
 
 	return nil
