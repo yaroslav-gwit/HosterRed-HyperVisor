@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
@@ -217,6 +218,7 @@ func sendInitialSnapshot(endpointDataset string, snapshotToSend string, replicat
 	}
 
 	bar.Finish()
+	time.Sleep(time.Second * 2)
 	fmt.Println()
 	emojlog.PrintLogMessage("Replication done for "+snapshotToSend, emojlog.Info)
 
