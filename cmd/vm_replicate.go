@@ -130,7 +130,7 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 				if err != nil {
 					return err
 				}
-				if snapsToSend[len(snapsToSend)] == v {
+				if snapsToSend[len(snapsToSend)-1] == v {
 					break
 				}
 			}
