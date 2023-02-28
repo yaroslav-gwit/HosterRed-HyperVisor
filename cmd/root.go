@@ -86,8 +86,11 @@ func init() {
 	// VM cmd -> vm deploy
 	vmCmd.AddCommand(vmDeployCmd)
 	vmDeployCmd.Flags().StringVarP(&vmName, "name", "n", "test-vm", "Set the VM name (automatically generated if left empty)")
+	vmDeployCmd.Flags().IntVarP(&vmDeployCpus, "cpu-cores", "c", 2, "Number of CPU cores to assign to this VM")
+	vmDeployCmd.Flags().StringVarP(&vmDeployRam, "ram", "r", "2G", "Amount of RAM to assign to this VM (ie 1500MB, 2GB, etc)")
 	vmDeployCmd.Flags().StringVarP(&osType, "os-stype", "t", "debian11", "OS or type or distribution (ie: debian11, ubuntu2004, etc)")
 	vmDeployCmd.Flags().StringVarP(&zfsDataset, "dataset", "d", "zroot/vm-encrypted", "Choose the parent dataset for the VM deployment")
+	vmDeployCmd.Flags().BoolVarP(&vmDeployStartWhenReady, "start", "s", false, "Whether to start the VM after it's deployed")
 
 	// VM cmd -> vm deploy
 	vmCmd.AddCommand(vmCiResetCmd)

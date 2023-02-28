@@ -23,18 +23,19 @@ import (
 )
 
 var (
-	vmName     string
-	osType     string
-	zfsDataset string
+	vmName                 string
+	osType                 string
+	zfsDataset             string
+	vmDeployCpus           int
+	vmDeployRam            string
+	vmDeployStartWhenReady bool
 
 	vmDeployCmd = &cobra.Command{
 		Use:   "deploy",
 		Short: "Deploy the VM, using a pre-defined template",
 		Long:  `Deploy the VM, using a pre-defined template`,
-		// Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// fmt.Println(args[0])
-			err := printTemplatesToScreen(vmName, osType, zfsDataset)
+			err := deployVmMain(vmName, osType, zfsDataset, vmDeployCpus, vmDeployRam, vmDeployStartWhenReady)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -49,6 +50,8 @@ type SshKey struct {
 }
 
 type ConfigOutputStruct struct {
+	Cpus              string
+	Ram               string
 	SshKeys           []SshKey
 	RootPassword      string
 	GwitsuperPassword string
@@ -67,37 +70,44 @@ type ConfigOutputStruct struct {
 	VncPassword       string
 }
 
-func printTemplatesToScreen(vmName string, osType string, dsParent string) error {
+func deployVmMain(vmName string, osType string, dsParent string, cpus int, ram string, startWhenReady bool) error {
 	// Initialize values
 	c := ConfigOutputStruct{}
 	var err error
 
-	// Collect the required information
+	// Set CPU cores and RAM
+	c.Cpus = strconv.Itoa(cpus)
+	c.Ram = ram
+
+	// Generate and set the root and gwitsuper users password
 	c.RootPassword = generateRandomPassword(33, true, true)
 	if err != nil {
 		return errors.New("could not generate random password for root user: " + err.Error())
 	}
-
 	c.GwitsuperPassword = generateRandomPassword(33, true, true)
 	if err != nil {
 		return errors.New("could not generate random password for gwitsuper user: " + err.Error())
 	}
 
+	// Generate and set CI instance ID
 	c.InstanceId = generateRandomPassword(5, false, true)
 	if err != nil {
 		return errors.New("could not generate random instance id: " + err.Error())
 	}
 
+	// Generate correct VM name
 	c.VmName, err = generateVmName(vmName)
 	if err != nil {
 		return errors.New("could not generate vm name: " + err.Error())
 	}
 
+	// Generate and set random MAC address
 	c.MacAddress, err = generateRandomMacAddress()
 	if err != nil {
 		return errors.New("could not generate vm name: " + err.Error())
 	}
 
+	// Generate and set random IP address (which is free in the pool of addresses)
 	c.IpAddress, err = generateNewIp()
 	if err != nil {
 		return errors.New("could not generate the IP")
@@ -309,6 +319,14 @@ func printTemplatesToScreen(vmName string, osType string, dsParent string) error
 	err = reloadDnsService()
 	if err != nil {
 		return errors.New(err.Error())
+	}
+
+	// Start the VM when all of the above is complete
+	if startWhenReady {
+		err := vmStart(c.VmName)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
