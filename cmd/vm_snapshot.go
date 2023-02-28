@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
+	"hoster/emojlog"
 	"log"
 	"os/exec"
 	"regexp"
@@ -42,14 +42,14 @@ func vmZfsSnapshot(vmName string, snapshotType string, snapshotsToKeep int) erro
 	if err != nil {
 		return errors.New("getVmDataset(vmName): " + err.Error())
 	}
-	fmt.Println("Working with this VM dataset: " + vmDataset)
-	fmt.Println()
+	// fmt.Println("Working with this VM dataset: " + vmDataset)
+	// fmt.Println()
 
 	err = takeNewSnapshot(vmDataset, snapshotType)
 	if err != nil {
 		return errors.New("takeNewSnapshot() exited with an error: " + err.Error())
 	}
-	fmt.Println()
+	// fmt.Println()
 
 	vmSnapshotList, err := getVmSnapshots(vmDataset)
 	if err != nil {
@@ -143,7 +143,7 @@ func takeNewSnapshot(vmDataset string, snapshotType string) error {
 	if err != nil {
 		return errors.New("zfs snapshot exited with an error: " + err.Error())
 	}
-	fmt.Println("Took a new snapshot: "+zfsSnapCmd1, zfsSnapCmd2, vmDataset+"@"+snapshotType+"_"+timeNow)
+	emojlog.PrintLogMessage("Took a new snapshot: "+vmDataset+"@"+snapshotType+"_"+timeNow, emojlog.Changed)
 
 	return nil
 }
@@ -181,12 +181,11 @@ func cleanupOldSnapshots(vmSnapshots []string, snapshotType string, snapshotsToK
 	destrSnapCmd2 := "destroy"
 	for _, v := range result.snapsToDelete {
 		cmd := exec.Command(destrSnapCmd1, destrSnapCmd2, v)
-		stdout, stderr := cmd.Output()
+		stdout, stderr := cmd.CombinedOutput()
 		if stderr != nil {
-			return cleanupOldSnapshotsStruct{}, errors.New("zfs snapshot exited with an error: " + stderr.Error())
+			return cleanupOldSnapshotsStruct{}, errors.New("zfs snapshot exited with an error: " + string(stdout))
 		}
-		fmt.Println("Removing an old snapshot:", destrSnapCmd1, destrSnapCmd2, v)
-		fmt.Println(string(stdout))
+		emojlog.PrintLogMessage("Removed an old snapshot: "+v, emojlog.Changed)
 	}
 
 	return result, nil
