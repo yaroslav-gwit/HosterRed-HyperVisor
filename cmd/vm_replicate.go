@@ -126,12 +126,12 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 	} else {
 		for i, v := range localVmSnaps {
 			if slices.Contains(snapsToSend, v) {
-				if i-1 == len(localVmSnaps) {
-					break
-				}
 				err = sendIncrementalSnapshot(vmDataset, localVmSnaps[i-1], v, replicationEndpoint, endpointSshPort, sshKeyLocation)
 				if err != nil {
 					return err
+				}
+				if snapsToSend[len(snapsToSend)] == v {
+					break
 				}
 			}
 		}
