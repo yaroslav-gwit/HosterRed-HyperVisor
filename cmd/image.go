@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path"
 
-	"facette.io/natsort"
 	"github.com/spf13/cobra"
 )
 
@@ -36,23 +36,7 @@ var (
 	}
 )
 
-type VmImage struct {
-	Almalinux8   []string `json:"almalinux8,omitempty"`
-	Rockylinux8  []string `json:"rockylinux8,omitempty"`
-	Ubuntu2004   []string `json:"ubuntu2004,omitempty"`
-	Debian11     []string `json:"debian11,omitempty"`
-	FreeBsd13Zfs []string `json:"freebsd13zfs,omitempty"`
-	FreeBsd13Ufs []string `json:"freebsd13ufs,omitempty"`
-	Windows10    []string `json:"windows10,omitempty"`
-}
-
-type VmImages struct {
-	VmImages []VmImage `json:"vm_images"`
-}
-
 func imageDownload(osType string, force bool) error {
-	var vmImages VmImages
-
 	// Host config read/parse
 	hostConfig := HostConfig{}
 	// JSON config file location
@@ -82,49 +66,32 @@ func imageDownload(osType string, force bool) error {
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(body, &vmImages)
+
+	var m map[string][]map[string][]string
+	err = json.Unmarshal(body, &m)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
-	var imageList []string
-	for _, v := range vmImages.VmImages {
-		switch osType {
-		case "almalinux8":
-			imageList = v.Almalinux8
-			natsort.Sort(imageList)
-		case "rockylinux8":
-			imageList = v.Rockylinux8
-			natsort.Sort(imageList)
-		case "ubuntu2004":
-			imageList = v.Ubuntu2004
-			natsort.Sort(imageList)
-		case "debian11":
-			imageList = v.Debian11
-			natsort.Sort(imageList)
-		case "freebsd13zfs":
-			imageList = v.FreeBsd13Zfs
-			natsort.Sort(imageList)
-		case "freebsd13ufs":
-			imageList = v.FreeBsd13Ufs
-			natsort.Sort(imageList)
-		case "windows10":
-			imageList = v.Windows10
-			natsort.Sort(imageList)
-		default:
-			imageList = v.Debian11
-			natsort.Sort(imageList)
+	for _, v := range m["vm_images"] {
+		for k, v := range v {
+			if k == osType {
+				fmt.Println(k, v)
+			}
 		}
 	}
 
-	if len(imageList) > 0 {
-		println(imageList[len(imageList)-1])
-		println("Full image link: " + hostConfig.ImageServer + "images/" + imageList[len(imageList)-1])
-	} else {
-		println("Image list is empty, sorry")
-	}
-	println(osType)
-	println(imageList)
+	// imageList = v.Almalinux8
+	// natsort.Sort(imageList)
+
+	// if len(imageList) > 0 {
+	// 	println(imageList[len(imageList)-1])
+	// 	println("Full image link: " + hostConfig.ImageServer + "images/" + imageList[len(imageList)-1])
+	// } else {
+	// 	println("Image list is empty, sorry")
+	// }
+	// println(osType)
+	// println(imageList)
 
 	return nil
 }
