@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 
+	"facette.io/natsort"
 	"github.com/spf13/cobra"
 )
 
@@ -83,17 +84,19 @@ func imageDownload(osType string, force bool) error {
 		return err
 	}
 
-	// for _, v := range vmImages.VmImages {
-	// 	if osType == v.Debian11[]
-	// }
-
-	// fmt.Println(fmt.Sprintf("%+v", vmImages))
-	bla, err := json.MarshalIndent(vmImages, "", "   ")
-	if err != nil {
-		return err
+	var imageList []string
+	for _, v := range vmImages.VmImages {
+		if osType == "debian11" {
+			imageList = v.Debian11
+			natsort.Sort(imageList)
+		}
 	}
 
-	println(string(bla))
+	if len(imageList) > 0 {
+		println(imageList[0])
+	} else {
+		println("Image list is empty, sorry")
+	}
 
 	return nil
 }
