@@ -125,7 +125,7 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 		}
 	} else {
 		for i, v := range localVmSnaps {
-			if slices.Contains(snapsToSend, v) {
+			if slices.Contains(snapsToSend, v) && i < len(localVmSnaps) {
 				err = sendIncrementalSnapshot(vmDataset, localVmSnaps[i-1], v, replicationEndpoint, endpointSshPort, sshKeyLocation)
 				if err != nil {
 					return err
@@ -327,7 +327,7 @@ func sendIncrementalSnapshot(endpointDataset string, prevSnap string, incrementa
 	bar.Finish()
 	time.Sleep(time.Millisecond * 250)
 	fmt.Println()
-	emojlog.PrintLogMessage("Incremental snapshot sent: "+incrementalSnap, emojlog.Debug)
+	emojlog.PrintLogMessage("Incremental snapshot sent: "+incrementalSnap, emojlog.Changed)
 
 	os.Remove(replicationScriptLocation)
 
