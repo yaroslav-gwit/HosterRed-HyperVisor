@@ -123,6 +123,7 @@ func imageDownload(osType string, force bool) error {
 	} else {
 		println("Image list is empty, sorry")
 	}
+	println(imageList)
 
 	return nil
 }
