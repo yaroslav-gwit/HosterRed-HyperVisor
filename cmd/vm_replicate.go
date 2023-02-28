@@ -116,7 +116,7 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 			snapsToSend = append(snapsToSend, v)
 		}
 	}
-	fmt.Println(snapsToSend)
+	// fmt.Println(snapsToSend)
 
 	if len(remoteVmSnaps) < 1 {
 		err = sendInitialSnapshot(vmDataset, localVmSnaps[0], replicationEndpoint, endpointSshPort, sshKeyLocation)
@@ -124,10 +124,12 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 			return err
 		}
 	} else {
-		for _, v := range snapsToSend {
-			err = sendIncrementalSnapshot(vmDataset, v, replicationEndpoint, endpointSshPort, sshKeyLocation)
-			if err != nil {
-				return err
+		for i, v := range localVmSnaps {
+			if slices.Contains(snapsToSend, v) {
+				err = sendIncrementalSnapshot(vmDataset, localVmSnaps[i-1], v, replicationEndpoint, endpointSshPort, sshKeyLocation)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -219,7 +221,7 @@ func sendInitialSnapshot(endpointDataset string, snapshotToSend string, replicat
 	)
 
 	bashScript := []byte("zfs send -Pv " + snapshotToSend + " | ssh -i " + sshKeyLocation + " " + replicationEndpoint + " zfs receive -F " + endpointDataset)
-	err = os.WriteFile("/tmp/replication.sh", bashScript, 0600)
+	err = os.WriteFile(replicationScriptLocation, bashScript, 0600)
 	if err != nil {
 		return err
 	}
@@ -258,7 +260,7 @@ func sendInitialSnapshot(endpointDataset string, snapshotToSend string, replicat
 	return nil
 }
 
-func sendIncrementalSnapshot(endpointDataset string, incrementalSnap string, replicationEndpoint string, endpointSshPort int, sshKeyLocation string) error {
+func sendIncrementalSnapshot(endpointDataset string, prevSnap string, incrementalSnap string, replicationEndpoint string, endpointSshPort int, sshKeyLocation string) error {
 	replicationScriptLocation := "/tmp/replication.sh"
 	emojlog.PrintLogMessage("Sending incremental snapshot: "+incrementalSnap, emojlog.Debug)
 
@@ -269,7 +271,7 @@ func sendIncrementalSnapshot(endpointDataset string, incrementalSnap string, rep
 
 	out, err := exec.Command("zfs", "send", "-nPi", incrementalSnap).CombinedOutput()
 	if err != nil {
-		return err
+		return errors.New("could not get the incremental snapshot size: " + string(out))
 	}
 
 	reMatchSize := regexp.MustCompile(`^size.*`)
@@ -292,8 +294,8 @@ func sendIncrementalSnapshot(endpointDataset string, incrementalSnap string, rep
 		progressbar.OptionSetDescription(" 📤 Sending incremental snapshot || "+incrementalSnap+" || "),
 	)
 
-	bashScript := []byte("zfs send -Pvi " + incrementalSnap + " | ssh -i " + sshKeyLocation + " " + replicationEndpoint + " zfs receive -F " + endpointDataset)
-	err = os.WriteFile("/tmp/replication.sh", bashScript, 0600)
+	bashScript := []byte("zfs send -Pvi " + prevSnap + " " + incrementalSnap + " | ssh -i " + sshKeyLocation + " " + replicationEndpoint + " zfs receive -F " + endpointDataset)
+	err = os.WriteFile(replicationScriptLocation, bashScript, 0600)
 	if err != nil {
 		return err
 	}
