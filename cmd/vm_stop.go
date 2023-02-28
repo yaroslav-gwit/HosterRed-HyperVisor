@@ -69,7 +69,7 @@ func StopBhyveProcess(vmName string) {
 	cmd = exec.Command(stopCommand1, stopCommand2, processId)
 	stderr = cmd.Run()
 	if stderr != nil {
-		emojlog.PrintLogMessage("kill was not successful: "+stderr.Error(), emojlog.Error)
+		emojlog.PrintLogMessage("kill was not successful (this is okay, vm supervisor will gracefully deal with it): "+stderr.Error(), emojlog.Warning)
 	}
 
 	emojlog.PrintLogMessage("Done stopping the VM: "+vmName, emojlog.Changed)
