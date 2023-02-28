@@ -3,6 +3,7 @@ package cmd
 import (
 	"hoster/emojlog"
 	"log"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -26,6 +27,12 @@ var (
 )
 
 func replicateAllProdVms(replicationEndpoint string, endpointSshPort int, sshKeyLocation string) {
+	replicationScriptLocation := "/tmp/replication.sh"
+	_, err := os.Stat(replicationScriptLocation)
+	if err == nil {
+		log.Fatal("another replication process is already running (lock file exists): " + replicationScriptLocation)
+	}
+
 	for _, v := range getAllVms() {
 		vmConfigVar := vmConfig(v)
 		if vmConfigVar.ParentHost != GetHostName() {
