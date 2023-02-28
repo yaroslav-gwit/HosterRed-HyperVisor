@@ -46,7 +46,21 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 		return errors.New("vm does not exist")
 	}
 
+	vmConfigVar := vmConfig(vmName)
+	if vmConfigVar.ParentHost != GetHostName() {
+		return errors.New("this vm is a child of another host")
+	}
+
 	_, err := checkSshConnection(replicationEndpoint, endpointSshPort, sshKeyLocation)
+	if err != nil {
+		return err
+	}
+
+	vmDataset, err := getVmDataset(vmName)
+	if err != nil {
+		return err
+	}
+	err = vmZfsSnapshot(vmName, "replication", 2)
 	if err != nil {
 		return err
 	}
@@ -60,29 +74,25 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 	reMatchVmSnaps := regexp.MustCompile(`.*/` + vmName + `@.*`)
 
 	var remoteVmDataset []string
-	var remoteVmSnapshots []string
+	var remoteVmSnaps []string
 	for _, v := range zfsDatasets {
 		v = strings.TrimSpace(v)
 		if reMatchVm.MatchString(v) {
 			remoteVmDataset = append(remoteVmDataset, v)
 		} else if reMatchVmSnaps.MatchString(v) {
-			remoteVmSnapshots = append(remoteVmSnapshots, v)
+			remoteVmSnaps = append(remoteVmSnaps, v)
 		}
 	}
-	if len(remoteVmSnapshots) > 0 {
+	if len(remoteVmSnaps) > 0 {
 		emojlog.PrintLogMessage("Working with this remote dataset: "+remoteVmDataset[0], emojlog.Info)
 	}
 
-	vmDataset, err := getVmDataset(vmName)
-	if err != nil {
-		return err
-	}
 	localVmSnaps, err := getVmSnapshots(vmDataset)
 	if err != nil {
 		return err
 	}
 	var snapshotDiff []string
-	for _, v := range remoteVmSnapshots {
+	for _, v := range remoteVmSnaps {
 		if !slices.Contains(localVmSnaps, v) {
 			snapshotDiff = append(snapshotDiff, v)
 		}
@@ -100,14 +110,28 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 		}
 	}
 
-	if len(remoteVmSnapshots) < 1 {
+	snapsToSend := []string{}
+	for _, v := range localVmSnaps {
+		if !slices.Contains(remoteVmSnaps, v) {
+			snapsToSend = append(snapsToSend, v)
+		}
+	}
+
+	if len(remoteVmSnaps) < 1 {
 		err = sendInitialSnapshot(vmDataset, localVmSnaps[0], replicationEndpoint, endpointSshPort, sshKeyLocation)
 		if err != nil {
 			return err
 		}
+	} else {
+		for _, v := range snapsToSend {
+			err = sendIncrementalSnapshot(vmDataset, v, replicationEndpoint, endpointSshPort, sshKeyLocation)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
-	if len(remoteVmSnapshots) > 0 {
+	if len(remoteVmSnaps) > 0 {
 		emojlog.PrintLogMessage("Replication for "+remoteVmDataset[0]+" is now finished", emojlog.Info)
 	}
 
@@ -165,7 +189,7 @@ func sendInitialSnapshot(endpointDataset string, snapshotToSend string, replicat
 
 	_, err := os.Stat(replicationScriptLocation)
 	if err == nil {
-		return errors.New("looks like another replication process is already running: " + replicationScriptLocation)
+		return errors.New("another replication process is already running (lock file exists): " + replicationScriptLocation)
 	}
 
 	out, err := exec.Command("zfs", "send", "-nP", snapshotToSend).CombinedOutput()
@@ -227,6 +251,80 @@ func sendInitialSnapshot(endpointDataset string, snapshotToSend string, replicat
 	time.Sleep(time.Millisecond * 250)
 	fmt.Println()
 	emojlog.PrintLogMessage("Replication done for "+snapshotToSend, emojlog.Debug)
+
+	os.Remove(replicationScriptLocation)
+
+	return nil
+}
+
+func sendIncrementalSnapshot(endpointDataset string, incrementalSnap string, replicationEndpoint string, endpointSshPort int, sshKeyLocation string) error {
+	replicationScriptLocation := "/tmp/replication.sh"
+	emojlog.PrintLogMessage("Sending incremental snapshot: "+incrementalSnap, emojlog.Debug)
+
+	_, err := os.Stat(replicationScriptLocation)
+	if err == nil {
+		return errors.New("another replication process is already running (lock file exists): " + replicationScriptLocation)
+	}
+
+	out, err := exec.Command("zfs", "send", "-nPi", incrementalSnap).CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	reMatchSize := regexp.MustCompile(`^size.*`)
+	reMatchWhitespace := regexp.MustCompile(`\s+`)
+	reMatchTime := regexp.MustCompile(`.*\d\d:\d\d:\d\d.*`)
+
+	var snapshotSize int
+	for _, v := range strings.Split(string(out), "\n") {
+		if reMatchSize.MatchString(v) {
+			tempInt, _ := strconv.Atoi(reMatchWhitespace.Split(v, -1)[1])
+			snapshotSize = int(tempInt)
+		}
+	}
+
+	bar := progressbar.NewOptions(
+		snapshotSize,
+		progressbar.OptionShowBytes(true),
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionFullWidth(),
+		progressbar.OptionSetDescription(" 📤 Sending incremental snapshot || "+incrementalSnap+" || "),
+	)
+
+	bashScript := []byte("zfs send -Pvi " + incrementalSnap + " | ssh -i " + sshKeyLocation + " " + replicationEndpoint + " zfs receive -F " + endpointDataset)
+	err = os.WriteFile("/tmp/replication.sh", bashScript, 0600)
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Command("sh", replicationScriptLocation)
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	// read stderr output line by line and update the progress bar, parsing the line sting
+	scanner := bufio.NewScanner(stderr)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if reMatchTime.MatchString(line) {
+			tempResult, _ := strconv.Atoi(reMatchWhitespace.Split(line, -1)[1])
+			bar.Set(tempResult)
+		}
+	}
+
+	// wait for command to finish
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+
+	bar.Finish()
+	time.Sleep(time.Millisecond * 250)
+	fmt.Println()
+	emojlog.PrintLogMessage("Incremental snapshot sent: "+incrementalSnap, emojlog.Debug)
 
 	os.Remove(replicationScriptLocation)
 
