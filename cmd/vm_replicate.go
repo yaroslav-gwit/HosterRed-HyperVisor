@@ -116,7 +116,7 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 			snapsToSend = append(snapsToSend, v)
 		}
 	}
-	// fmt.Println(snapsToSend)
+	fmt.Println(snapsToSend)
 
 	if len(remoteVmSnaps) < 1 {
 		err = sendInitialSnapshot(vmDataset, localVmSnaps[0], replicationEndpoint, endpointSshPort, sshKeyLocation)
