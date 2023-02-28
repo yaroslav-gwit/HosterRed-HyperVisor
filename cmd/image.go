@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path"
 
+	"facette.io/natsort"
 	"github.com/spf13/cobra"
 )
 
@@ -73,25 +73,23 @@ func imageDownload(osType string, force bool) error {
 		panic(err)
 	}
 
+	var imageList []string
 	for _, v := range m["vm_images"] {
-		for k, v := range v {
-			if k == osType {
-				fmt.Println(k, v)
+		for key, vv := range v {
+			if key == osType {
+				// fmt.Println(k, v)
+				imageList = vv
+				natsort.Sort(imageList)
 			}
 		}
 	}
 
-	// imageList = v.Almalinux8
-	// natsort.Sort(imageList)
-
-	// if len(imageList) > 0 {
-	// 	println(imageList[len(imageList)-1])
-	// 	println("Full image link: " + hostConfig.ImageServer + "images/" + imageList[len(imageList)-1])
-	// } else {
-	// 	println("Image list is empty, sorry")
-	// }
-	// println(osType)
-	// println(imageList)
+	if len(imageList) > 0 {
+		println(imageList[len(imageList)-1])
+		println("Full image link: " + hostConfig.ImageServer + "images/" + imageList[len(imageList)-1])
+	} else {
+		println("Image list is empty, sorry")
+	}
 
 	return nil
 }
