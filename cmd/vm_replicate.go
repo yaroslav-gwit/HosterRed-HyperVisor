@@ -98,7 +98,7 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 		}
 	}
 	if len(snapshotDiff) > 0 {
-		snapshotDiffStr := fmt.Sprint("Will be removing these snapshots: ", snapshotDiff)
+		snapshotDiffStr := fmt.Sprint("Will be removing these REMOTE snapshots: ", snapshotDiff)
 		emojlog.PrintLogMessage(snapshotDiffStr, emojlog.Info)
 		for _, v := range snapshotDiff {
 			sshPort := strconv.Itoa(endpointSshPort)
@@ -106,7 +106,7 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 			if stderr != nil {
 				return errors.New("ssh connection error: " + string(stdout))
 			}
-			emojlog.PrintLogMessage("Destroyed an old snapshot: "+v, emojlog.Changed)
+			emojlog.PrintLogMessage("Destroyed an old REMOTE snapshot: "+v, emojlog.Changed)
 		}
 	}
 
@@ -114,6 +114,7 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 	for _, v := range localVmSnaps {
 		if !slices.Contains(remoteVmSnaps, v) {
 			snapsToSend = append(snapsToSend, v)
+			fmt.Println(snapsToSend)
 		}
 	}
 

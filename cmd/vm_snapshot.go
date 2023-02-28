@@ -60,7 +60,7 @@ func vmZfsSnapshot(vmName string, snapshotType string, snapshotsToKeep int) erro
 	}
 	fmt.Println()
 
-	snapshotCleanup, err := cleanupOldSnapshots(vmSnapshotList, snapshotsToKeep)
+	snapshotCleanup, err := cleanupOldSnapshots(vmSnapshotList, snapshotType, snapshotsToKeep)
 	if err != nil {
 		return errors.New("cleanupOldSnapshots() exited with an error: " + err.Error())
 	}
@@ -160,19 +160,27 @@ type cleanupOldSnapshotsStruct struct {
 
 // Cleans up old snapshots, that are out of `snapshotsToKeep` boundaries.
 // Returns `snapsToKeep` list, `snapsToDelete` and an error if applicable.
-func cleanupOldSnapshots(vmSnapshots []string, snapshotsToKeep int) (cleanupOldSnapshotsStruct, error) {
+func cleanupOldSnapshots(vmSnapshots []string, snapshotType string, snapshotsToKeep int) (cleanupOldSnapshotsStruct, error) {
 	result := cleanupOldSnapshotsStruct{}
 
-	if len(vmSnapshots) > snapshotsToKeep {
-		for i, v := range vmSnapshots {
-			if i < len(vmSnapshots)-(snapshotsToKeep+1) {
+	correctTypeVmSnaps := []string{}
+	reMatchSnapType := regexp.MustCompile(`.*@` + snapshotType + `_.*`)
+	for _, v := range vmSnapshots {
+		if reMatchSnapType.MatchString(v) {
+			correctTypeVmSnaps = append(correctTypeVmSnaps, v)
+		}
+	}
+
+	if len(correctTypeVmSnaps) > snapshotsToKeep {
+		for i, v := range correctTypeVmSnaps {
+			if i < len(correctTypeVmSnaps)-(snapshotsToKeep+1) {
 				result.snapsToDelete = append(result.snapsToDelete, v)
 			}
 		}
-		for _, v := range vmSnapshots {
-			if !slices.Contains(result.snapsToDelete, v) {
-				result.snapsToKeep = append(result.snapsToKeep, v)
-			}
+	}
+	for _, v := range correctTypeVmSnaps {
+		if !slices.Contains(result.snapsToDelete, v) {
+			result.snapsToKeep = append(result.snapsToKeep, v)
 		}
 	}
 
