@@ -125,7 +125,7 @@ func replicateVm(vmName string, replicationEndpoint string, endpointSshPort int,
 		}
 	} else {
 		for i, v := range localVmSnaps {
-			if slices.Contains(snapsToSend, v) && i <= len(snapsToSend) {
+			if slices.Contains(snapsToSend, v) && i < len(snapsToSend) {
 				err = sendIncrementalSnapshot(vmDataset, localVmSnaps[i-1], v, replicationEndpoint, endpointSshPort, sshKeyLocation)
 				if err != nil {
 					return err
@@ -188,7 +188,7 @@ func getRemoteZfsDatasets(replicationEndpoint string, endpointSshPort int, sshKe
 
 func sendInitialSnapshot(endpointDataset string, snapshotToSend string, replicationEndpoint string, endpointSshPort int, sshKeyLocation string) error {
 	replicationScriptLocation := "/tmp/replication.sh"
-	emojlog.PrintLogMessage("Starting replication for "+snapshotToSend, emojlog.Debug)
+	emojlog.PrintLogMessage("Sending the initial snapshot: "+snapshotToSend, emojlog.Debug)
 
 	_, err := os.Stat(replicationScriptLocation)
 	if err == nil {
