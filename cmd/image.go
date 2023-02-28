@@ -31,7 +31,7 @@ var (
 		Short: "Download an image from the public or private repo",
 		Long:  `Download an image from the public or private repo`,
 		Run: func(cmd *cobra.Command, args []string) {
-			imageDownload("debian11", false)
+			imageDownload(imageOsType, imageForceDownload)
 		},
 	}
 )
