@@ -117,6 +117,10 @@ func init() {
 	// Init command section
 	rootCmd.AddCommand(initCmd)
 
+	// VM cmd -> image
+	rootCmd.AddCommand(imageCmd)
+	imageCmd.AddCommand(imageDownloadCmd)
+
 	// Version command section
 	rootCmd.AddCommand(versionCmd)
 }
