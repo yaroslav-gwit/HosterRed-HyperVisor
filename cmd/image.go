@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -88,7 +87,13 @@ func imageDownload(osType string, force bool) error {
 	// 	if osType == v.Debian11[]
 	// }
 
-	fmt.Println(fmt.Sprintf("%+v", vmImages))
+	// fmt.Println(fmt.Sprintf("%+v", vmImages))
+	bla, err := json.MarshalIndent(vmImages, "", "   ")
+	if err != nil {
+		return err
+	}
+
+	println(string(bla))
 
 	return nil
 }
