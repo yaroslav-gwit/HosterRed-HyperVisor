@@ -390,8 +390,8 @@ ethernets:
 const vmConfigFileTemplate = `
 {
     "cpu_sockets": "1",
-    "cpu_cores": "1",
-    "memory": "1G",
+    "cpu_cores": "{{ .Cpus }}",
+    "memory": "{{ .Ram }}",
     "loader": "uefi",
     "live_status": "{{ .LiveStatus }}",
     "os_type": "{{ .OsType }}",
