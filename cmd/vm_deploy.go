@@ -323,7 +323,7 @@ func deployVmMain(vmName string, osType string, dsParent string, cpus int, ram s
 
 	// Start the VM when all of the above is complete
 	if startWhenReady {
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Second * 1)
 		err := vmStart(c.VmName)
 		if err != nil {
 			return err
