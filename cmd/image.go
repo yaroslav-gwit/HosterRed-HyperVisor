@@ -23,6 +23,9 @@ var (
 )
 
 var (
+	imageOsType        string
+	imageForceDownload bool
+
 	imageDownloadCmd = &cobra.Command{
 		Use:   "download",
 		Short: "Download an image from the public or private repo",
@@ -86,7 +89,29 @@ func imageDownload(osType string, force bool) error {
 
 	var imageList []string
 	for _, v := range vmImages.VmImages {
-		if osType == "debian11" {
+		switch osType {
+		case "almalinux8":
+			imageList = v.Almalinux8
+			natsort.Sort(imageList)
+		case "rockylinux8":
+			imageList = v.Rockylinux8
+			natsort.Sort(imageList)
+		case "ubuntu2004":
+			imageList = v.Ubuntu2004
+			natsort.Sort(imageList)
+		case "debian11":
+			imageList = v.Debian11
+			natsort.Sort(imageList)
+		case "freebsd13zfs":
+			imageList = v.FreeBsd13Zfs
+			natsort.Sort(imageList)
+		case "freebsd13ufs":
+			imageList = v.FreeBsd13Ufs
+			natsort.Sort(imageList)
+		case "windows10":
+			imageList = v.Windows10
+			natsort.Sort(imageList)
+		default:
 			imageList = v.Debian11
 			natsort.Sort(imageList)
 		}

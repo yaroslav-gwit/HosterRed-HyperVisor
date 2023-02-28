@@ -120,6 +120,8 @@ func init() {
 	// VM cmd -> image
 	rootCmd.AddCommand(imageCmd)
 	imageCmd.AddCommand(imageDownloadCmd)
+	imageDownloadCmd.Flags().BoolVarP(&imageForceDownload, "force-download", "f", false, "Re-download the image, even if it exists (used to update images)")
+	imageDownloadCmd.Flags().StringVarP(&imageOsType, "os-type", "t", "debian11", "Specify the OS/distribution image type")
 
 	// Version command section
 	rootCmd.AddCommand(versionCmd)
