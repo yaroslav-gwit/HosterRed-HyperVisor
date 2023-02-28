@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
+	"hoster/emojlog"
 	"log"
 	"os/exec"
 	"regexp"
@@ -46,17 +46,14 @@ func vmStop(vmName string) error {
 }
 
 func StopBhyveProcess(vmName string) {
-	fmt.Println("Stopping the VM")
-	prepCmd1 := "pgrep"
-	prepCmd2 := "-lf"
-	prepCmd3 := vmName
-	cmd := exec.Command(prepCmd1, prepCmd2, prepCmd3)
+	emojlog.PrintLogMessage("Stopping the VM: "+vmName, emojlog.Info)
+	cmd := exec.Command("pgrep", "-lf", vmName)
 	stdout, stderr := cmd.Output()
 	if stderr != nil {
 		if cmd.ProcessState.ExitCode() == 1 {
 			_ = 0
 		} else {
-			log.Println("pgrep exited with an error " + stderr.Error())
+			emojlog.PrintLogMessage("pgrep exited with an error: "+stderr.Error(), emojlog.Error)
 		}
 	}
 
@@ -72,33 +69,28 @@ func StopBhyveProcess(vmName string) {
 	cmd = exec.Command(stopCommand1, stopCommand2, processId)
 	stderr = cmd.Run()
 	if stderr != nil {
-		log.Println("kill was not successful " + stderr.Error())
+		emojlog.PrintLogMessage("kill was not successful: "+stderr.Error(), emojlog.Error)
 	}
 
-	fmt.Println("Done stopping the VM")
+	emojlog.PrintLogMessage("Done stopping the VM: "+vmName, emojlog.Changed)
 }
 
 func vmSupervisorCleanup(vmName string) {
-	fmt.Println("Starting vm supervisor cleanup")
+	emojlog.PrintLogMessage("Starting vm supervisor cleanup", emojlog.Debug)
 	reMatchVm, _ := regexp.Compile(`for\s` + vmName + `\s&`)
 	processId := ""
-
-	prepCmd1 := "pgrep"
-	prepCmd2 := "-lf"
-	prepCmd3 := vmName
 
 	iteration := 0
 	for {
 		time.Sleep(time.Second * 2)
-
 		processId = ""
-		cmd := exec.Command(prepCmd1, prepCmd2, prepCmd3)
+		cmd := exec.Command("pgrep", "-lf", vmName)
 		stdout, stderr := cmd.Output()
 		if stderr != nil {
 			if cmd.ProcessState.ExitCode() == 1 {
 				_ = 0
 			} else {
-				log.Println("pgrep exited with an error " + stderr.Error())
+				emojlog.PrintLogMessage("pgrep exited with an error: "+stderr.Error(), emojlog.Error)
 			}
 		}
 
@@ -110,7 +102,7 @@ func vmSupervisorCleanup(vmName string) {
 		}
 
 		if len(processId) < 1 {
-			fmt.Println("Process is gonzo")
+			emojlog.PrintLogMessage("VM process is already dead", emojlog.Debug)
 			break
 		}
 
@@ -121,20 +113,21 @@ func vmSupervisorCleanup(vmName string) {
 			cmd := exec.Command(stopCommand1, stopCommand2, processId)
 			stderr := cmd.Run()
 			if stderr != nil {
-				log.Println("kill was not successful " + stderr.Error())
+				emojlog.PrintLogMessage("kill was not successful: "+stderr.Error(), emojlog.Error)
+
 			}
-			fmt.Println("Forcefully killing the vm_supervisor, due to operation timeout " + processId)
+			emojlog.PrintLogMessage("Forcefully killing the vm_supervisor, due to operation timeout: "+processId, emojlog.Debug)
 		}
 	}
-	fmt.Println("Done cleaning up after vm supervisor")
+	emojlog.PrintLogMessage("Done cleaning up after vm supervisor", emojlog.Changed)
 }
 
 func NetworkCleanup(vmName string) {
-	fmt.Println("Starting network cleanup")
+	emojlog.PrintLogMessage("Starting network cleanup", emojlog.Debug)
 	cmd := exec.Command("ifconfig")
 	stdout, stderr := cmd.Output()
 	if stderr != nil {
-		log.Println("ifconfig exited with an error " + stderr.Error())
+		emojlog.PrintLogMessage("ifconfig exited with an error: "+stderr.Error(), emojlog.Error)
 	}
 
 	reMatchDescription, _ := regexp.Compile(`.*description:.*`)
@@ -145,21 +138,22 @@ func NetworkCleanup(vmName string) {
 			tap := rePickTap.FindString(v)
 			tap = strings.TrimSpace(tap)
 			tap = strings.ReplaceAll(tap, "\"", "")
-			fmt.Println("Destroying " + tap)
+			emojlog.PrintLogMessage("Destroying TAP interface: "+tap, emojlog.Debug)
 			ifconfigDestroyCmd1 := "ifconfig"
 			ifconfigDestroyCmd3 := "destroy"
 			cmd := exec.Command(ifconfigDestroyCmd1, tap, ifconfigDestroyCmd3)
 			stderr := cmd.Run()
 			if stderr != nil {
-				log.Println("ifconfig destroy was not successful " + stderr.Error())
+				emojlog.PrintLogMessage("ifconfig destroy was not successful: "+stderr.Error(), emojlog.Error)
+
 			}
 		}
 	}
-	fmt.Println("Done cleaning up TAP network interfaces")
+	emojlog.PrintLogMessage("Done cleaning up TAP network interfaces", emojlog.Debug)
 }
 
 func BhyvectlDestroy(vmName string) {
-	fmt.Println("Cleaning up Bhyve resources")
+	emojlog.PrintLogMessage("Cleaning up Bhyve resources", emojlog.Debug)
 	time.Sleep(time.Second * 2)
 	lsCommand1 := "ls"
 	lsCommand2 := "-1"
@@ -171,16 +165,16 @@ func BhyvectlDestroy(vmName string) {
 	for _, v := range strings.Split(string(stdout), "\n") {
 		v = strings.TrimSpace(v)
 		if matchVM.MatchString(v) {
-			fmt.Println("Destroying a VM using bhyvectl: " + vmName)
+			emojlog.PrintLogMessage("Destroying a VM using bhyvectl: "+vmName, emojlog.Debug)
 			bhyvectlCommand1 := "bhyvectl"
 			bhyvectlCommand2 := "--destroy"
 			bhyvectlCommand3 := "--vm=" + vmName
 			cmd := exec.Command(bhyvectlCommand1, bhyvectlCommand2, bhyvectlCommand3)
 			stderr := cmd.Run()
 			if stderr != nil {
-				log.Println("bhyvectl exited with an error " + stderr.Error())
+				emojlog.PrintLogMessage("bhyvectl exited with an error: "+stderr.Error(), emojlog.Error)
 			}
 		}
 	}
-	fmt.Println("Done cleaning up Bhyve resources")
+	emojlog.PrintLogMessage("Done cleaning up Bhyve resources", emojlog.Changed)
 }
