@@ -269,7 +269,7 @@ func sendIncrementalSnapshot(endpointDataset string, prevSnap string, incrementa
 		return errors.New("another replication process is already running (lock file exists): " + replicationScriptLocation)
 	}
 
-	out, err := exec.Command("zfs", "send", "-nPi", incrementalSnap).CombinedOutput()
+	out, err := exec.Command("zfs", "send", "-nPi", prevSnap, incrementalSnap).CombinedOutput()
 	if err != nil {
 		return errors.New("could not get the incremental snapshot size: " + string(out))
 	}
