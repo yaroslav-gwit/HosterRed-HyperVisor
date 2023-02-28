@@ -660,6 +660,7 @@ type HostConfigKey struct {
 }
 
 type HostConfig struct {
+	ImageServer    []string        `json:"public_vm_image_server"`
 	BackupServers  []string        `json:"backup_servers"`
 	ActiveDatasets []string        `json:"active_datasets"`
 	HostDNSACLs    []string        `json:"host_dns_acls"`
