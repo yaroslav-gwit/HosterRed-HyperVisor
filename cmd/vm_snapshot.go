@@ -173,7 +173,7 @@ func cleanupOldSnapshots(vmSnapshots []string, snapshotType string, snapshotsToK
 
 	if len(correctTypeVmSnaps) > snapshotsToKeep {
 		for i, v := range correctTypeVmSnaps {
-			if i < len(correctTypeVmSnaps)-(snapshotsToKeep+1) {
+			if i < snapshotsToKeep {
 				result.snapsToDelete = append(result.snapsToDelete, v)
 			}
 		}
@@ -186,14 +186,13 @@ func cleanupOldSnapshots(vmSnapshots []string, snapshotType string, snapshotsToK
 
 	destrSnapCmd1 := "zfs"
 	destrSnapCmd2 := "destroy"
-	destrSnapCmd3 := "-v"
 	for _, v := range result.snapsToDelete {
-		cmd := exec.Command(destrSnapCmd1, destrSnapCmd2, destrSnapCmd3, v)
+		cmd := exec.Command(destrSnapCmd1, destrSnapCmd2, v)
 		stdout, stderr := cmd.Output()
 		if stderr != nil {
 			return cleanupOldSnapshotsStruct{}, errors.New("zfs snapshot exited with an error: " + stderr.Error())
 		}
-		fmt.Println("Removing an old snapshot:", destrSnapCmd1, destrSnapCmd2, destrSnapCmd3, v)
+		fmt.Println("Removing an old snapshot:", destrSnapCmd1, destrSnapCmd2, v)
 		fmt.Println(string(stdout))
 	}
 
