@@ -84,7 +84,11 @@ func imageDownload(osType string, force bool) error {
 		return err
 	}
 
-	fmt.Println(vmImages)
+	// for _, v := range vmImages.VmImages {
+	// 	if osType == v.Debian11[]
+	// }
+
+	fmt.Println(fmt.Sprintf("%+v", vmImages))
 
 	return nil
 }
