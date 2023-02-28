@@ -45,28 +45,23 @@ func vmZfsSnapshot(vmName string, snapshotType string, snapshotsToKeep int) erro
 	fmt.Println("Working with this VM dataset: " + vmDataset)
 	fmt.Println()
 
-	vmSnapshotList, err := getVmSnapshots(vmDataset)
-	if err != nil {
-		return errors.New("getVmSnapshots(vmDataset) exited with an error: " + err.Error())
-	}
-	// fmt.Println("VM snapshot list:")
-	// for _, v := range vmSnapshotList {
-	// 	fmt.Println(v)
-	// }
-
 	err = takeNewSnapshot(vmDataset, snapshotType)
 	if err != nil {
 		return errors.New("takeNewSnapshot() exited with an error: " + err.Error())
 	}
 	fmt.Println()
 
+	vmSnapshotList, err := getVmSnapshots(vmDataset)
+	if err != nil {
+		return errors.New("getVmSnapshots(vmDataset) exited with an error: " + err.Error())
+	}
 	snapshotCleanup, err := cleanupOldSnapshots(vmSnapshotList, snapshotType, snapshotsToKeep)
 	if err != nil {
 		return errors.New("cleanupOldSnapshots() exited with an error: " + err.Error())
 	}
+
 	_ = snapshotCleanup.snapsToKeep
 	_ = snapshotCleanup.snapsToDelete
-
 	// fmt.Println("snapsToKeep")
 	// for _, v := range snapshotCleanup.snapsToKeep {
 	// 	fmt.Println(v)
