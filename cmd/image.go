@@ -93,8 +93,8 @@ func imageDownload(osType string, force bool) error {
 	}
 
 	if len(imageList) > 0 {
-		println(imageList[0])
 		println(imageList[len(imageList)-1])
+		println("Full image link: " + hostConfig.ImageServer + imageList[len(imageList)-1])
 	} else {
 		println("Image list is empty, sorry")
 	}
