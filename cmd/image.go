@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 
 	"facette.io/natsort"
@@ -74,42 +75,26 @@ func imageUnzip(imageDataset string, imageOsType string) error {
 		return errors.New("dataset is not being used for VMs or doesn't exist")
 	}
 
+	_, err = os.Stat("/" + imageDataset + "/")
+	if err != nil {
+		return errors.New("dataset doesn't exist, or is not mounted")
+	}
+	_, err = os.Stat("/" + imageDataset + "/template-" + imageOsType)
+	if err != nil {
+		out, err := exec.Command("zfs", "create", imageDataset+"/template-"+imageOsType).CombinedOutput()
+		if err != nil {
+			return errors.New("could not run zfs create: " + string(out))
+		}
+	}
+
+	_ = os.Remove("/" + imageDataset + "/template-" + imageOsType + "/disk0.img")
+
 	zipFileLocation := "/tmp/" + imageOsType + ".zip"
 	r, err := zip.OpenReader(zipFileLocation)
 	if err != nil {
 		return err
 	}
 	defer r.Close()
-
-	// Iterate through the files in the archive.
-	// bar := progressbar.Default(
-	// 	int64(len(r.File)),
-	// 	" 📤 Unzipping the OS image || "+zipFileLocation+" || /tmp/disk0.img",
-	// )
-	// for _, f := range r.File {
-	// 	rc, err := f.Open()
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 		continue
-	// 	}
-	// 	defer rc.Close()
-
-	// 	// Create the destination file.
-	// 	// dst, err := os.Create(f.Name)
-	// 	dst, err := os.Create("/tmp/disk0.img")
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 		continue
-	// 	}
-	// 	defer dst.Close()
-
-	// 	// Copy the file contents to the destination file.
-	// 	if _, err := io.Copy(dst, rc); err != nil {
-	// 		fmt.Println(err)
-	// 		continue
-	// 	}
-	// 	bar.Add(1)
-	// }
 
 	// Find the first file in the archive
 	var file *zip.File
@@ -129,7 +114,7 @@ func imageUnzip(imageDataset string, imageOsType string) error {
 		progressbar.OptionSetRenderBlankState(true),
 		progressbar.OptionEnableColorCodes(true),
 		progressbar.OptionFullWidth(),
-		progressbar.OptionSetDescription(" 📤 Unzipping the OS image || "+zipFileLocation+" || /tmp/disk0.img"),
+		progressbar.OptionSetDescription(" 📤 Unzipping the OS image || "+zipFileLocation+" || /"+imageDataset+"/template-"+imageOsType+"/disk0.img"),
 	)
 
 	// Open the file inside the archive
@@ -141,8 +126,8 @@ func imageUnzip(imageDataset string, imageOsType string) error {
 	defer rc.Close()
 
 	// Create the output file
-	// fw, err := os.Create(file.Name)
-	fw, err := os.Create("/tmp/disk0.img")
+	// fw, err := os.Create("/tmp/disk0.img")
+	fw, err := os.Create("/" + imageDataset + "/template-" + imageOsType + "/disk0.img")
 	if err != nil {
 		fmt.Println("Error creating output file:", err)
 		return err
@@ -155,6 +140,8 @@ func imageUnzip(imageDataset string, imageOsType string) error {
 		fmt.Println("Error copying file data:", err)
 		return err
 	}
+
+	os.Remove(zipFileLocation)
 
 	return nil
 }
