@@ -95,12 +95,15 @@ func imageDownload(osType string, force bool) error {
 		}
 		defer resp.Body.Close()
 
-		f, _ := os.OpenFile("/tmp/"+osType+".zip", os.O_CREATE|os.O_WRONLY, 0600)
+		f, err := os.OpenFile("/tmp/"+osType+".zip", os.O_CREATE|os.O_WRONLY, 0600)
+		if err != nil {
+			return err
+		}
 		defer f.Close()
 
 		bar := progressbar.DefaultBytes(
 			resp.ContentLength,
-			"downloading",
+			" 📥 Downloading OS image: "+vmImage,
 		)
 		io.Copy(io.MultiWriter(f, bar), resp.Body)
 	} else {
