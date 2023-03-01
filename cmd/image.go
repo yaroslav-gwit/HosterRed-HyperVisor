@@ -151,6 +151,7 @@ func imageUnzip(imageDataset string, imageOsType string) error {
 
 	bar.Finish()
 	time.Sleep(time.Millisecond * 250)
+	fmt.Println()
 	emojlog.PrintLogMessage("Removed previously downloaded archive: "+zipFileLocation, emojlog.Debug)
 	os.Remove(zipFileLocation)
 
