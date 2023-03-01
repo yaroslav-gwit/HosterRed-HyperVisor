@@ -1,0 +1,12 @@
+{
+    "cluster_name": "cname",
+    "cluster_id": "cid",
+    "host_id": "hid",
+
+    "nat_punch": "True",
+    "listen_address": "0.0.0.0",
+    "listen_port": "14001",
+    "mtu": "1300",
+    "use_relays": "True",
+    "api_server": "fastapi-test.yari.pw"
+}

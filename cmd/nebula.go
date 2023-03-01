@@ -3,8 +3,10 @@ package cmd
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"hoster/emojlog"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"regexp"
@@ -90,7 +92,11 @@ var (
 		Short: "Download the latest changes from Nebula Control Plane API server",
 		Long:  `Download the latest changes from Nebula Control Plane API server`,
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Help()
+			// cmd.Help()
+			err := downloadNebulaConfig()
+			if err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 )
@@ -151,10 +157,7 @@ func startNebulaService() error {
 func stopNebulaService() error {
 	reMatchLocation := regexp.MustCompile(`.*` + nebulaServiceFolder + `nebula.*`)
 	reMatchSpace := regexp.MustCompile(`\s+`)
-	pgrepOut, err := exec.Command("pgrep", "-lf", "nebula").CombinedOutput()
-	if err != nil {
-		return errors.New(string(pgrepOut))
-	}
+	pgrepOut, _ := exec.Command("pgrep", "-lf", "nebula").CombinedOutput()
 
 	nebulaPid := ""
 	for _, v := range strings.Split(string(pgrepOut), "\n") {
@@ -180,10 +183,7 @@ func stopNebulaService() error {
 func reloadNebulaService() error {
 	reMatchLocation := regexp.MustCompile(`.*` + nebulaServiceFolder + `nebula.*`)
 	reMatchSpace := regexp.MustCompile(`\s+`)
-	pgrepOut, err := exec.Command("pgrep", "-lf", "nebula").CombinedOutput()
-	if err != nil {
-		return errors.New(string(pgrepOut))
-	}
+	pgrepOut, _ := exec.Command("pgrep", "-lf", "nebula").CombinedOutput()
 
 	nebulaPid := ""
 	for _, v := range strings.Split(string(pgrepOut), "\n") {
@@ -245,6 +245,24 @@ func tailNebulaLogFile() error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func downloadNebulaConfig() error {
+	req, err := http.NewRequest("GET", "https://fastapi-test.yari.pw/get_config?cluster_name=GWIT&cluster_id=ocK7U4Xd&host_name=hoster-test-0101&host_id=UqKvh5YU&nat_punch=true&listen_host=0.0.0.0&listen_port=14001&mtu=1300&use_relays=true", nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Accept", "text/plain")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	fmt.Println(resp.Body)
 
 	return nil
 }
