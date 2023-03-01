@@ -60,7 +60,20 @@ var (
 		Long:  `Start, stop, or reload Nebula process`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if nebulaServiceReload {
-				reloadNebulaService()
+				err := reloadNebulaService()
+				if err != nil {
+					log.Fatal(err)
+				}
+			} else if nebulaServiceStart {
+				err := startNebulaService()
+				if err != nil {
+					log.Fatal(err)
+				}
+			} else if nebulaServiceStop {
+				err := stopNebulaService()
+				if err != nil {
+					log.Fatal(err)
+				}
 			} else {
 				cmd.Help()
 			}
@@ -84,6 +97,88 @@ var (
 
 // const nebulaServiceFolder = "/opt/nebula_new/"
 const nebulaServiceFolder = "/opt/nebula/"
+
+func startNebulaService() error {
+	reMatchLocation := regexp.MustCompile(`.*` + nebulaServiceFolder + `nebula.*`)
+	reMatchSpace := regexp.MustCompile(`\s+`)
+	pgrepOut, err := exec.Command("pgrep", "-lf", "nebula").CombinedOutput()
+	if err != nil {
+		return errors.New(string(pgrepOut))
+	}
+
+	nebulaPid := ""
+	for _, v := range strings.Split(string(pgrepOut), "\n") {
+		if reMatchLocation.MatchString(v) {
+			nebulaPid = reMatchSpace.Split(v, -1)[0]
+		}
+	}
+
+	if len(nebulaPid) > 0 {
+		return errors.New("service process for Nebula is already running")
+	}
+
+	const nebulaStartSh = "(( nohup " + nebulaServiceFolder + "nebula -config " + nebulaServiceFolder + "config.yml 1>>" + nebulaServiceFolder + "log.txt 2>&1 )&)"
+	const nebulaStartShLocation = "/tmp/nebula.sh"
+	// Open nebulaStartShLocation for writing
+	nebulaStartShFile, err := os.Create(nebulaStartShLocation)
+	if err != nil {
+		return err
+	}
+	defer nebulaStartShFile.Close()
+	// Create a new writer
+	writer := bufio.NewWriter(nebulaStartShFile)
+	// Write a string to the file
+	_, err = writer.WriteString(nebulaStartSh)
+	if err != nil {
+		return err
+	}
+	// Flush the writer to ensure all data has been written to the file
+	err = writer.Flush()
+	if err != nil {
+		return err
+	}
+	err = os.Chmod(nebulaStartShLocation, os.FileMode(0600))
+	if err != nil {
+		return errors.New("error changing permissions: " + err.Error())
+	}
+
+	nebulaStartErr := exec.Command("sh", nebulaStartShLocation).Start()
+	if err != nil {
+		return nebulaStartErr
+	}
+	emojlog.PrintLogMessage("Started new Nebula process", emojlog.Debug)
+
+	return nil
+}
+
+func stopNebulaService() error {
+	reMatchLocation := regexp.MustCompile(`.*` + nebulaServiceFolder + `nebula.*`)
+	reMatchSpace := regexp.MustCompile(`\s+`)
+	pgrepOut, err := exec.Command("pgrep", "-lf", "nebula").CombinedOutput()
+	if err != nil {
+		return errors.New(string(pgrepOut))
+	}
+
+	nebulaPid := ""
+	for _, v := range strings.Split(string(pgrepOut), "\n") {
+		if reMatchLocation.MatchString(v) {
+			nebulaPid = reMatchSpace.Split(v, -1)[0]
+		}
+	}
+
+	if len(nebulaPid) < 1 {
+		emojlog.PrintLogMessage("Nebula service is already dead: ", emojlog.Error)
+		return errors.New("service is already dead")
+	}
+
+	killOut, err := exec.Command("kill", "-SIGTERM", nebulaPid).CombinedOutput()
+	if err != nil {
+		return errors.New(string(killOut))
+	}
+	emojlog.PrintLogMessage("Stopped Nebula service using it's pid: "+nebulaPid, emojlog.Debug)
+
+	return nil
+}
 
 func reloadNebulaService() error {
 	reMatchLocation := regexp.MustCompile(`.*` + nebulaServiceFolder + `nebula.*`)
@@ -144,7 +239,7 @@ func reloadNebulaService() error {
 }
 
 func tailNebulaLogFile() error {
-	tailCmd := exec.Command("tail", "-f", nebulaServiceFolder+"log.txt")
+	tailCmd := exec.Command("tail", "-35", "-f", nebulaServiceFolder+"log.txt")
 	tailCmd.Stdin = os.Stdin
 	tailCmd.Stdout = os.Stdout
 	tailCmd.Stderr = os.Stderr
