@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"hoster/emojlog"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -262,7 +263,12 @@ func downloadNebulaConfig() error {
 	}
 	defer resp.Body.Close()
 
-	fmt.Println(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(body))
 
 	return nil
 }
