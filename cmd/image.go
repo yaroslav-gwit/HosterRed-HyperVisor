@@ -53,7 +53,7 @@ var (
 )
 
 func imageUnzip(imageDataset string, imageOsType string) error {
-	emojlog.PrintLogMessage("Initiating image 'unzip' process", emojlog.Debug)
+	emojlog.PrintLogMessage("Initiating image 'unzip' process", emojlog.Info)
 
 	// Host config read/parse
 	hostConfig := HostConfig{}
@@ -91,8 +91,11 @@ func imageUnzip(imageDataset string, imageOsType string) error {
 		}
 	}
 
-	emojlog.PrintLogMessage("Removed old disk image here: /"+imageDataset+"/template-"+imageOsType+"/disk0.img", emojlog.Debug)
-	_ = os.Remove("/" + imageDataset + "/template-" + imageOsType + "/disk0.img")
+	_, diskErr := os.Stat("/" + imageDataset + "/template-" + imageOsType + "/disk0.img")
+	if diskErr == nil {
+		emojlog.PrintLogMessage("Removed old disk image here: /"+imageDataset+"/template-"+imageOsType+"/disk0.img", emojlog.Debug)
+		_ = os.Remove("/" + imageDataset + "/template-" + imageOsType + "/disk0.img")
+	}
 
 	zipFileLocation := "/tmp/" + imageOsType + ".zip"
 	r, err := zip.OpenReader(zipFileLocation)
@@ -146,7 +149,7 @@ func imageUnzip(imageDataset string, imageOsType string) error {
 		return err
 	}
 
-	time.Sleep(time.Millisecond * 250)
+	time.Sleep(time.Second * 4)
 	emojlog.PrintLogMessage("Removed previously downloaded archive: "+zipFileLocation, emojlog.Debug)
 	os.Remove(zipFileLocation)
 
@@ -155,7 +158,7 @@ func imageUnzip(imageDataset string, imageOsType string) error {
 }
 
 func imageDownload(osType string) error {
-	emojlog.PrintLogMessage("Initiating image download process for OS image: "+osType, emojlog.Debug)
+	emojlog.PrintLogMessage("Initiating image download process for the OS/distribution: "+osType, emojlog.Info)
 	// Host config read/parse
 	hostConfig := HostConfig{}
 	// JSON config file location
@@ -228,7 +231,7 @@ func imageDownload(osType string) error {
 	}
 
 	time.Sleep(time.Millisecond * 250)
-	emojlog.PrintLogMessage("Image was downloaded: /tmp/"+osType+".zip", emojlog.Debug)
+	emojlog.PrintLogMessage("Image was downloaded: /tmp/"+osType+".zip", emojlog.Changed)
 
 	return nil
 }
