@@ -144,7 +144,7 @@ func reloadNebulaService() error {
 }
 
 func tailNebulaLogFile() error {
-	tailCmd := exec.Command("tail", "-f", nebulaServiceFolder, "log.txt")
+	tailCmd := exec.Command("tail", "-f", nebulaServiceFolder+"log.txt")
 	tailCmd.Stdin = os.Stdin
 	tailCmd.Stdout = os.Stdout
 	tailCmd.Stderr = os.Stderr
