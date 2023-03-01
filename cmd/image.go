@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hoster/emojlog"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"path"
+	"time"
 
 	"facette.io/natsort"
 	"github.com/schollz/progressbar/v3"
@@ -51,6 +53,8 @@ var (
 )
 
 func imageUnzip(imageDataset string, imageOsType string) error {
+	emojlog.PrintLogMessage("Initiating image 'unzip' process", emojlog.Debug)
+
 	// Host config read/parse
 	hostConfig := HostConfig{}
 	// JSON config file location
@@ -80,12 +84,14 @@ func imageUnzip(imageDataset string, imageOsType string) error {
 	}
 	_, err = os.Stat("/" + imageDataset + "/template-" + imageOsType)
 	if err != nil {
+		emojlog.PrintLogMessage("Created new image template dataset: "+imageDataset+"/template-"+imageOsType, emojlog.Debug)
 		out, err := exec.Command("zfs", "create", imageDataset+"/template-"+imageOsType).CombinedOutput()
 		if err != nil {
 			return errors.New("could not run zfs create: " + string(out))
 		}
 	}
 
+	emojlog.PrintLogMessage("Removed old disk image here: /"+imageDataset+"/template-"+imageOsType+"/disk0.img", emojlog.Debug)
 	_ = os.Remove("/" + imageDataset + "/template-" + imageOsType + "/disk0.img")
 
 	zipFileLocation := "/tmp/" + imageOsType + ".zip"
@@ -140,12 +146,16 @@ func imageUnzip(imageDataset string, imageOsType string) error {
 		return err
 	}
 
+	time.Sleep(time.Millisecond * 250)
+	emojlog.PrintLogMessage("Removed previously downloaded archive: "+zipFileLocation, emojlog.Debug)
 	os.Remove(zipFileLocation)
 
+	emojlog.PrintLogMessage("Process finished for: template-"+imageOsType, emojlog.Changed)
 	return nil
 }
 
 func imageDownload(osType string) error {
+	emojlog.PrintLogMessage("Initiating image download process for OS image: "+osType, emojlog.Debug)
 	// Host config read/parse
 	hostConfig := HostConfig{}
 	// JSON config file location
@@ -216,6 +226,9 @@ func imageDownload(osType string) error {
 	} else {
 		return errors.New("sorry, could not find the image")
 	}
+
+	time.Sleep(time.Millisecond * 250)
+	emojlog.PrintLogMessage("Image was downloaded: /tmp/"+osType+".zip", emojlog.Debug)
 
 	return nil
 }
