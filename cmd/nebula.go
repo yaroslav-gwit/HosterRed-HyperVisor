@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"bufio"
 	"errors"
 	"hoster/emojlog"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -92,12 +94,37 @@ func reloadNebulaService() error {
 	}
 
 	if len(nebulaPid) > 0 {
+		const nebulaStartSh = "(( nohup " + nebulaServiceFolder + "nebula -config " + nebulaServiceFolder + "config.yml 1>" + nebulaServiceFolder + "log.txt 2>&1 )&)"
+		const nebulaStartShLocation = "/tmp/nebula.sh"
+		// Open nebulaStartShLocation for writing
+		nebulaStartShFile, err := os.Create(nebulaStartShLocation)
+		if err != nil {
+			return err
+		}
+		defer nebulaStartShFile.Close()
+		// Create a new writer
+		writer := bufio.NewWriter(nebulaStartShFile)
+		// Write a string to the file
+		_, err = writer.WriteString(nebulaStartSh)
+		if err != nil {
+			return err
+		}
+		// Flush the writer to ensure all data has been written to the file
+		err = writer.Flush()
+		if err != nil {
+			return err
+		}
+		err = os.Chmod(nebulaStartShLocation, os.FileMode(0600))
+		if err != nil {
+			return errors.New("error changing permissions: " + err.Error())
+		}
+
 		emojlog.PrintLogMessage("Nebula pid: "+nebulaPid, emojlog.Debug)
 		killOut, err := exec.Command("kill", "-SIGTERM", nebulaPid).CombinedOutput()
 		if err != nil {
 			return errors.New(string(killOut))
 		}
-		nebulaStartErr := exec.Command("nohup", nebulaServiceFolder+"nebula", "-config", "/opt/nebula/config.yml", "1>"+nebulaServiceFolder+"log.txt", "2>&1", "&").Start()
+		nebulaStartErr := exec.Command("sh", nebulaStartShLocation).Start()
 		if err != nil {
 			return nebulaStartErr
 		}
