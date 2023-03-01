@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"hoster/emojlog"
+	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -40,7 +41,10 @@ var (
 		Short: "Use `tail -f` to display Nebula's live log",
 		Long:  `Use "tail -f" to display Nebula's live log`,
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Help()
+			err := tailNebulaLogFile()
+			if err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 )
@@ -55,8 +59,11 @@ var (
 		Short: "Start, stop, or reload Nebula process",
 		Long:  `Start, stop, or reload Nebula process`,
 		Run: func(cmd *cobra.Command, args []string) {
-			// cmd.Help()
-			reloadNebulaService()
+			if nebulaServiceReload {
+				reloadNebulaService()
+			} else {
+				cmd.Help()
+			}
 		},
 	}
 )
@@ -131,6 +138,20 @@ func reloadNebulaService() error {
 		emojlog.PrintLogMessage("Started new Nebula process", emojlog.Debug)
 	} else {
 		emojlog.PrintLogMessage("Service is not running", emojlog.Warning)
+	}
+
+	return nil
+}
+
+func tailNebulaLogFile() error {
+	tailCmd := exec.Command("tail", "-f", nebulaServiceFolder, "log.txt")
+	tailCmd.Stdin = os.Stdin
+	tailCmd.Stdout = os.Stdout
+	tailCmd.Stderr = os.Stderr
+
+	err := tailCmd.Run()
+	if err != nil {
+		return err
 	}
 
 	return nil
