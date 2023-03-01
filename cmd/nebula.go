@@ -98,6 +98,10 @@ var (
 			if err != nil {
 				log.Fatal(err)
 			}
+			err = downloadNebulaCerts()
+			if err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 )
@@ -252,6 +256,29 @@ func tailNebulaLogFile() error {
 
 func downloadNebulaConfig() error {
 	req, err := http.NewRequest("GET", "https://fastapi-test.yari.pw/get_config?cluster_name=GWIT&cluster_id=ocK7U4Xd&host_name=hoster-test-0101&host_id=UqKvh5YU&nat_punch=true&listen_host=0.0.0.0&listen_port=14001&mtu=1300&use_relays=true", nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Accept", "text/plain")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(body))
+
+	return nil
+}
+
+func downloadNebulaCerts() error {
+	req, err := http.NewRequest("GET", "https://fastapi-test.yari.pw/get_certs?cluster_name=GWIT&cluster_id=ocK7U4Xd&host_name=hoster-test-0101&host_id=UqKvh5YU", nil)
 	if err != nil {
 		return err
 	}
