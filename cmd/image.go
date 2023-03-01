@@ -82,33 +82,78 @@ func imageUnzip(imageDataset string, imageOsType string) error {
 	defer r.Close()
 
 	// Iterate through the files in the archive.
-	bar := progressbar.Default(
-		int64(len(r.File)),
-		" 📥 Unzipping the OS image || "+zipFileLocation+" || ",
-	)
+	// bar := progressbar.Default(
+	// 	int64(len(r.File)),
+	// 	" 📤 Unzipping the OS image || "+zipFileLocation+" || /tmp/disk0.img",
+	// )
+	// for _, f := range r.File {
+	// 	rc, err := f.Open()
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 		continue
+	// 	}
+	// 	defer rc.Close()
+
+	// 	// Create the destination file.
+	// 	// dst, err := os.Create(f.Name)
+	// 	dst, err := os.Create("/tmp/disk0.img")
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 		continue
+	// 	}
+	// 	defer dst.Close()
+
+	// 	// Copy the file contents to the destination file.
+	// 	if _, err := io.Copy(dst, rc); err != nil {
+	// 		fmt.Println(err)
+	// 		continue
+	// 	}
+	// 	bar.Add(1)
+	// }
+
+	// Find the first file in the archive
+	var file *zip.File
 	for _, f := range r.File {
-		rc, err := f.Open()
-		if err != nil {
-			fmt.Println(err)
-			continue
+		if !f.FileInfo().IsDir() {
+			file = f
+			break
 		}
-		defer rc.Close()
+	}
+	if file == nil {
+		return errors.New("no files found in archive")
+	}
 
-		// Create the destination file.
-		// dst, err := os.Create(f.Name)
-		dst, err := os.Create("/tmp/disk0.img")
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		defer dst.Close()
+	// Create the progress bar
+	bar := progressbar.NewOptions(
+		int(file.FileInfo().Size()),
+		progressbar.OptionSetRenderBlankState(true),
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionFullWidth(),
+		progressbar.OptionSetDescription(" 📤 Unzipping the OS image || "+zipFileLocation+" || /tmp/disk0.img"),
+	)
 
-		// Copy the file contents to the destination file.
-		if _, err := io.Copy(dst, rc); err != nil {
-			fmt.Println(err)
-			continue
-		}
-		bar.Add(1)
+	// Open the file inside the archive
+	rc, err := file.Open()
+	if err != nil {
+		fmt.Println("Error opening file in archive:", err)
+		return err
+	}
+	defer rc.Close()
+
+	// Create the output file
+	// fw, err := os.Create(file.Name)
+	fw, err := os.Create("/tmp/disk0.img")
+	if err != nil {
+		fmt.Println("Error creating output file:", err)
+		return err
+	}
+	defer fw.Close()
+
+	// Copy the file data and update the progress bar
+	_, err = io.Copy(io.MultiWriter(fw, bar), rc)
+	if err != nil {
+		fmt.Println("Error copying file data:", err)
+		return err
 	}
 
 	return nil
@@ -179,7 +224,7 @@ func imageDownload(osType string, force bool) error {
 
 		bar := progressbar.DefaultBytes(
 			resp.ContentLength,
-			" 📥 Downloading OS image || "+vmImage+" || ",
+			" 📥 Downloading OS image   || "+vmImage+" || /tmp/"+osType+".zip",
 		)
 		io.Copy(io.MultiWriter(f, bar), resp.Body)
 	} else {
