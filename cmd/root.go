@@ -122,6 +122,7 @@ func init() {
 	imageCmd.AddCommand(imageDownloadCmd)
 	imageDownloadCmd.Flags().BoolVarP(&imageForceDownload, "force-download", "f", false, "Re-download the image, even if it exists (used to update images)")
 	imageDownloadCmd.Flags().StringVarP(&imageOsType, "os-type", "t", "debian11", "Specify the OS/distribution image type")
+	imageDownloadCmd.Flags().StringVarP(&imageDataset, "use-dataset", "d", "zroot/vm-encrypted", "Specify the dataset for this particular image")
 
 	// Version command section
 	rootCmd.AddCommand(versionCmd)
