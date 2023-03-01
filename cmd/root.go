@@ -123,6 +123,20 @@ func init() {
 	imageDownloadCmd.Flags().StringVarP(&imageOsType, "os-type", "t", "debian11", "Specify the OS/distribution image type")
 	imageDownloadCmd.Flags().StringVarP(&imageDataset, "use-dataset", "d", "zroot/vm-encrypted", "Specify the dataset for this particular image")
 
+	// VM cmd -> nebula
+	rootCmd.AddCommand(nebulaCmd)
+	nebulaCmd.AddCommand(nebulaInitCmd)
+	nebulaCmd.AddCommand(nebulaShowLogCmd)
+
+	nebulaCmd.AddCommand(nebulaServiceCmd)
+	nebulaServiceCmd.Flags().BoolVarP(&nebulaServiceStart, "start", "s", false, "Start Nebula service")
+	nebulaServiceCmd.Flags().BoolVarP(&nebulaServiceStop, "stop", "k", false, "Stop/kill Nebula service")
+	nebulaServiceCmd.Flags().BoolVarP(&nebulaServiceReload, "reload", "r", false, "Restart Nebula service")
+
+	nebulaCmd.AddCommand(nebulaUpdateCmd)
+	nebulaUpdateCmd.Flags().BoolVarP(&nebulaUpdateBinary, "binary", "b", false, "Download a fresh Nebula binary")
+	nebulaUpdateCmd.Flags().BoolVarP(&nebulaUpdateConfig, "config", "c", false, "Request Nebula Control Plane to generate new config, and then download it")
+
 	// Version command section
 	rootCmd.AddCommand(versionCmd)
 }
