@@ -52,7 +52,8 @@ var (
 		Short: "Start, stop, or reload Nebula process",
 		Long:  `Start, stop, or reload Nebula process`,
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Help()
+			// cmd.Help()
+			reloadNebulaService()
 		},
 	}
 )
@@ -66,8 +67,7 @@ var (
 		Short: "Download the latest changes from Nebula Control Plane API server",
 		Long:  `Download the latest changes from Nebula Control Plane API server`,
 		Run: func(cmd *cobra.Command, args []string) {
-			// cmd.Help()
-			reloadNebulaService()
+			cmd.Help()
 		},
 	}
 )
