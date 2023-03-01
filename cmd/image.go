@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"os"
 	"path"
 
 	"facette.io/natsort"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 )
 
@@ -66,29 +68,43 @@ func imageDownload(osType string, force bool) error {
 	if err != nil {
 		return err
 	}
-
-	var m map[string][]map[string][]string
-	err = json.Unmarshal(body, &m)
+	var vmImageMap map[string][]map[string][]string
+	err = json.Unmarshal(body, &vmImageMap)
 	if err != nil {
-		panic(err)
+		return err
 	}
-
 	var imageList []string
-	for _, v := range m["vm_images"] {
+	for _, v := range vmImageMap["vm_images"] {
 		for key, vv := range v {
 			if key == osType {
-				// fmt.Println(k, v)
 				imageList = vv
 				natsort.Sort(imageList)
 			}
 		}
 	}
-
 	if len(imageList) > 0 {
-		println(imageList[len(imageList)-1])
-		println("Full image link: " + hostConfig.ImageServer + "images/" + imageList[len(imageList)-1])
+		vmImage := imageList[len(imageList)-1]
+		vmImageFullLink := hostConfig.ImageServer + "images/" + vmImage
+		req, err := http.NewRequest("GET", vmImageFullLink, nil)
+		if err != nil {
+			return err
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		f, _ := os.OpenFile("/tmp/"+osType+".zip", os.O_CREATE|os.O_WRONLY, 0600)
+		defer f.Close()
+
+		bar := progressbar.DefaultBytes(
+			resp.ContentLength,
+			"downloading",
+		)
+		io.Copy(io.MultiWriter(f, bar), resp.Body)
 	} else {
-		println("Image list is empty, sorry")
+		return errors.New("sorry, could not find the image")
 	}
 
 	return nil
