@@ -101,10 +101,7 @@ const nebulaServiceFolder = "/opt/nebula/"
 func startNebulaService() error {
 	reMatchLocation := regexp.MustCompile(`.*` + nebulaServiceFolder + `nebula.*`)
 	reMatchSpace := regexp.MustCompile(`\s+`)
-	pgrepOut, err := exec.Command("pgrep", "-lf", "nebula").CombinedOutput()
-	if err != nil {
-		return errors.New(string(pgrepOut))
-	}
+	pgrepOut, _ := exec.Command("pgrep", "-lf", "nebula").CombinedOutput()
 
 	nebulaPid := ""
 	for _, v := range strings.Split(string(pgrepOut), "\n") {
