@@ -30,16 +30,15 @@ var (
 )
 
 var (
-	imageOsType        string
-	imageForceDownload bool
-	imageDataset       string
+	imageOsType  string
+	imageDataset string
 
 	imageDownloadCmd = &cobra.Command{
 		Use:   "download",
 		Short: "Download an image from the public or private repo",
 		Long:  `Download an image from the public or private repo`,
 		Run: func(cmd *cobra.Command, args []string) {
-			err := imageDownload(imageOsType, imageForceDownload)
+			err := imageDownload(imageOsType)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -146,7 +145,7 @@ func imageUnzip(imageDataset string, imageOsType string) error {
 	return nil
 }
 
-func imageDownload(osType string, force bool) error {
+func imageDownload(osType string) error {
 	// Host config read/parse
 	hostConfig := HostConfig{}
 	// JSON config file location

@@ -101,6 +101,8 @@ func deployVmMain(vmName string, osType string, dsParent string, cpus int, ram s
 		return errors.New("could not generate vm name: " + err.Error())
 	}
 
+	emojlog.PrintLogMessage("Deploying new VM: "+c.VmName, emojlog.Info)
+
 	// Generate and set random MAC address
 	c.MacAddress, err = generateRandomMacAddress()
 	if err != nil {
@@ -128,6 +130,7 @@ func deployVmMain(vmName string, osType string, dsParent string, cpus int, ram s
 		c.LiveStatus = "production"
 	}
 
+	emojlog.PrintLogMessage("OS type used: "+osType, emojlog.Debug)
 	c.OsType = osType
 	switch c.OsType {
 	case "debian11":
@@ -217,6 +220,7 @@ func deployVmMain(vmName string, osType string, dsParent string, cpus int, ram s
 	}
 
 	// Write config files
+	emojlog.PrintLogMessage("Writing CloudInit config files", emojlog.Debug)
 	newVmFolder := "/" + dsParent + "/" + c.VmName
 
 	// Open a new file for writing
