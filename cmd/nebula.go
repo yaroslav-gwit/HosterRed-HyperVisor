@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"fmt"
+	"errors"
+	"hoster/emojlog"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -80,7 +81,7 @@ func reloadNebulaService() error {
 	reMatchSpace := regexp.MustCompile(`\s+`)
 	pgrepOut, err := exec.Command("pgrep", "-lf", "nebula").CombinedOutput()
 	if err != nil {
-		return err
+		return errors.New(string(pgrepOut))
 	}
 
 	nebulaPid := ""
@@ -91,9 +92,18 @@ func reloadNebulaService() error {
 	}
 
 	if len(nebulaPid) > 0 {
-		fmt.Println(nebulaPid)
+		emojlog.PrintLogMessage("Nebula pid: "+nebulaPid, emojlog.Debug)
+		killOut, err := exec.Command("kill", "-SIGTERM", nebulaPid).CombinedOutput()
+		if err != nil {
+			return errors.New(string(killOut))
+		}
+		nebulaStartErr := exec.Command("nohup", nebulaServiceFolder+"nebula", "-config", "/opt/nebula/config.yml", "1>"+nebulaServiceFolder+"log.txt", "2>&1", "&").Start()
+		if err != nil {
+			return nebulaStartErr
+		}
+		emojlog.PrintLogMessage("Nebula process started", emojlog.Debug)
 	} else {
-		fmt.Println("Service is not running!")
+		emojlog.PrintLogMessage("Service is not running", emojlog.Warning)
 	}
 
 	return nil
