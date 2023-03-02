@@ -20,6 +20,6 @@ echo "Copied over config files"
 
 rm -f /bin/hoster
 ln -s /opt/hoster-core/hoster /bin/hoster
-echo "Linked `hoster` to `/bin/hoster` for system-wide use"
+echo "Linked 'hoster' to '/bin/hoster' for system-wide use"
 
 echo "=== Installation process done ==="
