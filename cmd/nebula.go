@@ -287,7 +287,7 @@ func readNebulaClusterConfig() (NebulaClusterConfig, error) {
 		return NebulaClusterConfig{}, err
 	}
 
-	return NebulaClusterConfig{}, nil
+	return config, nil
 }
 
 func downloadNebulaConfig() error {
