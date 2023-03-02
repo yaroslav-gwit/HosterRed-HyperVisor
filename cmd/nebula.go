@@ -319,7 +319,12 @@ func downloadNebulaConfig() error {
 }
 
 func downloadNebulaCerts() error {
-	req, err := http.NewRequest("GET", "https://fastapi-test.yari.pw/get_certs?cluster_name=GWIT&cluster_id=ocK7U4Xd&host_name=hoster-test-0101&host_id=UqKvh5YU", nil)
+	c, err := readNebulaClusterConfig()
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("GET", "https://"+c.APIServer+"/get_certs?cluster_name="+c.ClusterName+"&cluster_id="+c.ClusterID+"&host_name="+GetHostName()+"&host_id="+c.HostID, nil)
 	if err != nil {
 		return err
 	}
