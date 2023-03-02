@@ -1,7 +1,7 @@
 {
-    "cluster_name": "cname",
-    "cluster_id": "cid",
-    "host_id": "hid",
+    "cluster_name": "GWIT",
+    "cluster_id": "ocK7U4Xd",
+    "host_id": "UqKvh5YU",
 
     "nat_punch": "True",
     "listen_address": "0.0.0.0",
