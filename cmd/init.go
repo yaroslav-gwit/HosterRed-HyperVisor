@@ -3,7 +3,6 @@ package cmd
 import (
 	"errors"
 	"hoster/emojlog"
-	"log"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -20,19 +19,19 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			err := loadMissingModules()
 			if err != nil {
-				log.Fatal(err.Error())
+				emojlog.PrintLogMessage("Could not load kernel modules: "+err.Error(), emojlog.Warning)
 			}
 			err = applySysctls()
 			if err != nil {
-				log.Fatal(err.Error())
+				emojlog.PrintLogMessage("Could not apply sysctls: "+err.Error(), emojlog.Warning)
 			}
 			err = loadNetworkConfig()
 			if err != nil {
-				log.Fatal(err.Error())
+				emojlog.PrintLogMessage("Could not load network config: "+err.Error(), emojlog.Warning)
 			}
 			err = applyPfSettings()
 			if err != nil {
-				log.Fatal(err.Error())
+				emojlog.PrintLogMessage("Could not reload pf: "+err.Error(), emojlog.Warning)
 			}
 
 			// Try to start Nebula if it's config file exists
@@ -40,7 +39,7 @@ var (
 			if err == nil {
 				err := startNebulaService()
 				if err != nil {
-					log.Fatal(err.Error())
+					emojlog.PrintLogMessage("Could not start Nebula service: "+err.Error(), emojlog.Warning)
 				}
 			}
 
