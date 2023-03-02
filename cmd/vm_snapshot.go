@@ -167,7 +167,8 @@ func cleanupOldSnapshots(vmSnapshots []string, snapshotType string, snapshotsToK
 	}
 
 	if len(correctTypeVmSnaps) > snapshotsToKeep {
-		for i := range make([]int, snapshotsToKeep-1) {
+		snapRemovalRange := len(correctTypeVmSnaps) - snapshotsToKeep - 1
+		for i := range make([]int, snapRemovalRange) {
 			result.snapsToDelete = append(result.snapsToDelete, correctTypeVmSnaps[i])
 		}
 	}
