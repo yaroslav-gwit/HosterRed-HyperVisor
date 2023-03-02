@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"hoster/emojlog"
@@ -10,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
 	"regexp"
 	"strings"
 
@@ -254,8 +256,47 @@ func tailNebulaLogFile() error {
 	return nil
 }
 
+type NebulaClusterConfig struct {
+	ClusterName   string `json:"cluster_name"`
+	ClusterID     string `json:"cluster_id"`
+	HostID        string `json:"host_id"`
+	NatPunch      string `json:"nat_punch"`
+	ListenAddress string `json:"listen_address"`
+	ListenPort    string `json:"listen_port"`
+	MTU           string `json:"mtu"`
+	UseRelays     string `json:"use_relays"`
+	APIServer     string `json:"api_server"`
+}
+
+func readNebulaClusterConfig() (NebulaClusterConfig, error) {
+	execPath, err := os.Executable()
+	if err != nil {
+		return NebulaClusterConfig{}, err
+	}
+	nebulaClusterConfigFile := path.Dir(execPath) + "/config_files/nebula_config.json"
+	// read the json file from disk
+	data, err := os.ReadFile(nebulaClusterConfigFile)
+	if err != nil {
+		return NebulaClusterConfig{}, err
+	}
+
+	// unmarshal the json data into a Config struct
+	var config NebulaClusterConfig
+	err = json.Unmarshal(data, &config)
+	if err != nil {
+		return NebulaClusterConfig{}, err
+	}
+
+	return NebulaClusterConfig{}, nil
+}
+
 func downloadNebulaConfig() error {
-	req, err := http.NewRequest("GET", "https://fastapi-test.yari.pw/get_config?cluster_name=GWIT&cluster_id=ocK7U4Xd&host_name=hoster-test-0101&host_id=UqKvh5YU&nat_punch=true&listen_host=0.0.0.0&listen_port=14001&mtu=1300&use_relays=true", nil)
+	c, err := readNebulaClusterConfig()
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("GET", "https://"+c.APIServer+"/get_config?cluster_name="+c.ClusterName+"&cluster_id="+c.ClusterID+"&host_name="+GetHostName()+"&host_id="+c.HostID+"&nat_punch="+c.NatPunch+"&listen_host="+c.ListenAddress+"&listen_port="+c.ListenPort+"&mtu="+c.MTU+"&use_relays="+c.UseRelays, nil)
 	if err != nil {
 		return err
 	}
