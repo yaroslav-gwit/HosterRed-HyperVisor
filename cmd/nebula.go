@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"hoster/emojlog"
 	"io"
 	"log"
@@ -15,6 +14,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 )
 
@@ -32,10 +32,13 @@ var (
 var (
 	nebulaInitCmd = &cobra.Command{
 		Use:   "init",
-		Short: "Initialize Nebula on this node",
-		Long:  `Initialize Nebula on this node (requires valid Nebula JSON config file)`,
+		Short: "Bootstrap Nebula on this node",
+		Long:  `Bootstrap Nebula on this node (requires valid Nebula JSON config file)`,
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Help()
+			err := nebulaBootstrap()
+			if err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 )
@@ -95,14 +98,22 @@ var (
 		Short: "Download the latest changes from Nebula Control Plane API server",
 		Long:  `Download the latest changes from Nebula Control Plane API server`,
 		Run: func(cmd *cobra.Command, args []string) {
-			// cmd.Help()
-			err := downloadNebulaConfig()
-			if err != nil {
-				log.Fatal(err)
-			}
-			err = downloadNebulaCerts()
-			if err != nil {
-				log.Fatal(err)
+			if nebulaUpdateConfig {
+				err := downloadNebulaConfig()
+				if err != nil {
+					log.Fatal(err)
+				}
+				err = downloadNebulaCerts()
+				if err != nil {
+					log.Fatal(err)
+				}
+			} else if nebulaUpdateBinary {
+				err := downloadNebulaBin()
+				if err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				cmd.Help()
 			}
 		},
 	}
@@ -313,7 +324,40 @@ func downloadNebulaConfig() error {
 		return err
 	}
 
-	fmt.Println(string(body))
+	reMatch := regexp.MustCompile(`.*/opt/nebula/ca.crt.*`)
+	configFileValid := false
+	for _, v := range strings.Split(string(body), "\n") {
+		if reMatch.MatchString(v) {
+			configFileValid = true
+			break
+		}
+	}
+	if !configFileValid {
+		return errors.New("please check your settings: " + string(body))
+	}
+
+	// Open nebulaStartShLocation for writing
+	nebulaConfFile, err := os.Create(nebulaServiceFolder + "config.yml")
+	if err != nil {
+		return err
+	}
+	defer nebulaConfFile.Close()
+	// Create a new writer
+	writer := bufio.NewWriter(nebulaConfFile)
+	// Write a string to the file
+	_, err = writer.WriteString(string(body))
+	if err != nil {
+		return err
+	}
+	// Flush the writer to ensure all data has been written to the file
+	err = writer.Flush()
+	if err != nil {
+		return err
+	}
+	err = os.Chmod(nebulaServiceFolder+"config.yml", os.FileMode(0600))
+	if err != nil {
+		return errors.New("error changing permissions: " + err.Error())
+	}
 
 	return nil
 }
@@ -341,7 +385,105 @@ func downloadNebulaCerts() error {
 		return err
 	}
 
-	fmt.Println(string(body))
+	reMatch := regexp.MustCompile(`.*BEGIN NEBULA CERTIFICATE.*`)
+	certShValid := false
+	for _, v := range strings.Split(string(body), "\n") {
+		if reMatch.MatchString(v) {
+			certShValid = true
+			break
+		}
+	}
+	if !certShValid {
+		return errors.New("please check your settings: " + string(body))
+	}
+
+	// Open nebulaStartShLocation for writing
+	nebulaCertsFile, err := os.Create("/tmp/nebula_certs.sh")
+	if err != nil {
+		return err
+	}
+	defer nebulaCertsFile.Close()
+	// Create a new writer
+	writer := bufio.NewWriter(nebulaCertsFile)
+	// Write a string to the file
+	_, err = writer.WriteString(string(body))
+	if err != nil {
+		return err
+	}
+	// Flush the writer to ensure all data has been written to the file
+	err = writer.Flush()
+	if err != nil {
+		return err
+	}
+	err = exec.Command("sh", "/tmp/nebula_certs.sh").Run()
+	if err != nil {
+		return err
+	}
+
+	_ = os.Remove("/tmp/nebula_certs.sh")
+
+	return nil
+}
+
+func downloadNebulaBin() error {
+	c, err := readNebulaClusterConfig()
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("GET", "https://"+c.APIServer+"/get_bins?os=freebsd&arch=amd64&nebula=true&service=false", nil)
+	if err != nil {
+		return err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	_ = os.Remove(nebulaServiceFolder + "nebula")
+	f, _ := os.OpenFile(nebulaServiceFolder+"nebula", os.O_CREATE|os.O_WRONLY, 0700)
+	defer f.Close()
+
+	bar := progressbar.DefaultBytes(
+		resp.ContentLength,
+		" 📥 Downloading new Nebula binary || "+nebulaServiceFolder+"nebula",
+	)
+	io.Copy(io.MultiWriter(f, bar), resp.Body)
+
+	return nil
+}
+
+func nebulaBootstrap() error {
+	err := exec.Command("mkdir", "-p", nebulaServiceFolder).Run()
+	if err != nil {
+		return err
+	}
+	err = exec.Command("chmod", "700", nebulaServiceFolder).Run()
+	if err != nil {
+		return err
+	}
+
+	err = downloadNebulaBin()
+	if err != nil {
+		return err
+	}
+
+	err = downloadNebulaConfig()
+	if err != nil {
+		return err
+	}
+
+	err = downloadNebulaCerts()
+	if err != nil {
+		return err
+	}
+
+	err = startNebulaService()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

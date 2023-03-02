@@ -34,6 +34,16 @@ var (
 			if err != nil {
 				log.Fatal(err.Error())
 			}
+
+			// Try to start Nebula if it's config file exists
+			_, err = readNebulaClusterConfig()
+			if err == nil {
+				err := startNebulaService()
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+			}
+
 			emojlog.PrintLogMessage("Please don't forget to mount any encrypted ZFS volumes", emojlog.Info)
 		},
 	}
