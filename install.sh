@@ -8,7 +8,7 @@ bash build.sh
 echo ""
 echo "=== Starting the installation process ==="
 
-mkdir /opt/hoster-core/
+mkdir -p /opt/hoster-core/
 
 cp hoster /opt/hoster-core/
 cp vm_supervisor_service /opt/hoster-core/
