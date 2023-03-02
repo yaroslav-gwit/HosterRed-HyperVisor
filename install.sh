@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 set -e
 
+bash pull_changes.sh
+echo ""
+
 bash build.sh
 echo ""
 echo "=== Starting the installation process ==="
