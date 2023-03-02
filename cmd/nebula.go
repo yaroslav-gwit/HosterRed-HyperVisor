@@ -13,6 +13,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
@@ -307,6 +308,7 @@ func downloadNebulaConfig() error {
 		return err
 	}
 
+	emojlog.PrintLogMessage("Initiating Nebula config file download", emojlog.Debug)
 	req, err := http.NewRequest("GET", "https://"+c.APIServer+"/get_config?cluster_name="+c.ClusterName+"&cluster_id="+c.ClusterID+"&host_name="+GetHostName()+"&host_id="+c.HostID+"&nat_punch="+c.NatPunch+"&listen_host="+c.ListenAddress+"&listen_port="+c.ListenPort+"&mtu="+c.MTU+"&use_relays="+c.UseRelays, nil)
 	if err != nil {
 		return err
@@ -359,6 +361,7 @@ func downloadNebulaConfig() error {
 		return errors.New("error changing permissions: " + err.Error())
 	}
 
+	emojlog.PrintLogMessage("Nebula config file download is now done", emojlog.Info)
 	return nil
 }
 
@@ -368,6 +371,7 @@ func downloadNebulaCerts() error {
 		return err
 	}
 
+	emojlog.PrintLogMessage("Initiating Nebula certificates download", emojlog.Debug)
 	req, err := http.NewRequest("GET", "https://"+c.APIServer+"/get_certs?cluster_name="+c.ClusterName+"&cluster_id="+c.ClusterID+"&host_name="+GetHostName()+"&host_id="+c.HostID, nil)
 	if err != nil {
 		return err
@@ -422,6 +426,7 @@ func downloadNebulaCerts() error {
 
 	_ = os.Remove("/tmp/nebula_certs.sh")
 
+	emojlog.PrintLogMessage("Nebula certificates download is now done", emojlog.Info)
 	return nil
 }
 
@@ -431,6 +436,7 @@ func downloadNebulaBin() error {
 		return err
 	}
 
+	emojlog.PrintLogMessage("Initiating latest compatible Nebula binary download", emojlog.Debug)
 	req, err := http.NewRequest("GET", "https://"+c.APIServer+"/get_bins?os=freebsd&arch=amd64&nebula=true&service=false", nil)
 	if err != nil {
 		return err
@@ -452,6 +458,8 @@ func downloadNebulaBin() error {
 	)
 	io.Copy(io.MultiWriter(f, bar), resp.Body)
 
+	time.Sleep(time.Millisecond * 250)
+	emojlog.PrintLogMessage("Latest compatible Nebula binary download is now done", emojlog.Info)
 	return nil
 }
 
