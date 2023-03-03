@@ -105,6 +105,7 @@ if [ -x /usr/bin/resizewin ] ; then /usr/bin/resizewin -z ; fi
 # if [ -x /usr/bin/fortune ] ; then /usr/bin/fortune -s ; fi
 
 export EDITOR=micro
+alias vmls="hoster vm list"
 EOF
 
 
@@ -204,7 +205,7 @@ cat << EOF | cat
 ╭────────────────────────────────────────────────────────────────────────────╮
 │                                                                            │
 │  The installation is now finished.                                         │
-│  Your ZFS encryption password: It's right below this box                   │
+│  Your ZFS encryption password: it's right below this box                   │
 │                                                                            │
 │  Please save your password! If you lose it, your VMs on the encrypted      │
 │  dataset will be lost!                                                     │
