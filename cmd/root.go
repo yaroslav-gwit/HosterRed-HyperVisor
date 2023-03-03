@@ -90,7 +90,7 @@ func init() {
 	vmDeployCmd.Flags().StringVarP(&vmDeployRam, "ram", "r", "2G", "Amount of RAM to assign to this VM (ie 1500MB, 2GB, etc)")
 	vmDeployCmd.Flags().StringVarP(&osType, "os-stype", "t", "debian11", "OS or type or distribution (ie: debian11, ubuntu2004, etc)")
 	vmDeployCmd.Flags().StringVarP(&zfsDataset, "dataset", "d", "zroot/vm-encrypted", "Choose the parent dataset for the VM deployment")
-	vmDeployCmd.Flags().BoolVarP(&vmDeployStartWhenReady, "start", "s", false, "Whether to start the VM after it's deployed")
+	vmDeployCmd.Flags().BoolVarP(&vmDeployStartWhenReady, "start-now", "", false, "Whether to start the VM after it's deployed")
 
 	// VM cmd -> vm deploy
 	vmCmd.AddCommand(vmCiResetCmd)
