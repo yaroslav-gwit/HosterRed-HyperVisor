@@ -86,7 +86,7 @@ CMD_LINE='gateway_enable="yes"' && if [[ $(grep -c "${CMD_LINE}" ${RC_CONF_FILE}
 
 #_ SET CORRECT PROFILE FILE _#
 cat << 'EOF' | cat > /root/.profile
-PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:~/bin
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:~/bin:/opt/hoster-core
 export PATH
 HOME=/root
 export HOME
