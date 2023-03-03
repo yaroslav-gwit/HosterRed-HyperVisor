@@ -39,8 +39,8 @@ func vmStop(vmName string) error {
 	StopBhyveProcess(vmName)
 	vmSupervisorCleanup(vmName)
 	StopBhyveProcess(vmName)
-	NetworkCleanup(vmName)
-	BhyvectlDestroy(vmName)
+	NetworkCleanup(vmName, false)
+	BhyvectlDestroy(vmName, false)
 
 	return nil
 }
@@ -122,11 +122,13 @@ func vmSupervisorCleanup(vmName string) {
 	emojlog.PrintLogMessage("Done cleaning up after vm supervisor", emojlog.Changed)
 }
 
-func NetworkCleanup(vmName string) {
-	emojlog.PrintLogMessage("Starting network cleanup", emojlog.Debug)
+func NetworkCleanup(vmName string, quiet bool) {
+	if !quiet {
+		emojlog.PrintLogMessage("Starting network cleanup", emojlog.Debug)
+	}
 	cmd := exec.Command("ifconfig")
 	stdout, stderr := cmd.Output()
-	if stderr != nil {
+	if stderr != nil && !quiet {
 		emojlog.PrintLogMessage("ifconfig exited with an error: "+stderr.Error(), emojlog.Error)
 	}
 
@@ -143,17 +145,21 @@ func NetworkCleanup(vmName string) {
 			ifconfigDestroyCmd3 := "destroy"
 			cmd := exec.Command(ifconfigDestroyCmd1, tap, ifconfigDestroyCmd3)
 			stderr := cmd.Run()
-			if stderr != nil {
+			if stderr != nil && !quiet {
 				emojlog.PrintLogMessage("ifconfig destroy was not successful: "+stderr.Error(), emojlog.Error)
 
 			}
 		}
 	}
-	emojlog.PrintLogMessage("Done cleaning up TAP network interfaces", emojlog.Debug)
+	if !quiet {
+		emojlog.PrintLogMessage("Done cleaning up TAP network interfaces", emojlog.Debug)
+	}
 }
 
-func BhyvectlDestroy(vmName string) {
-	emojlog.PrintLogMessage("Cleaning up Bhyve resources", emojlog.Debug)
+func BhyvectlDestroy(vmName string, quiet bool) {
+	if !quiet {
+		emojlog.PrintLogMessage("Cleaning up Bhyve resources", emojlog.Debug)
+	}
 	time.Sleep(time.Second * 2)
 	lsCommand1 := "ls"
 	lsCommand2 := "-1"
@@ -165,16 +171,20 @@ func BhyvectlDestroy(vmName string) {
 	for _, v := range strings.Split(string(stdout), "\n") {
 		v = strings.TrimSpace(v)
 		if matchVM.MatchString(v) {
-			emojlog.PrintLogMessage("Destroying a VM using bhyvectl: "+vmName, emojlog.Debug)
+			if !quiet {
+				emojlog.PrintLogMessage("Destroying a VM using bhyvectl: "+vmName, emojlog.Debug)
+			}
 			bhyvectlCommand1 := "bhyvectl"
 			bhyvectlCommand2 := "--destroy"
 			bhyvectlCommand3 := "--vm=" + vmName
 			cmd := exec.Command(bhyvectlCommand1, bhyvectlCommand2, bhyvectlCommand3)
 			stderr := cmd.Run()
-			if stderr != nil {
+			if stderr != nil && !quiet {
 				emojlog.PrintLogMessage("bhyvectl exited with an error: "+stderr.Error(), emojlog.Error)
 			}
 		}
 	}
-	emojlog.PrintLogMessage("Done cleaning up Bhyve resources", emojlog.Changed)
+	if !quiet {
+		emojlog.PrintLogMessage("Done cleaning up Bhyve resources", emojlog.Changed)
+	}
 }
