@@ -193,7 +193,6 @@ EOF
 
 wget https://github.com/yaroslav-gwit/HosterRed-HyperVisor/releases/download/v0.1/hoster -O ${HOSTER_WD}hoster -q --show-progress
 chmod +x ${HOSTER_WD}hoster
-ln ${HOSTER_WD}hoster /bin/hoster
 
 wget https://github.com/yaroslav-gwit/HosterRed-HyperVisor/releases/download/v0.1/vm_supervisor_service -O ${HOSTER_WD}vm_supervisor_service -q --show-progress
 chmod +x ${HOSTER_WD}vm_supervisor_service

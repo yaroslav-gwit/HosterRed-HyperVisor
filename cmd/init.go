@@ -34,6 +34,9 @@ var (
 				emojlog.PrintLogMessage("Could not reload pf: "+err.Error(), emojlog.Warning)
 			}
 
+			// Load Unbound settings (monkey patch for fresh installations, or user initiated config changes)
+			restartUnbound()
+
 			// Try to start Nebula if it's config file exists
 			_, err = readNebulaClusterConfig()
 			if err == nil {
@@ -234,4 +237,16 @@ func applyPfSettings() error {
 	}
 	emojlog.PrintLogMessage("pf Settings have been applied: pfctl -f /etc/pf.conf", emojlog.Changed)
 	return nil
+}
+
+func restartUnbound() {
+	err := generateNewDnsConfig()
+	if err != nil {
+		emojlog.PrintLogMessage("Could not generate new Unbound config: "+err.Error(), emojlog.Error)
+	}
+
+	unboundOut, unboundErr := exec.Command("service", "local_unbound", "restart").CombinedOutput()
+	if unboundErr != nil {
+		emojlog.PrintLogMessage("Could not restart Unbound: "+string(unboundOut), emojlog.Error)
+	}
 }
