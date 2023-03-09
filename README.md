@@ -1,3 +1,7 @@
+# New version available!
+This version is now archived due to new version available, which was written in Go to improve performance.
+https://github.com/yaroslav-gwit/HosterCore
+
 # General Information
 ![HosterRed Logo](https://github.com/yaroslav-gwit/HosterRed-HyperVisor/blob/python-branch-main/screenshots/HosterRed%20Logo%20Dark.png)
 Hoster is a highly opinionated VM management framework, which includes: network isolation (at the VM level), dataset encryption (at the ZFS level), instant VM deployments, storage replication between 2 or more hosts and more. It uses Python3, FreeBSD, bhyve, ZFS, and PF to achieve all of it's goals ✅🚀.</br></br>
