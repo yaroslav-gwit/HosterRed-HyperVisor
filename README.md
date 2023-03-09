@@ -1,5 +1,9 @@
 # New version available!
-This version is now archived due to new version available, which was written in Go to improve performance.
+This version is now archived due to new version available, which was written in Go to improve performance and developer experience.
+<br>
+<br>
+You can a new version here:
+<br>
 https://github.com/yaroslav-gwit/HosterCore
 
 # General Information
